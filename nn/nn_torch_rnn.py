@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import copy
+import random
 from torch.nn.utils import parameters_to_vector
 
 NETCONF = [46,50,10,3]
@@ -127,3 +128,28 @@ class NeuralNetwork(nn.Module):
         # print(matrix_layers)
         # print ("######################################################")
         return matrix_layers
+
+
+
+    @staticmethod
+    def fast_calc_all_outs(all_visions, creatures_nns):
+        # Это заглушка для
+        all_outs = [] # all_outs[] = [angle_delta, speed_delta, bite]
+
+        for index,out in enumerate(creatures_nns):
+            angle_delta = 0.0
+            speed_delta = 0.3
+            bite = 0.0
+            
+            if (all_visions[index][7] > 250) and (all_visions[index][22] < 50) and (all_visions[index][37] < 50):
+                angle_delta = 0.01*(random.random()-0.5)
+            else:
+                angle_delta = 1*(random.random()-0.5)
+            all_outs.append([
+                angle_delta, 
+                speed_delta, 
+                bite
+                ])
+                    
+        return all_outs
+

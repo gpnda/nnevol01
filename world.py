@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from creature import Creature
+from nn.nn_torch_rnn import NeuralNetwork
 import random
 import math
 from debugger import debug
@@ -66,7 +67,7 @@ class World():
 		for creature in self.creatures:
 			creatures_nns.append(creature.nn) # Здесь не creature.nn надо, а функцию, возвращающую веса, например creature.get_brain_wights(). Ну, ок, пока не важно.
 		# запускаем быструю функцию
-		all_outs = self.fast_get_all_outs(all_visions, creatures_nns)
+		all_outs = NeuralNetwork.fast_calc_all_outs(all_visions, creatures_nns)
 		# all_outs[] = [angle_delta, speed_delta, bite]
 
 
@@ -226,24 +227,3 @@ class World():
 
 
 
-	@staticmethod
-	def fast_get_all_outs(all_visions, creatures_nns):
-		# Это заглушка для
-		all_outs = [] # all_outs[] = [angle_delta, speed_delta, bite]
-
-		for index,out in enumerate(creatures_nns):
-			angle_delta = 0.0
-			speed_delta = 0.3
-			bite = 0.0
-			
-			if (all_visions[index][7] > 250) and (all_visions[index][22] < 50) and (all_visions[index][37] < 50):
-				angle_delta = 0.01*(random.random()-0.5)
-			else:
-				angle_delta = 1*(random.random()-0.5)
-			all_outs.append([
-				angle_delta, 
-				speed_delta, 
-				bite
-				])
-					
-		return all_outs
