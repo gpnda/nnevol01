@@ -1,0 +1,96 @@
+# -*- coding: utf-8 -*-
+from nn_torch_rnn import NeuralNetwork        # Внутри - класс NeuralNetwork
+
+class Creature():
+    
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+        self.health = 100
+        self.energy = 50
+        self.age = 0
+        self.speed = 1
+        self.angle = 0.1
+        self.vision_distance = 20
+        self.nn = NeuralNetwork()
+    
+
+
+
+
+# 
+# 
+# 
+# ЧТО НАРЕКОМЕНДОВАЛ DEEPSEEK
+# 
+# 
+#   def update(self, world: World):
+#         """Полный цикл обновления существа."""
+#         # 1. Обновляем физиологию
+#         self._update_physiology()
+        
+#         # 2. Если существо живо - действуем
+#         if self.is_alive and self.energy > 0:
+#             # 3. Получаем информацию о мире
+#             vision = self.get_creature_vision(world)
+            
+#             # 4. Принимаем решение
+#             action = self.pass_vision_to_neural_network(vision)
+            
+#             # 5. Выполняем действие
+#             self.execute_output_as_creature_decisions(action, world)
+# 
+# 
+# 
+# 
+# 
+# 
+#     def get_creature_vision(self, world: World) -> VisionData:
+#         """Собирает информацию о мире вокруг существа."""
+#         vision_data = VisionData()
+        
+#         # Сканируем область вокруг
+#         for dx in range(-self.vision_range, self.vision_range + 1):
+#             for dy in range(-self.vision_range, self.vision_range + 1):
+#                 if dx == 0 and dy == 0:
+#                     continue
+                    
+#                 world_x, world_y = self.x + dx, self.y + dy
+#                 if world.is_valid_position(world_x, world_y):
+#                     cell_value = world.get_cell(world_x, world_y)
+#                     distance = max(abs(dx), abs(dy))
+                    
+#                     vision_data.add_cell(dx, dy, cell_value, distance)
+        
+#         return vision_data
+    
+#     def pass_vision_to_neural_network(self, vision: VisionData) -> Action:
+#         """Обрабатывает визуальную информацию через ИИ."""
+#         # Преобразуем vision в входные данные для нейросети
+#         network_input = self._vision_to_network_input(vision)
+        
+#         # Получаем решение от мозга
+#         network_output = self.brain.process(network_input)
+        
+#         # Интерпретируем выход нейросети как действие
+#         return self._network_output_to_action(network_output)
+    
+#     def execute_output_as_creature_decisions(self, action: Action, world: World):
+#         """Выполняет выбранное действие в мире."""
+#         if action.type == ActionType.MOVE:
+#             world.move_creature_by(self, action.dx, action.dy)
+#         elif action.type == ActionType.EAT:
+#             self.try_eat_at(world, self.x + action.dx, self.y + action.dy)
+#         elif action.type == ActionType.REST:
+#             self.rest()
+    
+#     def _update_physiology(self):
+#         """Обновляет внутреннее состояние (энергия, здоровье)."""
+#         self.energy -= 0.1
+#         if self.energy <= 0:
+#             self.health -= 1
+#             self.energy = 0
+    
+#     @property
+#     def is_alive(self) -> bool:
+#         return self.health > 0
