@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from nn.nn_torch_rnn import NeuralNetwork        # Внутри - класс NeuralNetwork
+#from nn.nn_torch_rnn import NeuralNetwork
+from nn.my_handmade_ff import NeuralNetwork
 
 class Creature():
     

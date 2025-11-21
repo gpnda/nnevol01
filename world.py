@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from creature import Creature
-from nn.nn_torch_rnn import NeuralNetwork
+#from nn.nn_torch_rnn import NeuralNetwork
+from nn.my_handmade_ff import NeuralNetwork
 import random
 import math
 from debugger import debug
@@ -58,6 +59,7 @@ class World():
 				])
 		# запускаем быструю функцию
 		all_visions, raycast_dots = self.fast_get_all_visions(current_map, creatures_pos)
+		all_visions_normalized = self.normalize_vision(all_visions)
 		debug.set("raycast_dots", raycast_dots)
 		
 		
@@ -65,15 +67,21 @@ class World():
 		# Подготавливаем данные для быстрой функции
 		creatures_nns = []
 		for creature in self.creatures:
-			creatures_nns.append(creature.nn) # Здесь не creature.nn надо, а функцию, возвращающую веса, например creature.get_brain_wights(). Ну, ок, пока не важно.
+			creatures_nns.append(creature.nn.flatten_network()) # Здесь не creature.nn надо, а функцию, возвращающую веса, например creature.get_brain_wights(). Ну, ок, пока не важно.
 		# запускаем быструю функцию
-		all_outs = NeuralNetwork.fast_calc_all_outs(all_visions, creatures_nns)
+		all_outs = NeuralNetwork.fast_calc_all_outs(all_visions_normalized, creatures_nns)
 		# all_outs[] = [angle_delta, speed_delta, bite]
 
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
 			creature.angle = creature.angle + all_outs[index][0]
+			# Нормализуем угол в диапазон [0, 2π)
+			creature.angle = creature.angle % (2 * math.pi)
+			# Если угол отрицательный, добавляем 2π чтобы получить положительное значение
+			if creature.angle < 0:
+				creature.angle += 2 * math.pi
+
 			creature.speed = creature.speed + all_outs[index][1]
 			if creature.speed < -0.5:
 				creature.speed = -0.5
@@ -211,19 +219,17 @@ class World():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	@staticmethod
+	def normalize_vision(all_visions):
+		"""
+		Нормирует массив видения из диапазона 0-255 в диапазон 0.0-1.0
+		all_visions: список массивов видения существ (каждый массив из 45 элементов 0...255)
+		возвращает: список нормированных массивов (0.0...1.0)
+		"""
+		normalized_visions = []
+		
+		for vision in all_visions:
+			normalized_vision = [pixel / 255.0 for pixel in vision]
+			normalized_visions.append(normalized_vision)
+		
+		return normalized_visions
