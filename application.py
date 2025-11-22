@@ -25,7 +25,7 @@ class Application():
 			self.world.update()
 			self.world.update_map()
 			self.renderer.draw()
-			# self.limit_fps()
+			self.limit_fps()
 		self.terminate()
 
 	def terminate(self):

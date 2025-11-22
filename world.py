@@ -75,6 +75,8 @@ class World():
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
+
+			# Расчитываем новые координаты, куда существо хочет перейти
 			creature.angle = creature.angle + (all_outs[index][0]-0.5)
 			# print(f"{all_outs[index][0]:.8f}")
 			# Нормализуем угол в диапазон [0, 2π)
@@ -92,7 +94,7 @@ class World():
 			newy = creature.y + creature.speed*math.sin(creature.angle)
 
 
-			# Правила, по которым может перемещаться существо
+			# Проверяем/применяем правила, по которым существо может или не может перемещаться
 
 			is_ok_to_go = True
 			# Проверим выход за пределы карты
@@ -105,23 +107,30 @@ class World():
 			if self.get_cell(int(newx),int(newy)) == 1:
 				is_ok_to_go = False
 			
+			# Меняем или не меняем координаты на новые
 			if is_ok_to_go:
 				creature.x = newx
 				creature.y = newy
+			
+			# Существо тратит энергию на просто существование в мире
+			creature.energy -= 0.01*random.random()
+			# Существо тратит энергию на бег в зависимости от скорости
+			# Существо тратит энергию на поворот, в зависимости от резкого поворота
+			# Существо тратит энергию на поворот, в зависимости от резкого поворота
+
+		
+		# Удалим всех существ, у которых энергия < 0
+		self.remove_dead_creatures()
+
 
 			
 	
 
 
-
-
-
-
-
-
-
-
-
+	def remove_dead_creatures(self):
+		"""Удаляет всех существ с энергией меньше 0"""
+		self.creatures = [creature for creature in self.creatures 
+							if creature.energy >= 0]
 	
 	@staticmethod
 	def fast_get_all_visions(map, creatures_pos):

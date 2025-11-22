@@ -8,7 +8,7 @@ class Creature():
         self.x = x
         self.y = y
         self.health = 100
-        self.energy = 50
+        self.energy = 1.0
         self.age = 0
         self.speed = 1
         self.angle = 0.1
