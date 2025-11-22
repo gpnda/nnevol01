@@ -240,7 +240,7 @@ class NeuralNetwork:  # класс нейронной сети
             # speed_delta: от 0 до 1 (изменение скорости)  
             # bite: от 0 до 1 (укус)
             
-            angle_delta = 2.0 * network_outputs[0] - 1.0  # преобразуем [0,1] -> [-1,1]
+            angle_delta = network_outputs[0]              # оставляем [0,1]
             speed_delta = network_outputs[1]              # оставляем [0,1]
             bite = network_outputs[2]                     # оставляем [0,1]
             

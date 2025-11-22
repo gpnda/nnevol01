@@ -75,7 +75,8 @@ class World():
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
-			creature.angle = creature.angle + all_outs[index][0]
+			creature.angle = creature.angle + (all_outs[index][0]-0.5)
+			# print(f"{all_outs[index][0]:.8f}")
 			# Нормализуем угол в диапазон [0, 2π)
 			creature.angle = creature.angle % (2 * math.pi)
 			# Если угол отрицательный, добавляем 2π чтобы получить положительное значение
