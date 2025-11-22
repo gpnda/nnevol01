@@ -7,12 +7,12 @@ class Creature():
     def __init__(self, x: int, y: int):
         self.x = x
         self.y = y
-        self.health = 100
         self.energy = 1.0
         self.age = 0
         self.speed = 1
         self.angle = 0.1
         self.vision_distance = 20
+        self.bite_range = 0.5
         self.nn = NeuralNetwork()
     
 

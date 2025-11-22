@@ -12,7 +12,7 @@ class Application():
 			width=100,
             height=50,
             wall_count=350, 
-            food_count=20,
+            food_count=300,
             creatures_count=30
         )
 		self.renderer = Renderer(self.world, cell_size=15)

@@ -85,7 +85,7 @@ class World():
 			if creature.angle < 0:
 				creature.angle += 2 * math.pi
 
-			creature.speed = creature.speed + all_outs[index][1]
+			creature.speed = creature.speed + (all_outs[index][1] - 0.5)
 			if creature.speed < -0.5:
 				creature.speed = -0.5
 			if creature.speed > 0.5:
@@ -94,10 +94,9 @@ class World():
 			newy = creature.y + creature.speed*math.sin(creature.angle)
 
 
-			# Проверяем/применяем правила, по которым существо может или не может перемещаться
-
+			# is_ok_to_go Проверяем/применяем правила, по которым существо может или не может перемещаться
 			is_ok_to_go = True
-			# Проверим выход за пределы карты
+			# За пределы карты проверим выход
 			if (int(newx) < 0 or int(newx) > self.width-1):
 				is_ok_to_go = False
 			if (int(newy) < 0 or int(newy) > self.height-1):
@@ -105,15 +104,23 @@ class World():
 			
 			# Проверим, что в новой клетке не стена. На стену нельзя переходить.
 			if self.get_cell(int(newx),int(newy)) == 1:
+				# Существо столкнулось со стеной
 				is_ok_to_go = False
-			
+				creature.energy -= 0.01
+				
 			# Меняем или не меняем координаты на новые
 			if is_ok_to_go:
 				creature.x = newx
 				creature.y = newy
 			
+			# Если существо куснуло - проверить что оно куснуло.
+			if all_outs[index][2] > 0.5:
+				self.creature_bite(creature)
+
+
+
 			# Существо тратит энергию на просто существование в мире
-			creature.energy -= 0.01*random.random()
+			creature.energy -= 0.01
 			# Существо тратит энергию на бег в зависимости от скорости
 			# Существо тратит энергию на поворот, в зависимости от резкого поворота
 			# Существо тратит энергию на поворот, в зависимости от резкого поворота
@@ -124,7 +131,114 @@ class World():
 
 
 			
-	
+	def creature_bite(self, cr):
+		bitex = cr.x + cr.bite_range*math.cos(cr.angle)
+		bitey = cr.y + cr.bite_range*math.sin(cr.angle)
+		
+		# Проверим выход за пределы карты > app.world.dimx-1 mappointer
+		if (int(bitex) < 0 or int(bitex) > self.width-1):
+			return False
+		if (int(bitey) < 0 or int(bitey) > self.height-1):
+			return False
+
+		# # Проверим на попытку укусить себя
+		#               ДА ПОФИГ, СУЩЕСТВО ТО МОЖЕТ СТОЯТЬ НА ПИЩЕ В ОДНОЙ КЛЕТКЕ, ТАК ЧТО ПУСТЬ КУСАЕТ
+		# if (int(bitex) == int(self.x) and int(bitey) == int(self.y)):
+		# 	return False
+		
+		# получим информацию о том, что находится в клетке, которую существо кусает
+		biteplace =  self.get_cell(int(bitex), int(bitey))
+		if biteplace == 2:
+			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
+			print("Существу повезло, оно укусило пищу. Увеличить энергию существа.")
+			cr.energy += 0.5
+			if cr.energy > 1.0:
+				cr.energy = 1.0
+			
+			# # Уменьшить энергию у пищи.
+			# app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable -= 0.35
+			# # Если еда съедена полностью, сотрем ее с карты.
+			# if ( app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable < 0) :
+			# 	app.world.delete_food(int(bitex), int(bitey))
+			# # Вернем True как сигнал того, что мы поели
+			# return True
+		# elif biteplace == 3:
+		# 	# print ("Существо укусило другое существо")
+		# 	# Запишем в лог
+		# 	if self.isSelected:
+		# 		print('Selected Creature BITE_CREATURE')
+		# 	self.history.append(['BITE_CREATURE',self._age])
+		# 	# Существу повезло, оно укусило ДРУГОЕ СУЩЕСТВО
+		# 	# Увеличить энергию существа.
+		# 	self._energy += 0.1
+		# 	if self._energy > self.MaxEnergy:
+		# 		self._energy = self.MaxEnergy
+		# 	# Уменьшить энергию у ДРУГОГО СУЩЕСТВА
+		# 	# Надо найти жертву в массиве существ, которое находится по координатам (bitex, bitey)
+		# 	# Цикл по всем существам
+
+		# 	biten = app.world.getCreatureByCords(app, bitex, bitey) # куснутое существо
+		# 	biten._energy -= 0.3
+		# 	# Если у жертвы кончилась энергия
+		# 	if biten._energy<0:
+		# 		# Подотрем карту под жертвой
+		# 		app.world.map[int(biten.y)][int(biten.x)] = biten.standingon
+
+
+			# Вернем True как сигнал того, что мы поели
+			return True
+
+		
+
+		# # Столкновение с едой
+		# self._energy += self.app.gFood_bonus # Нихера непонятно, откуда тут известно значение self.app, но как видно - оно известно. я проверил
+		# # print ("self.app.gFood_bonus = "+str(self.app.gFood_bonus))
+		# if self._energy > self.MaxEnergy:
+		#     self._energy = self.MaxEnergy
+		# # print ("Существо покушало: " + str(self._energy))
+		# self.x = newx
+		# self.y = newy
+		# # Еда съедена. Сотрем ее с карты
+		# mappointer[int(self.y)][int(self.x)] = 0
+		# # Залогируем что поели
+		# # self.log("Ням-ням-ням. Поело. Энергия возросла на 0.5")
+		# self.history.append(['BITE',self._age])
+		# pass
+
+		# Если укусили воздух - возвращаем false
+		return False
+		
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 	def remove_dead_creatures(self):
