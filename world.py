@@ -119,7 +119,8 @@ class World():
 				self.creature_bite(creature)
 
 
-
+			# Существо стареет
+			creature.age += 1
 			# Существо тратит энергию на просто существование в мире
 			creature.energy -= 0.01
 			# Существо тратит энергию на бег в зависимости от скорости
@@ -130,8 +131,19 @@ class World():
 		# Удалим всех существ, у которых энергия < 0
 		self.remove_dead_creatures()
 
+		# Цикл размножения
+		baby_creatures = []
+		for i in filter(lambda c:c.age in [200,300,500], self.creatures):
+			baby_creatures += i.reprodCreature()
+			# # Чтобы не было байби-бума, проверим что максимальное количество существ пока не достигнуто
+			# if((len(self.creatures)+len(baby_creatures)) > self.gN_creatures):
+			#     print("Существ слишком много, не будем добавлять еще детей " + str(len(self.creatures) +len(baby_creatures)))
+			#     break
+		self.creatures += baby_creatures
 
-			
+
+
+
 	def creature_bite(self, cr):
 		bitex = cr.x + cr.bite_range*math.cos(cr.angle)
 		bitey = cr.y + cr.bite_range*math.sin(cr.angle)
@@ -289,7 +301,7 @@ class World():
 						visionBlue.append(0)
 						break
 					else:
-						dot = map[iy, ix]
+						dot = map[iy,ix]
 					
 					# Если взгляд во что-то уперся, то Сохраняем цвет точки и Прерываем raycast
 					if dot > 0:

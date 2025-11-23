@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 #from nn.nn_torch_rnn import NeuralNetwork
 from nn.my_handmade_ff import NeuralNetwork
+import copy
+import random
 
 class Creature():
     
@@ -14,7 +16,30 @@ class Creature():
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
-    
+
+
+    def reprodCreature(self):
+        cr_babies = []
+        print ("начало цикла по рождению детей")
+        for j in range(0, 5):
+            # print ("Процесс рождения существа. 1 Погнали")
+            c = copy.deepcopy(self)
+            # print ("Процесс рождения существа. 2")
+            # c.mutate(app.gM_probability, app.gM_strength)
+            # print ("Процесс рождения существа. 3")
+            # c.uid = uuid.uuid4()
+            # print ("Процесс рождения существа. 4")
+            # c.generation = self.generation + 1
+            # print ("Процесс рождения существа. 5")
+            c.age = 0
+            c.energy = 1.0
+            c.speed = 0.3
+            c.angle = random.random()*3.14
+            # c.isSelected = False
+            # print ("Процесс рождения существа. 6")
+            cr_babies.append(c)
+            # print ("Процесс рождения существа. 7. Родили уфф..")
+        return cr_babies    
 
 
 
