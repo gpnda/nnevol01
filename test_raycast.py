@@ -1,6 +1,7 @@
 import pygame
 import random
 import math
+import numpy as np
 
 # Ваш метод (скопирован из вашего запроса)
 def fast_get_all_visions(map, creatures_pos):
@@ -34,8 +35,8 @@ def fast_get_all_visions(map, creatures_pos):
 
                 ix = int(x)
                 iy = int(y)
-                mw = len(map[0])
-                mh = len(map)
+                mw = map.shape[1]
+                mh = map.shape[0]
                 if ix < 0 or ix >= mw or iy < 0 or iy >= mh:
                     # за пределами карты → чёрный
                     vision.append(0)
@@ -44,7 +45,7 @@ def fast_get_all_visions(map, creatures_pos):
                     visionBlue.append(0)
                     break
                 else:
-                    dot = map[iy][ix]
+                    dot = map[iy,ix]
                 
                 # Если взгляд во что-то уперся, то Сохраняем цвет точки и Прерываем raycast
                 if dot > 0:
@@ -52,11 +53,11 @@ def fast_get_all_visions(map, creatures_pos):
                     # Сюда надо вставлять опреденений цветов и разложение на каналы.
                     dotColor = []
                     if dot == 1:
-                        dotColor = [255,0,0]
+                        dotColor = [100,100,100]
                     elif dot == 2:
-                        dotColor = [0,0,255]
+                        dotColor = [255,0,0]
                     elif dot == 3:
-                        dotColor = [0,255,0]
+                        dotColor = [0,0,255]
                     else:
                         dotColor = [0,0,0]
                 
@@ -91,9 +92,9 @@ def fast_get_all_visions(map, creatures_pos):
 
         all_visions.append(visionResult)
         
-    print("Длина массива all_visions: " + str(len(all_visions)))
-    for index,v in enumerate(all_visions):
-        print("Длина " + str(index) + " массива vision: " + str(len(v)))
+    # print("Длина массива all_visions: " + str(len(all_visions)))
+    # for index,v in enumerate(all_visions):
+    #   print("Длина " + str(index) + " массива vision: " + str(len(v)))
     return all_visions, raycast_dots
 
 
@@ -119,21 +120,34 @@ pygame.init()
 cell_size = 20
 map_width = 30
 map_height = 30
-screen_width = map_width * cell_size + 1000  # +200 пикселей для панели
+map_panel_width = map_width * cell_size  # Ширина области карты
+panel_width = 1000  # Ширина правой панели
+screen_width = map_panel_width + panel_width
 screen_height = map_height * cell_size
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("RayCast Test Stand")
 clock = pygame.time.Clock()
 
+# Создаем отдельную поверхность для карты
+map_surface = pygame.Surface((map_panel_width, screen_height))
+
+# Переменные для масштабирования и перемещения
+zoom_level = 1.0
+offset_x = 0
+offset_y = 0
+dragging = False
+drag_start_x = 0
+drag_start_y = 0
+
 def generate_map():
     # Создаем пустую карту
-    game_map = [[0 for _ in range(map_width)] for _ in range(map_height)]
+    game_map = np.zeros((map_height, map_width), dtype=int)
     
     # Добавляем случайные препятствия
     for _ in range(50):  # 50 случайных препятствий
         x = random.randint(0, map_width - 1)
         y = random.randint(0, map_height - 1)
-        game_map[y][x] = random.randint(1, 3)  # 1 - красный, 2 - синий, 3 - зеленый
+        game_map[y, x] = random.randint(1, 3)  # 1 - красный, 2 - синий, 3 - зеленый
     
     return game_map
 
@@ -147,23 +161,37 @@ def generate_creatures():
         creatures.append([x, y, angle, view_distance])
     return creatures
 
-def draw_map(screen, game_map):
+def draw_map(map_surface, game_map):
+    # Очищаем поверхность карты
+    map_surface.fill((0, 0, 0))
+    
     for y in range(map_height):
         for x in range(map_width):
-            rect = pygame.Rect(x * cell_size, y * cell_size, cell_size, cell_size)
-            if game_map[y][x] == 1:
-                color = (255, 0, 0)  # Красный
-            elif game_map[y][x] == 2:
-                color = (0, 0, 255)  # Синий
-            elif game_map[y][x] == 3:
-                color = (0, 255, 0)  # Зеленый
+            # Применяем масштабирование и смещение
+            rect_x = (x * cell_size * zoom_level) + offset_x
+            rect_y = (y * cell_size * zoom_level) + offset_y
+            rect_width = cell_size * zoom_level
+            rect_height = cell_size * zoom_level
+            
+            # Проверяем, находится ли клетка в пределах поверхности карты
+            if (rect_x + rect_width < 0 or rect_x > map_panel_width or 
+                rect_y + rect_height < 0 or rect_y > screen_height):
+                continue
+                
+            rect = pygame.Rect(rect_x, rect_y, rect_width, rect_height)
+            if game_map[y, x] == 1:
+                color = (100, 100, 100)
+            elif game_map[y, x] == 2:
+                color = (255, 0, 0)
+            elif game_map[y, x] == 3:
+                color = (0, 0, 255)
             else:
                 color = (0, 0, 0)  # Черный
-            pygame.draw.rect(screen, color, rect)
-            pygame.draw.rect(screen, (40, 40, 40), rect, 1)  # Сетка
+            pygame.draw.rect(map_surface, color, rect)
+            pygame.draw.rect(map_surface, (40, 40, 40), rect, 1)  # Сетка
 
 def draw_vision_panel(screen, selected_index, all_visions):
-    panel_x = map_width * cell_size  # Начало панели справа от карты
+    panel_x = map_panel_width  # Начало панели справа от карты
     panel_y = 0
     box_size = 50
     spacing = 10   # Увеличено для пропорциональности
@@ -196,11 +224,17 @@ def draw_vision_panel(screen, selected_index, all_visions):
         text = font.render("No creature selected", True, (200, 200, 200))
         screen.blit(text, (panel_x + 10, panel_y + 10))
 
-def draw_creatures(screen, creatures, selected_index=None):
+def draw_creatures(map_surface, creatures, selected_index=None):
     for i, creature in enumerate(creatures):
         x, y, angle, view_distance = creature
-        center_x = int(x * cell_size)
-        center_y = int(y * cell_size)
+        # Применяем масштабирование и смещение
+        center_x = int((x * cell_size) * zoom_level + offset_x)
+        center_y = int((y * cell_size) * zoom_level + offset_y)
+
+        # Проверяем, находится ли существо в пределах поверхности карты
+        if (center_x < -20 or center_x > map_panel_width + 20 or 
+            center_y < -20 or center_y > screen_height + 20):
+            continue
 
         # Определяем цвет в зависимости от того, выбрано ли существо
         if i == selected_index:
@@ -210,27 +244,36 @@ def draw_creatures(screen, creatures, selected_index=None):
             creature_color = (255, 255, 255)  # Белый для остальных
             outline = False
 
-        # Рисуем тело существа
-        pygame.draw.circle(screen, creature_color, (center_x, center_y), 8 if outline else 6)
+        # Рисуем тело существа с учетом масштаба
+        radius = int(8 * zoom_level) if outline else int(6 * zoom_level)
+        pygame.draw.circle(map_surface, creature_color, (center_x, center_y), radius)
 
         # Если существо выделено, рисуем обводку
         if outline:
-            pygame.draw.circle(screen, (255, 255, 255), (center_x, center_y), 8, 2)
+            pygame.draw.circle(map_surface, (255, 255, 255), (center_x, center_y), int(8 * zoom_level), 2)
 
-        # Рисуем направление взгляда
-        end_x = center_x + int(math.cos(angle) * 15)
-        end_y = center_y + int(math.sin(angle) * 15)
-        pygame.draw.line(screen, creature_color, (center_x, center_y), (end_x, end_y), 2)
+        # Рисуем направление взгляда с учетом масштаба
+        line_length = 15 * zoom_level
+        end_x = center_x + int(math.cos(angle) * line_length)
+        end_y = center_y + int(math.sin(angle) * line_length)
+        pygame.draw.line(map_surface, creature_color, (center_x, center_y), (end_x, end_y), max(1, int(2 * zoom_level)))
 
-def draw_raycast_dots(screen, dots):
+def draw_raycast_dots(map_surface, dots):
     for x, y in dots:
-        screen_x = int(x * cell_size)
-        screen_y = int(y * cell_size)
-        pygame.draw.circle(screen, (255, 255, 0), (screen_x, screen_y), 2)
+        # Применяем масштабирование и смещение
+        screen_x = int((x * cell_size) * zoom_level + offset_x)
+        screen_y = int((y * cell_size) * zoom_level + offset_y)
+        
+        # Проверяем, находится ли точка в пределах поверхности карты
+        if (screen_x < -5 or screen_x > map_panel_width + 5 or 
+            screen_y < -5 or screen_y > screen_height + 5):
+            continue
+            
+        pygame.draw.circle(map_surface, (255, 255, 0), (screen_x, screen_y), max(1, int(2 * zoom_level)))
 
 def draw_instructions(screen):
     font = pygame.font.SysFont(None, 18)
-    x_offset = 620
+    x_offset = map_panel_width + 20  # Отступ от карты
     y_offset = 100
     line_spacing = 20
 
@@ -243,6 +286,8 @@ def draw_instructions(screen):
         "• [ЛКМ] — выбрать существо",
         "• [V] — Вывести массив vision выбранного существа непосредственно из выхода быстрой функции",
         "• Панель справа — vision выбранного существа (R,G,B)",
+        "• [Колесико мыши] — увеличить/уменьшить масштаб",
+        "• [Правая кнопка мыши + перетаскивание] — перемещать карту",
     ]
 
     for i, line in enumerate(instructions):
@@ -270,6 +315,10 @@ while running:
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_r:  # Перегенерация по нажатию R
                 game_map, creatures, all_visions, raycast_dots = redraw_all()
+                # Сброс масштаба и смещения при перегенерации
+                zoom_level = 1.0
+                offset_x = 0
+                offset_y = 0
             elif event.key == pygame.K_LEFT:  # Поворот всех существ влево на 5 градусов
                 for creature in creatures:
                     creature[2] -= rotation_step
@@ -302,37 +351,93 @@ while running:
                     vis1 = all_visions[selected_creature_index]
                     print(f"Vision of creature {selected_creature_index}:")
                     print_vision_array(vis1)
-        elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Левая кнопка мыши
-            mouse_x, mouse_y = event.pos
-            closest_index = None
-            min_distance = float('inf')
+                    print("Координаты и угол существа: " + str(creatures[selected_creature_index]))
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Левая кнопка мыши
+                mouse_x, mouse_y = event.pos
+                
+                # Проверяем, что клик был в области карты
+                if mouse_x < map_panel_width:
+                    closest_index = None
+                    min_distance = float('inf')
 
-            for i, creature in enumerate(creatures):
-                creature_screen_x = int(creature[0] * cell_size)
-                creature_screen_y = int(creature[1] * cell_size)
-                distance = math.sqrt((mouse_x - creature_screen_x)**2 + (mouse_y - creature_screen_y)**2)
+                    for i, creature in enumerate(creatures):
+                        # Учитываем масштаб и смещение при расчете позиции существа
+                        creature_screen_x = int((creature[0] * cell_size) * zoom_level + offset_x)
+                        creature_screen_y = int((creature[1] * cell_size) * zoom_level + offset_y)
+                        distance = math.sqrt((mouse_x - creature_screen_x)**2 + (mouse_y - creature_screen_y)**2)
 
-                if distance <= 10:  # Радиус клика 10 пикселей
-                    if distance < min_distance:
-                        min_distance = distance
-                        closest_index = i
+                        # Радиус клика с учетом масштаба
+                        click_radius = 10 * zoom_level
+                        if distance <= click_radius:
+                            if distance < min_distance:
+                                min_distance = distance
+                                closest_index = i
 
-            selected_creature_index = closest_index
-            print("Выбрано существо с индексом: " + str(selected_creature_index))
-            # Пересчитываем видимость только выбранного существа, если нужно
-            # all_visions, raycast_dots = fast_get_all_visions(game_map, creatures)
+                    selected_creature_index = closest_index
+                    if selected_creature_index is not None:
+                        print("Выбрано существо с индексом: " + str(selected_creature_index))
+                    else:
+                        print("Существо не выбрано")
+                
+            elif event.button == 3:  # Правая кнопка мыши - начало перетаскивания
+                mouse_x, mouse_y = event.pos
+                # Начинаем перетаскивание только если клик в области карты
+                if mouse_x < map_panel_width:
+                    dragging = True
+                    drag_start_x, drag_start_y = event.pos
+                
+            elif event.button == 4:  # Колесико мыши вверх - увеличение
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                # Масштабируем только если курсор в области карты
+                if mouse_x < map_panel_width:
+                    old_zoom = zoom_level
+                    zoom_level = min(3.0, zoom_level * 1.1)  # Максимальный зум 3x
+                    
+                    # Корректируем смещение для сохранения позиции под курсором
+                    offset_x = mouse_x - (mouse_x - offset_x) * (zoom_level / old_zoom)
+                    offset_y = mouse_y - (mouse_y - offset_y) * (zoom_level / old_zoom)
+                
+            elif event.button == 5:  # Колесико мыши вниз - уменьшение
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                # Масштабируем только если курсор в области карты
+                if mouse_x < map_panel_width:
+                    old_zoom = zoom_level
+                    zoom_level = max(0.5, zoom_level * 0.9)  # Минимальный зум 0.5x
+                    
+                    # Корректируем смещение для сохранения позиции под курсором
+                    offset_x = mouse_x - (mouse_x - offset_x) * (zoom_level / old_zoom)
+                    offset_y = mouse_y - (mouse_y - offset_y) * (zoom_level / old_zoom)
+                
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 3:  # Правая кнопка мыши - конец перетаскивания
+                dragging = False
+                
+        elif event.type == pygame.MOUSEMOTION:
+            if dragging:
+                # Перетаскивание карты
+                mouse_x, mouse_y = event.pos
+                offset_x += mouse_x - drag_start_x
+                offset_y += mouse_y - drag_start_y
+                drag_start_x, drag_start_y = mouse_x, mouse_y
     
     # Очистка экрана
     screen.fill((0, 0, 0))
     
-    # Рисование
-    draw_map(screen, game_map)
-    draw_raycast_dots(screen, raycast_dots)
-    draw_creatures(screen, creatures, selected_creature_index)  # Передаём индекс выбранного существа
+    # Рисование на отдельной поверхности карты
+    draw_map(map_surface, game_map)
+    draw_raycast_dots(map_surface, raycast_dots)
+    draw_creatures(map_surface, creatures, selected_creature_index)
+    
+    # Отображаем поверхность карты на основном экране
+    screen.blit(map_surface, (0, 0))
+    
+    # Рисуем разделительную линию между картой и панелью
+    pygame.draw.line(screen, (100, 100, 100), (map_panel_width, 0), (map_panel_width, screen_height), 2)
+    
+    # Рисуем панель с видением и инструкциями
     draw_vision_panel(screen, selected_creature_index, all_visions)
     draw_instructions(screen)
-
-    
     
     # Обновление экрана
     pygame.display.flip()

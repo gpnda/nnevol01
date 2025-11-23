@@ -5,6 +5,7 @@ from creature import Creature
 from nn.my_handmade_ff import NeuralNetwork
 import random
 import math
+import numpy as np
 from debugger import debug
 
 
@@ -12,8 +13,8 @@ class World():
 	def __init__(self, width, height):
 		self.width = width
 		self.height = height
-		self.map = [[0 for _ in range(width)] for _ in range(height)]
-		self.walls_map = []
+		self.map = np.zeros((height, width), dtype=int)
+		self.walls_map = np.zeros((height, width), dtype=int)
 		self.creatures = []
 		self.foods = []
 
@@ -21,7 +22,7 @@ class World():
 	def update_map(self):
 		"""Обновляет карту для отображения (рендерер использует эту)"""
 		# 1. Копируем стены
-		self.map = [row[:] for row in self.walls_map]
+		self.map = self.walls_map.copy()
 		
 		# 2. Добавляем еду
 		for food in self.foods:
@@ -32,10 +33,10 @@ class World():
 			self.set_cell(int(creature.x), int(creature.y), 3)  # CREATURE
 
 	def get_cell(self, x, y):
-		return self.map[y][x]
+		return self.map[y, x]
 
 	def set_cell(self, x, y, value):
-		self.map[y][x] = value
+		self.map[y, x] = value
 		return True
 
 	def add_food(self, food):
@@ -278,8 +279,8 @@ class World():
 
 					ix = int(x)
 					iy = int(y)
-					mw = len(map[0])
-					mh = len(map)
+					mw = map.shape[1]
+					mh = map.shape[0]
 					if ix < 0 or ix >= mw or iy < 0 or iy >= mh:
 						# за пределами карты → чёрный
 						vision.append(0)
@@ -288,7 +289,7 @@ class World():
 						visionBlue.append(0)
 						break
 					else:
-						dot = map[iy][ix]
+						dot = map[iy, ix]
 					
 					# Если взгляд во что-то уперся, то Сохраняем цвет точки и Прерываем raycast
 					if dot > 0:

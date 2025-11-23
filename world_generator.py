@@ -39,7 +39,7 @@ class WorldGenerator:
     @staticmethod
     def save_walls_map(world):
         # После генерации стен - мы должны сохранить карту стен, чтоб потом обновлять карту
-        world.walls_map = [row[:] for row in world.map]
+        world.walls_map = world.map.copy()
 
     @staticmethod
     def generate_food(world, food_count):
