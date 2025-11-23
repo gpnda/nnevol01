@@ -24,8 +24,9 @@ class Application():
 				self.isRunning = False
 			self.world.update()
 			self.world.update_map()
-			self.renderer.draw()
-			self.limit_fps()
+			#self.renderer.draw()
+			#self.limit_fps()
+			print("POPULATION: " + str(len(self.world.creatures)))
 		self.terminate()
 
 	def terminate(self):

@@ -128,21 +128,41 @@ class World():
 			# Существо тратит энергию на поворот, в зависимости от резкого поворота
 
 		
-		# Удалим всех существ, у которых энергия < 0
-		self.remove_dead_creatures()
+		if self.is_population_big_enough():
+			self.remove_dead_creatures()
 
+		if self.is_population_not_overcrowd():
+			self.reprod()
+			
+
+
+
+
+	def is_population_big_enough(self):
+		# если существ менее 50, то всем существам задать энергию = 1.0
+		if len(self.creatures)<50:
+			for cr in self.creatures:
+				cr.energy = 1.0
+			return False
+		else:
+			return True
+
+	def is_population_not_overcrowd(self):
+		if len(self.creatures)>100:
+			return False
+		else:
+			return True
+
+	def reprod(self):
 		# Цикл размножения
 		baby_creatures = []
-		for i in filter(lambda c:c.age in [200,300,500], self.creatures):
+		for i in filter(lambda c:c.age in [100,200,300,500], self.creatures):
 			baby_creatures += i.reprodCreature()
 			# # Чтобы не было байби-бума, проверим что максимальное количество существ пока не достигнуто
 			# if((len(self.creatures)+len(baby_creatures)) > self.gN_creatures):
 			#     print("Существ слишком много, не будем добавлять еще детей " + str(len(self.creatures) +len(baby_creatures)))
 			#     break
 		self.creatures += baby_creatures
-
-
-
 
 	def creature_bite(self, cr):
 		bitex = cr.x + cr.bite_range*math.cos(cr.angle)
@@ -221,37 +241,6 @@ class World():
 		# Если укусили воздух - возвращаем false
 		return False
 		
-		
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 	def remove_dead_creatures(self):
@@ -353,8 +342,6 @@ class World():
 		# 	print("Длина " + str(index) + " массива vision: " + str(len(v)))
 		return all_visions, raycast_dots
 	
-
-
 
 	@staticmethod
 	def normalize_vision(all_visions):

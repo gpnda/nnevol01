@@ -10,7 +10,7 @@ class Creature():
         self.x = x
         self.y = y
         self.energy = 1.0
-        self.age = 0
+        self.age = random.randint(0,500)
         self.speed = 1
         self.angle = 0.1
         self.vision_distance = 20
@@ -21,7 +21,7 @@ class Creature():
     def reprodCreature(self):
         cr_babies = []
         print ("начало цикла по рождению детей")
-        for j in range(0, 5):
+        for j in range(0, 3):
             # print ("Процесс рождения существа. 1 Погнали")
             c = copy.deepcopy(self)
             # print ("Процесс рождения существа. 2")
