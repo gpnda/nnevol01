@@ -161,6 +161,33 @@ def generate_creatures():
         creatures.append([x, y, angle, view_distance])
     return creatures
 
+def numpy_generate_creatures():
+    """
+    Генерирует массив существ с numpy массивами.
+    
+    Parameters:
+    map_width: ширина карты
+    map_height: высота карты  
+    n_creatures: количество существ
+    
+    Returns:
+    numpy array формы (n_creatures, 4) где колонки: [x, y, angle, view_distance]
+    """
+    n_creatures = 5
+    creatures = np.zeros((n_creatures, 4), dtype=np.float32)
+    
+    # Заполняем координаты x, y
+    creatures[:, 0] = np.random.uniform(0.5, map_width - 1.5, n_creatures)  # x
+    creatures[:, 1] = np.random.uniform(0.5, map_height - 1.5, n_creatures)  # y
+    
+    # Заполняем углы
+    creatures[:, 2] = np.random.uniform(0, 2 * math.pi, n_creatures)  # angle
+    
+    # Заполняем дистанции зрения
+    creatures[:, 3] = 10.0  # view_distance
+    
+    return creatures
+
 def draw_map(map_surface, game_map):
     # Очищаем поверхность карты
     map_surface.fill((0, 0, 0))
@@ -226,7 +253,9 @@ def draw_vision_panel(screen, selected_index, all_visions):
 
 def draw_creatures(map_surface, creatures, selected_index=None):
     for i, creature in enumerate(creatures):
+        # print(type(creature)) # Да, тут numpy объект
         x, y, angle, view_distance = creature
+        # print(x, y, angle, view_distance)  # Да, тут выводится верно
         # Применяем масштабирование и смещение
         center_x = int((x * cell_size) * zoom_level + offset_x)
         center_y = int((y * cell_size) * zoom_level + offset_y)
@@ -296,7 +325,9 @@ def draw_instructions(screen):
 
 def redraw_all():
     game_map = generate_map()
-    creatures = generate_creatures()
+    creatures = numpy_generate_creatures()
+    print (type(game_map))
+    print (type(creatures))
     all_visions, raycast_dots = fast_get_all_visions(game_map, creatures)
     return game_map, creatures, all_visions, raycast_dots
 
@@ -320,8 +351,7 @@ while running:
                 offset_x = 0
                 offset_y = 0
             elif event.key == pygame.K_LEFT:  # Поворот всех существ влево на 5 градусов
-                for creature in creatures:
-                    creature[2] -= rotation_step
+                creatures[:, 2] -= rotation_step
                 # Пересчитываем видимость после поворота
                 all_visions, raycast_dots = fast_get_all_visions(game_map, creatures)
             elif event.key == pygame.K_RIGHT:  # Поворот всех существ вправо на 5 градусов
