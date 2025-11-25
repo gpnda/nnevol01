@@ -20,9 +20,11 @@
 
 import math  # подключить бибилиотеку математических функций. Обращение через math.XXX
 import random  # подключить бибилиотеку случайных чисел Обращение через random.XXX
+import numpy as np
+from numba import jit
 
 
-NETCONF = [46,50,10,3]
+NETCONF = [45,50,10,3]
 NetConf = NETCONF
 
 def myrandom(lower=0.0, upper=1.0):  # Объявляем собственную Функцию случайных чисел
@@ -197,54 +199,49 @@ class NeuralNetwork:  # класс нейронной сети
     def fast_calc_all_outs(all_visions, creatures_nns):
         """
         Быстрый расчет всех выходов нейронной сети для всех существ
-        all_visions: список массивов видения существ (каждый массив из 45 элементов 0...1)
+        all_visions: numpy массив видения существ (shape: [n_creatures, N_INPUTS])
         creatures_nns: список весов нейронных сетей всех существ
-        возвращает: список выходов [angle_delta, speed_delta, bite] для каждого существа
+        возвращает: numpy массив выходов [angle_delta, speed_delta, bite] для каждого существа
         """
-        all_outs = []
+        # Конфигурация нейронной сети - легко изменяемые параметры
+        N_INPUTS = 45           # Количество входов без учета bias
+        HIDDEN_LAYERS = [50, 10] # Количество нейронов в скрытых слоях
+        N_OUTPUTS = 3           # Количество выходов сети
         
-        for index, vision in enumerate(all_visions):
-            # Получаем веса нейронной сети для текущего существа
-            nn_weights = creatures_nns[index]
+      
+        # Преобразуем входные данные в numpy массивы
+        all_visions = np.array(all_visions)  # shape: [n_creatures, N_INPUTS]
+        n_creatures = all_visions.shape[0]
+        
+        # Инициализируем массив для хранения всех выходов
+        all_outs = np.zeros((n_creatures, N_OUTPUTS))
+        
+        # Проходим по всем существам
+        for i in range(n_creatures):
+            vision = all_visions[i]
+            nn_weights = creatures_nns[i]
             
-            # Инициализируем входы как массив видения (45 элементов)
-            current_inputs = vision
+            # Начинаем с входного слоя (N_INPUTS элементов видения + bias)
+            current_inputs = np.append(vision, 1.0)  # теперь TOTAL_INPUTS элементов
             
-            # Проходим по всем слоям нейронной сети
-            for layer_weights in nn_weights:
-                layer_outputs = []
+            # Проходим по всем слоям
+            for layer_index, layer_weights in enumerate(nn_weights):
+                # Преобразуем веса слоя в numpy массив
+                layer_weights = np.array(layer_weights)
                 
-                # Для каждого нейрона в слое
-                for neuron_weights in layer_weights:
-                    # Добавляем смещение (bias) к входам
-                    inputs_with_bias = current_inputs + [1.0]
-                    
-                    # Вычисляем взвешенную сумму
-                    weighted_sum = 0.0
-                    for i in range(len(inputs_with_bias)):
-                        weighted_sum += inputs_with_bias[i] * neuron_weights[i]
-                    
-                    # Применяем сигмоиду
-                    neuron_output = 1 / (1 + math.exp(-weighted_sum))
-                    layer_outputs.append(neuron_output)
+                # Вычисляем взвешенные суммы для всех нейронов слоя одновременно
+                weighted_sums = np.dot(layer_weights, current_inputs)
                 
-                # Выходы текущего слоя становятся входами для следующего
-                current_inputs = layer_outputs
+                # Применяем сигмоиду ко всем выходам одновременно
+                layer_outputs = 1 / (1 + np.exp(-weighted_sums))
+                
+                # Если это не последний слой, добавляем bias для следующего слоя
+                if layer_index < len(nn_weights) - 1:
+                    current_inputs = np.append(layer_outputs, 1.0)
+                else:
+                    current_inputs = layer_outputs
             
-            # После прохождения всех слоев, current_inputs содержит выходы сети
-            # Преобразуем выходы в нужный формат [angle_delta, speed_delta, bite]
-            network_outputs = current_inputs
-            
-            # Нормализуем выходы для управления существом:
-            # angle_delta: от -1 до 1 (поворот)
-            # speed_delta: от 0 до 1 (изменение скорости)  
-            # bite: от 0 до 1 (укус)
-            
-            angle_delta = network_outputs[0]              # оставляем [0,1]
-            speed_delta = network_outputs[1]              # оставляем [0,1]
-            bite = network_outputs[2]                     # оставляем [0,1]
-            
-            all_outs.append([angle_delta, speed_delta, bite])
-            #all_outs.append([0.7, 0.2, 0])
+            # Сохраняем все выходы (их всегда ровно 3)
+            all_outs[i] = current_inputs
         
         return all_outs
