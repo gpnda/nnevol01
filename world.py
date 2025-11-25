@@ -9,6 +9,7 @@ import numpy as np
 from debugger import debug
 
 
+
 class World():
 	def __init__(self, width, height):
 		self.width = width
@@ -156,7 +157,7 @@ class World():
 	def reprod(self):
 		# Цикл размножения
 		baby_creatures = []
-		for i in filter(lambda c:c.age in [100,200,300,500], self.creatures):
+		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
 			baby_creatures += i.reprodCreature()
 			# # Чтобы не было байби-бума, проверим что максимальное количество существ пока не достигнуто
 			# if((len(self.creatures)+len(baby_creatures)) > self.gN_creatures):
@@ -296,7 +297,7 @@ class World():
 					if dot > 0:
 						cur_vision = dot
 						# Сюда надо вставлять опреденений цветов и разложение на каналы.
-						dotColor = []
+						dotColor = [0,0,0]
 						if dot == 1:
 							dotColor = [100,100,100]
 						elif dot == 2:

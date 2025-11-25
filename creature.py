@@ -16,6 +16,12 @@ class Creature():
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
+        self.birth_ages = [
+            random.randint(90, 110), 
+            random.randint(190, 210), 
+            random.randint(290, 310),
+            random.randint(490, 510),
+            ]
 
 
     def reprodCreature(self):
@@ -35,6 +41,12 @@ class Creature():
             c.energy = 1.0
             c.speed = 0.3
             c.angle = random.random()*3.14
+            c.birth_ages = [
+                random.randint(90, 110), 
+                random.randint(190, 210), 
+                random.randint(290, 310),
+                random.randint(490, 510),
+                ]
             # c.isSelected = False
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)
