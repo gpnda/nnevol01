@@ -3,7 +3,24 @@ import random
 import math
 import numpy as np
 
-# Ваш метод (скопирован из вашего запроса)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def fast_get_all_visions(map, creatures_pos):
     step = 0.9 # шаг перемещения взгляда (для raycast - дистанция на котороую двигаем вперед указатель)
     resolution = 15 # разрешение взгляда - по сути сколько лучше отправит raycast?
@@ -11,6 +28,8 @@ def fast_get_all_visions(map, creatures_pos):
     anglestep = 1.04719 / resolution
     raycast_dots = []
     all_visions = []
+    print("DEBUG: raycast_dots " + str(type(raycast_dots)))
+    print("DEBUG: all_visions " + str(np.shape(creatures_pos)))
 
     for index, cr in enumerate(creatures_pos):
         vision = []
@@ -96,6 +115,37 @@ def fast_get_all_visions(map, creatures_pos):
     # for index,v in enumerate(all_visions):
     #   print("Длина " + str(index) + " массива vision: " + str(len(v)))
     return all_visions, raycast_dots
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -326,9 +376,15 @@ def draw_instructions(screen):
 def redraw_all():
     game_map = generate_map()
     creatures = numpy_generate_creatures()
-    print (type(game_map))
-    print (type(creatures))
+
+    print ("OUTSIDE game_map: " + str(type(game_map)))
+    print ("OUTSIDE creatures: " + str(type(creatures)))
+
     all_visions, raycast_dots = fast_get_all_visions(game_map, creatures)
+
+    print ("OUTSIDE RESULT: all_visions " + str(type(all_visions)))
+    print ("OUTSIDE RESULT: raycast_dots " + str(type(raycast_dots)))
+
     return game_map, creatures, all_visions, raycast_dots
 
 # Инициализация начальных данных
