@@ -185,6 +185,7 @@ class NeuralNetwork:  # класс нейронной сети
         Преобразует нейронную сеть в иерархический список весов
         Возвращает: [[[веса_нейрона1_слой1], [веса_нейрона2_слой1], ...], 
                     [[веса_нейрона1_слой2], ...], ...]
+        по идее она должна возвращать объект типа np.array. Но пока данные негомогенные
         """
         nested_list = []
         for layer in self._layers:
@@ -196,6 +197,7 @@ class NeuralNetwork:  # класс нейронной сети
 
 
     @staticmethod
+    @jit(nopython=True)
     def fast_calc_all_outs(all_visions, creatures_nns):
         """
         Быстрый расчет всех выходов нейронной сети для всех существ
@@ -203,45 +205,50 @@ class NeuralNetwork:  # класс нейронной сети
         creatures_nns: список весов нейронных сетей всех существ
         возвращает: numpy массив выходов [angle_delta, speed_delta, bite] для каждого существа
         """
-        # Конфигурация нейронной сети - легко изменяемые параметры
-        N_INPUTS = 45           # Количество входов без учета bias
-        HIDDEN_LAYERS = [50, 10] # Количество нейронов в скрытых слоях
-        N_OUTPUTS = 3           # Количество выходов сети
+        # Конфигурация нейронной сети
+        N_INPUTS = 45
+        HIDDEN_LAYERS = [50, 10]
+        N_OUTPUTS = 3
         
-      
-        # Преобразуем входные данные в numpy массивы
-        all_visions = np.array(all_visions)  # shape: [n_creatures, N_INPUTS]
         n_creatures = all_visions.shape[0]
         
-        # Инициализируем массив для хранения всех выходов
+        # Заранее выделяем память для всех выходов
         all_outs = np.zeros((n_creatures, N_OUTPUTS))
         
         # Проходим по всем существам
         for i in range(n_creatures):
-            vision = all_visions[i]
+            vision = all_visions[i]  # shape: (N_INPUTS,)
             nn_weights = creatures_nns[i]
             
-            # Начинаем с входного слоя (N_INPUTS элементов видения + bias)
-            current_inputs = np.append(vision, 1.0)  # теперь TOTAL_INPUTS элементов
+            # Вместо append - создаем массив с bias заранее
+            current_size = N_INPUTS + 1  # +1 для bias
+            current_inputs = np.zeros(current_size)
+            current_inputs[:N_INPUTS] = vision  # копируем видение
+            current_inputs[N_INPUTS] = 1.0      # устанавливаем bias
             
             # Проходим по всем слоям
             for layer_index, layer_weights in enumerate(nn_weights):
-                # Преобразуем веса слоя в numpy массив
                 layer_weights = np.array(layer_weights)
+                n_neurons = layer_weights.shape[0]
                 
-                # Вычисляем взвешенные суммы для всех нейронов слоя одновременно
+                # Вычисляем взвешенные суммы
                 weighted_sums = np.dot(layer_weights, current_inputs)
                 
-                # Применяем сигмоиду ко всем выходам одновременно
-                layer_outputs = 1 / (1 + np.exp(-weighted_sums))
+                # Сигмоида
+                layer_outputs = 1.0 / (1.0 + np.exp(-weighted_sums))
                 
-                # Если это не последний слой, добавляем bias для следующего слоя
+                # Подготавливаем входы для следующего слоя
                 if layer_index < len(nn_weights) - 1:
-                    current_inputs = np.append(layer_outputs, 1.0)
+                    # Создаем новый массив с bias
+                    next_size = n_neurons + 1
+                    current_inputs = np.zeros(next_size)
+                    current_inputs[:n_neurons] = layer_outputs  # выходы слоя
+                    current_inputs[n_neurons] = 1.0             # bias
                 else:
+                    # Последний слой - просто копируем выходы
                     current_inputs = layer_outputs
             
-            # Сохраняем все выходы (их всегда ровно 3)
+            # Сохраняем выходы
             all_outs[i] = current_inputs
         
         return all_outs
