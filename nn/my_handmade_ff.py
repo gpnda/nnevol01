@@ -1,254 +1,134 @@
 # -*- coding: utf-8 -*-
 
-# Использование модуля nn_module.py
-# Подключаем модуль
-# Создаем экземпляр класса нейронной сети, с помощью конструктора nn(n_neurons_pl, n_inputs)
-# n_neurons_pl - одномерный массив, содержащий количество нейронов в каждом слое
-# Последний элемент определяет сколько будет у сети выходов
-# n_inputs - число входов сети (просто целое положительное число) (а значит количество синапсов у нейронов первого слоя)
-# количество синапсов у нейронов каждого следующего слоя равно количеству нейронов в предыдущем слое
-# Эксплуатировать экземпляр класса нужно таким образом:
-# Заполняем массив входов созданной сети:
-# mynn.n_inputs=[1,1,1,1]
-# рассчитываем сеть
-# mynn.calc()
-# выводим на экран выход сети
-# print(mynn._outs)
-# что-то есть неправильное в том что входы первого слоя нейронов -(вход сети) - дискретные: 0...1,
-# а входы нейронов находящихся внутри сети - вещественнные числа -1.0 ... +1.0
-
-
 import math  # подключить бибилиотеку математических функций. Обращение через math.XXX
 import random  # подключить бибилиотеку случайных чисел Обращение через random.XXX
 import numpy as np
-from numba import jit
+from numba import jit, prange
+from typing import Tuple
 
 
-NETCONF = [45,50,10,3]
-NetConf = NETCONF
-
-def myrandom(lower=0.0, upper=1.0):  # Объявляем собственную Функцию случайных чисел
-    x = random.random()  # получить нормализованное случайное число
-    return lower + x * (upper - lower)  # преобразуем его к требуемому промежутку
-
-
-class neuron:  # объявляем класс neuron
-    def __init__(self, n_sinaps):  # определяем функцию -  конструктор
-        self._weights = []  # параметр класса neuron - _weights  это список с весами, изначально - пустой, без элементов списка
-        for i in range(
-                n_sinaps + 1):  # в цикле по всем синапсам+1 (n_sinaps - глобальная переменная приходит снаружи класса)
-            self._weights.append(myrandom(-10.005, 10.005))  # добавляем в список по одному - случайные веса из промежутка -0.005 до 0.005, такие маленькие числа, чтобы избежать паралича сети
-            # self._weights.append(0.1)
-
-            # паралич сети это явление очевидно свзяанное с процедурой обучения с учителем методом обратного распространения где учитывается производная от активационной функции, и когда веса уходят в
-            # большие величины, в ту область сигмоиды, где производная практически равняется нулю, обучение становится невозможным
-            # в нашем случае обучение стохастическим методом, не связано с наклоном сигмоиды, можно допустить что паралич сети не грозит в нашем случае, так что можно задать более широкий диапазон стартовых сначений весов.
-        ## One weight (last one) - adjusting of sigmoid
-        self._out = 0.0  # определяем и обнуляем выход нейрона, он является вещественным числом, потому что это фактически - результат расчета сигмоиды, а она возвращает результат в промежутке (0..1)
-        self._inputs = []  # определяем и обнуляем список входов, ожидается что входы - дискретны 0/1. На маомент создания экземпляра класса значения этих входов пока неизвестны, но они будут известны в момент расчета функции calc()
-
-    def FnActivation(self, s=0.0):  # активационная функция
-        return 1 / (1 + math.exp(-s))  # классическая сигмоида, по крайней мере так задумывалась.
-
-    def calc(self):  # функция расчета выхода
-        tmpinputs = self._inputs[0:len(
-            self._inputs)]  # назначаем локальный массив ВХОДОВ, копируя его из входов текущего экземпляра класса neuron
-        tmpinputs.append(
-            1)  ## One input (last one) always =1 for adjusting of sigmoid # Да один вход, последний в списке входов - всегда включен чтобы имитировать вертикальный сдвиг активационной функции. также как и в весах последний вес - дополнительный.
-        ## print "tmpinputs"+str(tmpinputs)
-        ## print "self._weights"+str(self._weights)
-        s = sum(map(lambda v1, v2: v1 * v2, tmpinputs,
-                    self._weights))  # объявлена лямбда функция, умножающая две переменных, далее два массива ВХОДЫ_локальные_для_функции_calc и ВЕСА_параметр_объекта_neuron были промапированы по этой лямбде-функции, и в конце все просуммировано, хитрая строчка
-        self._out = self.FnActivation(
-            s)  # расчитан выход = активационная функция от суммы, расчитанной в предыдущей строке
-        # print("Выход нейрона: " + str(self._out))
-        return self._out  # возвращаем результат работы функции calc
-
-    def __str__(self):  # заводим функцию, которая создает строковое представление объекта neuron
-        return str(self._weights)  # по сути она просто печатает массив весов для синапсов данного нейрона.
-
-
-class layer:  # объявляем класс слоя
-    def __init__(self, n_neurons, n_inputs):  # это конструктор класса слоя, в качестве входных параметров принимает:
-        # n_neurons - число_нейронов в слое  и
-        # n_inputs - число_входов слоя .
-        self._neurons = []  # он объявляет массив нейронов данного слоя, пока пустой. этот массив будет являться параметром слоя
-        for i in range(n_neurons):  # заводим цикл с количеством итераций равным объявленному числу нейронов в слое
-            self._neurons.append(neuron(
-                n_inputs))  # заполняем массив нейронов собственно новенькими нейронами, количество входов каждого нейрона выставляется в соответствии с количеством входов слоя n_inputs
-        self._outs = []  # объявляем и обнуляем массив выходов, он пока пустой но после расчета слоя в нем будет ровно столько вещественных чисел, сколько нейронов в данном слое
-        self._inputs = []  # объявляем и обнуляем массив входов слоя. На момент создания экземпляра класса слоя, значения этих входов неизвестны но мы достоверно знаем их количество, так как конструктор получает его явным образом в качестве аргумента.
-
-    def calc(self):  # объявляем функцию расчета слоя
-        self._outs = []  # обнуляем выходы - КОСТЫЛЬ, потому что бессмысленно на данном этапе, просто возможно после предыдущего шага выходы не обнулились.
-        for i in self._neurons:  # Прогоняем цикл по всему массиву нейронов текущего слоя
-            i._inputs = self._inputs  # Назначаем входы данного нейрона = входы текущего слоя
-            # ?????????????  Нет ли тут ошибки? может быть надо както по-извращенски назначать, например созданием независимой копии?
-            # i._inputs = self._inputs[0:len(self._inputs)] ## собственно - вот вариант приравнивания который создает копию. Этот вариант на случай нежелательного склеивания массивов
-            self._outs.append(
-                i.calc())  # и расчитываем собственно нейрон. На этот момент веса известны, либо назначаны в конструкторе, если это первая итерация, либо просто текущий экземпляр слоя помнит веса каждого нейрона в отдельности.
-        # ?????????????  хорошо бы удостовериться что на каждом шаге слой помнит все веса всех нейронов и если идет обучение - изменение весов, то на следующем шаге веса измпеняются и запоминаются измененными.
-
-    def __str__(self):  # заводим строковое представление текущего слоя.
-        return str(self._outs)  # в данном случае мы просто печатаем массив выходов.
+# Конфигурация - жестко зашито
+INPUT_SIZE = 45
+HIDDEN1_SIZE = 50
+HIDDEN2_SIZE = 10
+OUTPUT_SIZE = 3
 
 
 class NeuralNetwork:  # класс нейронной сети
-    def __init__(self):  # конструктор класса, требует указания параметров:
-        n_neurons_pl = NetConf[1:]
-        n_inputs = NetConf[0]
-        ## n_neurons_pl - Количество нейронов в каждом слое (это массив из целых чисел,
-        ##	  и последний слой определяет количество выходов)
-        ##        количество элементов массива определяет количество слоев в сети
-        ## n_inputs - Количество входов сети
-        self.n_layers = len(n_neurons_pl)  # вычисляем количество слоев в сети, исходя из размера массива n_neurons_pl
-        self._layers = []  # заводим параметр массив слоев, пока пустой.
-        self._layers.append(layer(n_neurons_pl[0],
-                                  n_inputs))  # инициализируем/создаем нулевой слой, определяем ему количество входов равным количеству входов всей сети.
-        for i in range(1, self.n_layers):  # далее в цикле инициализируем/создаем остальные слои, кроме нулевого
-            ## ++++???????????  Хорошо бы проверить что этот цикл действительно игнорирует нулевой (первый) элемент массива
-            ## Проверено, действительно игнорирует 17.10.2011 файл test_first_element_of_array.py
-            self._layers.append(layer(n_neurons_pl[i], n_neurons_pl[
-                i - 1]))  # назначаем им количество входов  равным количеству нейронов в предыдущем слое.
-        self._outs = []  # заводим массив выходов сети, пока пустой, количество элементов в этом масиве мы на данный момент знаем: это количество нейронов в последнем слое
-        self._inputs = []  # заводим массив входов сети, пока пустой, количество элементов в этом массиве мы на данный момент знаем: это количество входов сети.
-
-    # def calc(self):  # функция расчета сети
-    #     self._layers[0]._inputs = self._inputs  # назначаем массив входов для нулевого слоя сети
-    #     # ??????????????  Нет ли тут ошибки? может быть надо както по-извращенски назначать, например созданием независимой копии?
-    #     # self._layers[0]._inputs = self._inputs[0:len(self._inputs)] # собственно - вот вариант приравнивания который создает копию. Этот вариант на случай нежелательного склеивания массивов
-    #     ## print "Layer 0  Ins: " + str(self._layers[0]._inputs)
-    #     self._layers[0].calc()  # расчитать нулевой слой
-    #     ## print "Layer 0 Outs: " + str(self._layers[0]._outs)
-    #     for i in range(1, self.n_layers):  # В цикле по всем слоям кроме нулевого
-    #         self._layers[i]._inputs = self._layers[
-    #             i - 1]._outs  # назначаем входы текущего слоя = выходы предыдущего слоя
-    #         # ????????????  Нет ли тут ошибки? может быть надо както по-извращенски назначать, например созданием независимой копии?
-    #         # self._layers[i]._inputs = self._layers[i-1]._outs[0:len(self._layers[i-1]._outs)]  ## Этот вариант на случай нежелательного склеивания массивов
-    #         ## print "Layer " + str(i) + "  Ins: " + str(self._layers[i]._inputs)
-    #         self._layers[i].calc()  # расчитываем i-й слой
-    #     ## print "Layer " + str(i) + " Outs: " + str(self._layers[i]._outs)
-    #     self._outs = self._layers[len(self._layers) - 1]._outs  # назначаем выходы сети = выходы последнего слоя
-    #     ## ++++++?????????? точно это выходы последнего слоя?
-    #     ## Теоретически да, проверено 17.10.11 файл test_first_element_of_array.py
-    #     ## Надо еще проверить на реальной сети
-
-    def __strOld__(self):  # заводим строковое представление для нейронной сети
-        s = "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n"  # просто выводим все веса, всех слоев
-        s += "* one weight (last) for adjusting sigmoid\n"
-        for i in self._layers:
-            for j in i._neurons:
-                s += "	   Weights (amount=" + str(len(j._weights)) + "):" + str(j._weights) + "\n"
-        s += "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n"
-        return str(s)
-
-    def __str__(self):  # заводим строковое представление для нейронной сети
-        s = "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n"  # просто выводим все веса, всех слоев
-        # s += "* one weight (last) for adjusting sigmoid\n"
-        for i in self._layers:
-            s += "LAYER START:\n"
-            for j in i._neurons:
-                s += "Neuron start:\n"
-                for w in j._weights:
-                    s += str(w) + "\t"
-                s += "\n"
-        s += "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-\n"
-        return str(s)
-    
-
-    # @staticmethod
-    # def fast_calc_all_outs(all_visions, creatures_nns):
-    #     # Это заглушка для
-    #     all_outs = [] # all_outs[] = [angle_delta, speed_delta, bite]
-
-    #     for index,out in enumerate(creatures_nns):
-    #         angle_delta = 0.0
-    #         speed_delta = 0.3
-    #         bite = 0.0
-            
-    #         if (all_visions[index][7] > 250) and (all_visions[index][22] < 50) and (all_visions[index][37] < 50):
-    #             angle_delta = 0.01*(random.random()-0.5)
-    #         else:
-    #             angle_delta = 1*(random.random()-0.5)
-    #         all_outs.append([
-    #             angle_delta, 
-    #             speed_delta, 
-    #             bite
-    #             ])
-                    
-    #     return all_outs
-
-
-
-    def flatten_network(self):
-        """
-        Преобразует нейронную сеть в иерархический список весов
-        Возвращает: [[[веса_нейрона1_слой1], [веса_нейрона2_слой1], ...], 
-                    [[веса_нейрона1_слой2], ...], ...]
-        по идее она должна возвращать объект типа np.array. Но пока данные негомогенные
-        """
-        nested_list = []
-        for layer in self._layers:
-            layer_weights = []
-            for neuron in layer._neurons:
-                layer_weights.append(neuron._weights[:])  # копируем веса
-            nested_list.append(layer_weights)
-        return nested_list
+    def __init__(self):
+        # Инициализация как раньше
+        limit1 = np.sqrt(6.0 / (INPUT_SIZE + HIDDEN1_SIZE))
+        self.w1 = np.random.uniform(-limit1, limit1, (INPUT_SIZE, HIDDEN1_SIZE)).astype(np.float32)
+        self.b1 = np.zeros(HIDDEN1_SIZE, dtype=np.float32)
+        
+        limit2 = np.sqrt(6.0 / (HIDDEN1_SIZE + HIDDEN2_SIZE))
+        self.w2 = np.random.uniform(-limit2, limit2, (HIDDEN1_SIZE, HIDDEN2_SIZE)).astype(np.float32)
+        self.b2 = np.zeros(HIDDEN2_SIZE, dtype=np.float32)
+        
+        limit3 = np.sqrt(6.0 / (HIDDEN2_SIZE + OUTPUT_SIZE))
+        self.w3 = np.random.uniform(-limit3, limit3, (HIDDEN2_SIZE, OUTPUT_SIZE)).astype(np.float32)
+        self.b3 = np.zeros(OUTPUT_SIZE, dtype=np.float32)
 
 
     @staticmethod
-    @jit(nopython=True)
-    def fast_calc_all_outs(all_visions, creatures_nns):
+    def prepare_calc(creatures):
+        # creatures_nns = NeuralNetwork.prepare_calc(self.creatures)
+		# эта функция склеивает все сетки в векторизованные массивы: l1_weights, l2_weights, l1_bias, l2_bias)
+		# , но на выход она выдает обычный python кортеж (или если не получится, то список), 
+		# содержащий эти самые numpy ndarray: l1_weights, l2_weights, l1_bias, l2_bias ...
+        
+        n_creatures = len(creatures)
+
+        w1 = np.zeros((n_creatures, INPUT_SIZE, HIDDEN1_SIZE), dtype='float') 
+        b1 = np.zeros((n_creatures, HIDDEN1_SIZE), dtype='float')
+        w2 = np.zeros((n_creatures, HIDDEN1_SIZE, HIDDEN2_SIZE), dtype='float')
+        b2 = np.zeros((n_creatures, HIDDEN2_SIZE), dtype='float')
+        w3 = np.zeros((n_creatures, HIDDEN2_SIZE, OUTPUT_SIZE), dtype='float')
+        b3 = np.zeros((n_creatures, OUTPUT_SIZE), dtype='float')
+
+        for index, cr in enumerate(creatures):
+            w1[index] = cr.nn.w1
+            b1[index] = cr.nn.b1
+            w2[index] = cr.nn.w2
+            b2[index] = cr.nn.b2
+            w3[index] = cr.nn.w3
+            b3[index] = cr.nn.b3
+        
+        return w1, b1, w2, b2, w3, b3
+
+
+    @staticmethod
+    def make_all_decisions(all_visions_normalized, creatures_nns):
         """
-        Быстрый расчет всех выходов нейронной сети для всех существ
-        all_visions: numpy массив видения существ (shape: [n_creatures, N_INPUTS])
-        creatures_nns: список весов нейронных сетей всех существ
-        возвращает: numpy массив выходов [angle_delta, speed_delta, bite] для каждого существа
+        Эта функция просто пасует данные в быструю функцию, 
+        разбирая List (или кортеж) на элементы
         """
-        # Конфигурация нейронной сети
-        N_INPUTS = 45
-        HIDDEN_LAYERS = [50, 10]
-        N_OUTPUTS = 3
-        
-        n_creatures = all_visions.shape[0]
-        
-        # Заранее выделяем память для всех выходов
-        all_outs = np.zeros((n_creatures, N_OUTPUTS))
-        
-        # Проходим по всем существам
-        for i in range(n_creatures):
-            vision = all_visions[i]  # shape: (N_INPUTS,)
-            nn_weights = creatures_nns[i]
+        return NeuralNetwork.fast_calc_all_outs(
+            all_visions_normalized, 
+            creatures_nns[0], 
+            creatures_nns[1], 
+            creatures_nns[2], 
+            creatures_nns[3],
+            creatures_nns[4], 
+            creatures_nns[5]
+            )
+
+    
+    @staticmethod
+    def fast_calc_all_outs(all_inputs: np.ndarray,
+                        all_w1: np.ndarray, all_b1: np.ndarray,
+                        all_w2: np.ndarray, all_b2: np.ndarray,
+                        all_w3: np.ndarray, all_b3: np.ndarray) -> np.ndarray:
+        """
+        Прямой проход для нескольких существ ОДНОВРЕМЕННО
+        all_inputs: [n_creatures, 45] входы всех существ
+        all_w1: [n_creatures, 50, 45] и т.д.
+        возвращает: [n_creatures, 3] решения всех существ
+        """
+        n_nets = all_inputs.shape[0]
+        outputs = np.zeros((n_nets, OUTPUT_SIZE), dtype=np.float32)
+
+        # Параллельно обрабатываем всех существ
+        for i in prange(n_nets):
+            x = all_inputs[i]
+            w1 = all_w1[i]
+            b1 = all_b1[i]
+            w2 = all_w2[i]
+            b2 = all_b2[i]
+            w3 = all_w3[i]
+            b3 = all_b3[i]
             
-            # Вместо append - создаем массив с bias заранее
-            current_size = N_INPUTS + 1  # +1 для bias
-            current_inputs = np.zeros(current_size)
-            current_inputs[:N_INPUTS] = vision  # копируем видение
-            current_inputs[N_INPUTS] = 1.0      # устанавливаем bias
+            # Первый слой
+            z1 = np.zeros(HIDDEN1_SIZE, dtype=np.float32)
+            for j in range(HIDDEN1_SIZE):
+                sum_val = np.float32(0.0)
+                for k in range(INPUT_SIZE):
+                    sum_val += w1[j, k] * x[k]
+                z1[j] = math.tanh(sum_val + b1[j])
             
-            # Проходим по всем слоям
-            for layer_index, layer_weights in enumerate(nn_weights):
-                layer_weights = np.array(layer_weights)
-                n_neurons = layer_weights.shape[0]
-                
-                # Вычисляем взвешенные суммы
-                weighted_sums = np.dot(layer_weights, current_inputs)
-                
-                # Сигмоида
-                layer_outputs = 1.0 / (1.0 + np.exp(-weighted_sums))
-                
-                # Подготавливаем входы для следующего слоя
-                if layer_index < len(nn_weights) - 1:
-                    # Создаем новый массив с bias
-                    next_size = n_neurons + 1
-                    current_inputs = np.zeros(next_size)
-                    current_inputs[:n_neurons] = layer_outputs  # выходы слоя
-                    current_inputs[n_neurons] = 1.0             # bias
-                else:
-                    # Последний слой - просто копируем выходы
-                    current_inputs = layer_outputs
+            # Второй слой
+            z2 = np.zeros(HIDDEN2_SIZE, dtype=np.float32)
+            for j in range(HIDDEN2_SIZE):
+                sum_val = np.float32(0.0)
+                for k in range(HIDDEN1_SIZE):
+                    sum_val += w2[j, k] * z1[k]
+                z2[j] = math.tanh(sum_val + b2[j])
             
-            # Сохраняем выходы
-            all_outs[i] = current_inputs
-        
-        return all_outs
+            # Третий слой
+            for j in range(OUTPUT_SIZE):
+                sum_val = np.float32(0.0)
+                for k in range(HIDDEN2_SIZE):
+                    sum_val += w3[j, k] * z2[k]
+                outputs[i, j] = sum_val + b3[j]
+
+        return outputs
+
+
+
+
+    @staticmethod
+    @jit(nopython=True, fastmath=True, cache=True)
+    def fast_tanh(x: np.float32) -> np.float32:
+        """Быстрая аппроксимация tanh"""
+        x2 = x * x
+        return x * (27.0 + x2) / (27.0 + 9.0 * x2)

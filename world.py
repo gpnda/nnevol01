@@ -67,14 +67,15 @@ class World():
 		
 		
 		# 2. Мышление (параллельно)  
-		# Подготавливаем данные для быстрой функции
-		creatures_nns = []
-		for creature in self.creatures:
-			creatures_nns.append(creature.nn.flatten_network())
+		# Подготавливаем данные для быстрой функции 
+		# эта функция склеивает все сетки в векторизованные массивы: l1_weights, l2_weights, l1_bias, l2_bias)
+		creatures_nns = NeuralNetwork.prepare_calc(self.creatures)
+		# , но на выход она выдает обычный python кортеж (или если не получится, то список), 
+		# содержащий эти самые numpy ndarray: l1_weights, l2_weights, l1_bias, l2_bias ...
+		
 		# запускаем быструю функцию
-		print(creatures_nns)
-		all_outs = NeuralNetwork.fast_calc_all_outs(all_visions_normalized, np.array(creatures_nns))
-		# all_outs[] = [angle_delta, speed_delta, bite]
+		all_outs = NeuralNetwork.make_all_decisions(all_visions_normalized, creatures_nns)
+		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
 
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
@@ -357,16 +358,13 @@ class World():
 
 
 	@staticmethod
-	def normalize_vision(all_visions):
+	def normalize_vision(all_visions: np.ndarray) -> np.ndarray:
 		"""
 		Нормирует массив видения из диапазона 0-255 в диапазон 0.0-1.0
 		all_visions: список массивов видения существ (каждый массив из 45 элементов 0...255)
 		возвращает: список нормированных массивов (0.0...1.0)
 		"""
-		normalized_visions = []
-		
-		for vision in all_visions:
-			normalized_vision = [pixel / 255.0 for pixel in vision]
-			normalized_visions.append(normalized_vision)
+		# Нормируем делением на 255
+		normalized_visions = all_visions / 255.0
 		
 		return normalized_visions
