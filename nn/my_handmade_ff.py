@@ -7,7 +7,7 @@ from numba import jit, prange
 from typing import Tuple
 
 
-# Конфигурация - жестко зашито
+# Конфигурация - жестко зашито 
 INPUT_SIZE = 45
 HIDDEN1_SIZE = 50
 HIDDEN2_SIZE = 10
