@@ -103,7 +103,7 @@ class NeuralNetwork:  # класс нейронной сети
             for j in range(HIDDEN1_SIZE):
                 sum_val = np.float32(0.0)
                 for k in range(INPUT_SIZE):
-                    sum_val += w1[j, k] * x[k]
+                    sum_val += w1[k, j] * x[k]
                 z1[j] = math.tanh(sum_val + b1[j])
             
             # Второй слой
@@ -111,14 +111,14 @@ class NeuralNetwork:  # класс нейронной сети
             for j in range(HIDDEN2_SIZE):
                 sum_val = np.float32(0.0)
                 for k in range(HIDDEN1_SIZE):
-                    sum_val += w2[j, k] * z1[k]
+                    sum_val += w2[k, j] * z1[k]
                 z2[j] = math.tanh(sum_val + b2[j])
             
             # Третий слой
             for j in range(OUTPUT_SIZE):
                 sum_val = np.float32(0.0)
                 for k in range(HIDDEN2_SIZE):
-                    sum_val += w3[j, k] * z2[k]
+                    sum_val += w3[k, j] * z2[k]
                 outputs[i, j] = sum_val + b3[j]
 
         return outputs

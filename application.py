@@ -15,7 +15,7 @@ class Application():
             food_count=300,
             creatures_count=30
         )
-		self.renderer = Renderer(self.world, cell_size=15)
+		self.renderer = Renderer(self.world, cell_size=12)
 
 	def run(self):
 		self.isRunning = True
