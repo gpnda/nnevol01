@@ -125,36 +125,70 @@ class World():
 			# Существо стареет
 			creature.age += 1
 			# Существо тратит энергию на просто существование в мире
-			creature.energy -= 0.01
+			creature.energy -= 0.4
 			# Существо тратит энергию на бег в зависимости от скорости
 			# Существо тратит энергию на поворот, в зависимости от резкого поворота
 			# Существо тратит энергию на поворот, в зависимости от резкого поворота
-
-		
-		if self.is_population_big_enough():
-			self.remove_dead_creatures()
-
-		if self.is_population_not_overcrowd():
-			self.reprod()
 			
 
+			# Контроль размера популяции
+			# По идее в будущем волны изобилия можно двигать, подстраивая их под себя, чтобы не тянуть время
+			# Например, если популяция вымирает - сдвинуть волну изобилия до точки когда начинается рост изобилия.
+			# И наоборот, если популяиця слишком расплодилась, то можно сдвинуть волну изобилия до точки, 
+			# когда начинается скудный сезон - пищи становится все меньше.
+			# Для этого надо ввести переменную "slide_to_rise", "slide_to_descent"
+			# И тогда пока slide_to_rise==True, не надо повторно сдвигать изобилие на рост, потому что этот флаг
+			# говорит о том, что изобилие уже сдвинули, и пока оно не 
+			# станет slide_to_descent - сигмоиду не надо никуда сдвигать.
+			#
+			# С другой стороны, можно не париться, пусть скудный сезон продолжается столько сколько потребуется, 
+			# Потому что мы Остановили мутации на 50 существах, и запретили смерть на 10 существах.
+			# И теперь мы можем не переживать о вымирании. Точно также и про перенаселение.
+			#
+			# Но пока я не делаю сезоны и волны изобилия. Пока я должен сделать именно: 
+			# 1. Предотвратить вымирание популяции
+			# 2. Предотвратить перенаселенность мира
+			# Для этого в классе Worldя напишу приватный метод control_population()
+			# Внутри него должны быть методы которые в штатном режиме реализуют смерть и рождение
+			# А в крайние отрезки - запрещает смерть или запрещает размножение.
 
+		self.control_population()
 
+		
+		
+			
 
-	def is_population_big_enough(self):
-		# если существ менее 50, то всем существам задать энергию = 1.0
-		if len(self.creatures)<50:
+	def control_population(self):
+
+		print(self.creatures[0].energy)
+		if len(self.creatures)<10:
+			# Если существ очень мало, то сделать все существа - молодыми и здоровыми
 			for cr in self.creatures:
 				cr.energy = 1.0
-			return False
+				cr.age = random.randint(0, 100)
 		else:
-			return True
+			# Иначе, если существ достаточно много - тогда убираем тех у кого cr.energy < 0
+			self.death()
+		
+		if len(self.creatures)<90:
+			self.reprod()
 
-	def is_population_not_overcrowd(self):
-		if len(self.creatures)>100:
-			return False
-		else:
-			return True
+
+	def death(self):
+		"""
+		Удаляет всех существ с энергией меньше 0, если после удаления останется 
+		не менее 10 существ с положительной энергией
+		"""
+		
+		# Считаем количество существ с энергией > 0
+		positive_energy_count = sum(1 for creature in self.creatures if creature.energy > 0)
+		
+		# Если существ с энергией > 0 меньше 10, не фильтруем
+		if positive_energy_count < 10:
+			return
+		
+		# Иначе удаляем существ с энергией < 0
+		self.creatures = [creature for creature in self.creatures if creature.energy >= 0]
 
 	def reprod(self):
 		# Цикл размножения
@@ -246,11 +280,7 @@ class World():
 		
 
 
-	def remove_dead_creatures(self):
-		"""Удаляет всех существ с энергией меньше 0"""
-		self.creatures = [creature for creature in self.creatures 
-							if creature.energy >= 0]
-	
+
 	@staticmethod
 	@jit(nopython=True)
 	def fast_get_all_visions(map, creatures_pos):
