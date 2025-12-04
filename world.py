@@ -60,9 +60,9 @@ class World():
 				creature.angle,
 				creature.vision_distance]
 				)
+		
 		# запускаем быструю функцию
 		all_visions, raycast_dots = self.fast_get_all_visions(current_map, creatures_pos)
-		all_visions_normalized = self.normalize_vision(all_visions)
 		debug.set("raycast_dots", raycast_dots)
 		
 		
@@ -74,9 +74,8 @@ class World():
 		# содержащий эти самые numpy ndarray: l1_weights, l2_weights, l1_bias, l2_bias ...
 		
 		# запускаем быструю функцию
-		all_outs = NeuralNetwork.make_all_decisions(all_visions_normalized, creatures_nns)
+		all_outs = NeuralNetwork.make_all_decisions(all_visions, creatures_nns)
 		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
-
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
@@ -354,17 +353,7 @@ class World():
 		# print("Длина массива all_visions: " + str(len(all_visions)))
 		# for index,v in enumerate(all_visions):
 		#   print("Длина " + str(index) + " массива vision: " + str(len(v)))
-		return all_visions, raycast_dots
+		return all_visions / 255.0, raycast_dots
 
 
-	@staticmethod
-	def normalize_vision(all_visions: np.ndarray) -> np.ndarray:
-		"""
-		Нормирует массив видения из диапазона 0-255 в диапазон 0.0-1.0
-		all_visions: список массивов видения существ (каждый массив из 45 элементов 0...255)
-		возвращает: список нормированных массивов (0.0...1.0)
-		"""
-		# Нормируем делением на 255
-		normalized_visions = all_visions / 255.0
-		
-		return normalized_visions
+	
