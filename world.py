@@ -121,14 +121,8 @@ class World():
 			if all_outs[index][2] > 0.5:
 				self.creature_bite(creature)
 
-
-			# Существо стареет
-			creature.age += 1
-			# Существо тратит энергию на просто существование в мире
-			creature.energy -= 0.4
-			# Существо тратит энергию на бег в зависимости от скорости
-			# Существо тратит энергию на поворот, в зависимости от резкого поворота
-			# Существо тратит энергию на поворот, в зависимости от резкого поворота
+			creature.update()
+			
 			
 
 			# Контроль размера популяции
@@ -154,20 +148,13 @@ class World():
 
 		self.control_population()
 
-		
-		
+		print("POPULATION: " + str(len(self.creatures)))
+
 			
 
 	def control_population(self):
 
-		print(self.creatures[0].energy)
-		if len(self.creatures)<10:
-			# Если существ очень мало, то сделать все существа - молодыми и здоровыми
-			for cr in self.creatures:
-				cr.energy = 1.0
-				cr.age = random.randint(0, 100)
-		else:
-			# Иначе, если существ достаточно много - тогда убираем тех у кого cr.energy < 0
+		if len(self.creatures)>=10:
 			self.death()
 		
 		if len(self.creatures)<90:
@@ -183,8 +170,13 @@ class World():
 		# Считаем количество существ с энергией > 0
 		positive_energy_count = sum(1 for creature in self.creatures if creature.energy > 0)
 		
-		# Если существ с энергией > 0 меньше 10, не фильтруем
+		# Если существ с энергией > 0 меньше 10 шт, то не фильтруем
 		if positive_energy_count < 10:
+			# Именно тут надо поднять всем энергию, потому что существ в популяции может быть 11, 
+			# но по факту все они уже мертвы (с отрицательной энергией)
+			for cr in self.creatures:
+				cr.energy = 1.0
+				cr.age = random.randint(0, 100)
 			return
 		
 		# Иначе удаляем существ с энергией < 0
