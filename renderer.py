@@ -16,7 +16,7 @@ class Renderer:
         self.font = pygame.font.SysFont('Arial', 12)
         self.clock = pygame.time.Clock()
     
-    def draw(self):
+    def draw_map(self):
         """Основной метод отрисовки"""
         self.screen.fill((0, 0, 0))  # Черный фон
         
@@ -63,16 +63,21 @@ class Renderer:
         
         pygame.display.flip()
 
-    def terminate(self):
-        pygame.quit()
-        return(True)
-
-    def getEvents(self):
-        return pygame.event.get()
-
-    def isGotQuitEvent(self):
-        quitFlag = False
+        
+    
+    def control_run(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quitFlag = True
-        return quitFlag
+                pygame.quit()
+                self.app.terminate()
+                return True
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    print("Space key pressed!")
+                    self.app.toggle_run()
+                elif event.key == pygame.K_a:
+                    print("A key pressed!")
+                    self.app.toggle_animate()
+
+
+
