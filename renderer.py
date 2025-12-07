@@ -5,17 +5,16 @@ from debugger import debug
 
 class Renderer:
     
-    def __init__(self, world, cell_size=20):
+    def __init__(self, world, app):
         self.world = world
-        self.cell_size = cell_size
+        self.app = app
+        self.cell_size = 10
         pygame.init()
         self.screen = pygame.display.set_mode(
-            (self.world.width * cell_size, self.world.height * cell_size)
+            (self.world.width * self.cell_size, self.world.height * self.cell_size)
         )
         self.font = pygame.font.SysFont('Arial', 12)
         self.clock = pygame.time.Clock()
-    
-
     
     def draw(self):
         """Основной метод отрисовки"""
@@ -61,31 +60,6 @@ class Renderer:
                 int(dot[1]*self.cell_size)-1, 
                 2, 2))
 
-                
-        
-        # Отрисовка сущностей
-        # for entity in self.world.foods:
-        #     if hasattr(entity, 'get_position') and hasattr(entity, 'get_color'):
-        #         x, y = entity.get_position()
-        #         pixel_x = x * self.cell_size
-        #         pixel_y = y * self.cell_size
-                
-        #         # Отрисовка тела существа
-        #         pygame.draw.rect(
-        #             self.screen,
-        #             entity.get_color(),
-        #             (pixel_x + 1, pixel_y + 1, self.cell_size - 2, self.cell_size - 2))
-                
-        #         # Отрисовка символа
-        #         if hasattr(entity, 'get_sprite'):
-        #             text = self.font.render(
-        #                 entity.get_sprite(),
-        #                 True,
-        #                 (255, 255, 255))
-        #             self.screen.blit(text, (pixel_x + 5, pixel_y + 5))
-                
-        #         # Отрисовка здоровья
-        #         self.draw_health_bar(entity, pixel_x, pixel_y)
         
         pygame.display.flip()
 

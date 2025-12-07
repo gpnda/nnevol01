@@ -101,9 +101,7 @@ class World():
 			# is_ok_to_go Проверяем/применяем правила, по которым существо может или не может перемещаться
 			is_ok_to_go = True
 			# За пределы карты проверим выход
-			if (int(newx) < 0 or int(newx) > self.width-1):
-				is_ok_to_go = False
-			if (int(newy) < 0 or int(newy) > self.height-1):
+			if int(newx) < 0 or int(newx) > self.width-1 or int(newy) < 0 or int(newy) > self.height-1:
 				is_ok_to_go = False
 			
 			# Проверим, что в новой клетке не стена. На стену нельзя переходить.
@@ -187,10 +185,6 @@ class World():
 		baby_creatures = []
 		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
 			baby_creatures += i.reprodCreature()
-			# # Чтобы не было байби-бума, проверим что максимальное количество существ пока не достигнуто
-			# if((len(self.creatures)+len(baby_creatures)) > self.gN_creatures):
-			#     print("Существ слишком много, не будем добавлять еще детей " + str(len(self.creatures) +len(baby_creatures)))
-			#     break
 		self.creatures += baby_creatures
 
 	def creature_bite(self, cr):
@@ -274,7 +268,7 @@ class World():
 
 
 	@staticmethod
-	@jit(nopython=True)
+	@jit(nopython=True, fastmath=True)
 	def fast_get_all_visions(map, creatures_pos):
 		step = 0.9 # шаг перемещения взгляда (для raycast - дистанция на котороую двигаем вперед указатель)
 		resolution = 15 # разрешение взгляда - по сути сколько лучше отправит raycast?

@@ -6,13 +6,13 @@ import random
 
 class Creature():
     
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
         self.energy = 1.0
         self.age = random.randint(0,500)
         self.speed = 1
-        self.angle = 0.1
+        self.angle = random.random()*3.14
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
@@ -29,7 +29,7 @@ class Creature():
         print ("начало цикла по рождению детей")
         for j in range(0, 3):
             # print ("Процесс рождения существа. 1 Погнали")
-            c = copy.deepcopy(self)
+            # c = copy.deepcopy(self)
             # print ("Процесс рождения существа. 2")
             # c.mutate(app.gM_probability, app.gM_strength)
             # print ("Процесс рождения существа. 3")
@@ -37,10 +37,9 @@ class Creature():
             # print ("Процесс рождения существа. 4")
             # c.generation = self.generation + 1
             # print ("Процесс рождения существа. 5")
-            c.age = 0
-            c.energy = 1.0
-            c.speed = 0.3
-            c.angle = random.random()*3.14
+            c = Creature(self.x, self.y)
+            c.nn = NeuralNetwork.copy(self.nn)
+            c.nn.mutate(0.1, 0.5)
             c.birth_ages = [
                 random.randint(90, 110), 
                 random.randint(190, 210), 
@@ -60,8 +59,8 @@ class Creature():
 
         # Существо стареет
         self.age += 1
-        if self.age > 50:
-            self.energy = -100
+        if self.age > 250:
+            self.energy = -100.0
 
 
         # Существо тратит энергию на бег в зависимости от скорости

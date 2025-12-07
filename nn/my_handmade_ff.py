@@ -30,6 +30,53 @@ class NeuralNetwork:  # класс нейронной сети
         self.b3 = np.zeros(OUTPUT_SIZE, dtype=np.float32)
 
 
+
+    @staticmethod
+    def copy(original_nn):
+        new_nn = NeuralNetwork()
+        new_nn.w1 = original_nn.w1.copy()
+        new_nn.b1 = original_nn.b1.copy()
+        new_nn.w2 = original_nn.w2.copy()
+        new_nn.b2 = original_nn.b2.copy()
+        new_nn.w3 = original_nn.w3.copy()
+        new_nn.b3 = original_nn.b3.copy()
+        return new_nn
+    
+    def mutate(self, mutation_probability, mutation_strength):
+        """
+        Мутирует веса нейронной сети
+        
+        Parameters:
+        -----------
+        mutation_probability : float
+            Вероятность мутации каждого отдельного веса (0.0 - 1.0)
+        mutation_strength : float
+            Сила мутации (насколько сильно изменяются веса)
+        """
+        # Список всех параметров сети, которые нужно мутировать
+        params = [self.w1, self.b1, self.w2, self.b2, self.w3, self.b3]
+        
+        for param in params:
+            if mutation_probability > 0:
+                # Создаем маску: 1 с вероятностью mutation_probability, иначе 0
+                mask = (np.random.rand(*param.shape) < mutation_probability).astype(np.float32)
+                
+                # Создаем случайные изменения
+                # Можно использовать разные распределения:
+                
+                # 1. Равномерное распределение в диапазоне [-mutation_strength, mutation_strength]
+                random_changes = mutation_strength * (2 * np.random.rand(*param.shape).astype(np.float32) - 1)
+                
+                # 2. Или нормальное распределение (часто лучше для мутации)
+                # random_changes = mutation_strength * np.random.randn(*param.shape).astype(np.float32)
+                
+                # 3. Или как в статье: [0, mutation_strength] (только положительные изменения)
+                # random_changes = mutation_strength * np.random.rand(*param.shape).astype(np.float32)
+                
+                # Применяем мутацию только к выбранным весам (по маске)
+                param += random_changes * mask
+
+
     @staticmethod
     def prepare_calc(creatures):
         # creatures_nns = NeuralNetwork.prepare_calc(self.creatures)
@@ -104,7 +151,7 @@ class NeuralNetwork:  # класс нейронной сети
                 sum_val = np.float32(0.0)
                 for k in range(INPUT_SIZE):
                     sum_val += w1[k, j] * x[k]
-                z1[j] = math.tanh(sum_val + b1[j])
+                z1[j] = NeuralNetwork.fast_tanh(sum_val + b1[j])
             
             # Второй слой
             z2 = np.zeros(HIDDEN2_SIZE, dtype=np.float32)
@@ -112,7 +159,7 @@ class NeuralNetwork:  # класс нейронной сети
                 sum_val = np.float32(0.0)
                 for k in range(HIDDEN1_SIZE):
                     sum_val += w2[k, j] * z1[k]
-                z2[j] = math.tanh(sum_val + b2[j])
+                z2[j] = NeuralNetwork.fast_tanh(sum_val + b2[j])
             
             # Третий слой
             for j in range(OUTPUT_SIZE):
