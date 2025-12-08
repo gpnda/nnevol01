@@ -32,7 +32,7 @@ class Application():
 			if self.animate_flag:
 				self.renderer.draw_map()
 			
-			self.limit_fps()
+			#self.limit_fps()
 			self.renderer.control_run()
 		print("---===   Terminated   ===---")
 

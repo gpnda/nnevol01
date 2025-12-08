@@ -2,6 +2,7 @@
 
 import pygame
 from debugger import debug
+from gui import BIOSStyleGUI
 
 class Renderer:
     
@@ -11,7 +12,8 @@ class Renderer:
         
         pygame.init()
         self.screen = pygame.display.set_mode((1250, 600))
-        self.font = pygame.font.SysFont('Arial', 12)
+        # self.font = pygame.font.SysFont('Arial', 12)
+        self.font = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', 16)
         self.clock = pygame.time.Clock()
         
         # Настройки viewport для карты
@@ -30,6 +32,28 @@ class Renderer:
         self.is_dragging = False
         self.drag_start_pos = pygame.Vector2(0, 0)
         self.drag_start_offset = pygame.Vector2(0, 0)
+
+
+
+
+        # ##############################   GUI   ##################################
+        # Настройки rect для GUI
+        self.gui_rect = pygame.Rect(0, 0, 800, 500)  # Позиция и размеры viewport
+        
+        # Создаем отдельную поверхность для GUI
+        self.gui_surface = pygame.Surface((self.gui_rect.width, self.gui_rect.height))
+
+        self.gui = BIOSStyleGUI(self.gui_surface, 24)
+
+        # Добавление переменных
+        self.gui.add_variable("Speed", 50, min_val=0, max_val=100)
+        self.gui.add_variable("Power", 75.5, float, 0.0, 100.0)
+        self.gui.add_variable("Temperature", 25, min_val=-20, max_val=50)
+        self.gui.add_variable("State", "Активно", str)
+        self.gui.add_variable("Mode", 1, min_val=1, max_val=5)
+        self.gui.add_variable("Timeout", 30, min_val=1, max_val=300)
+        # #########################################################################
+
     
     def screen_to_map_pos(self, screen_pos):
         """Преобразует координаты экрана в координаты карты с учетом viewport и камеры"""
@@ -126,7 +150,14 @@ class Renderer:
     def draw_map(self):
         """Основной метод отрисовки карты и raycast точек"""
         # Заливаем экран черным
-        self.screen.fill((0, 0, 0))
+        # self.screen.fill((0, 0, 0))
+
+        # ################################   GUI  #################################
+        self.gui.draw()
+        self.screen.blit(self.gui_surface, (0, 0))
+        # #########################################################################
+
+
         
         # Заливаем поверхность viewport серым цветом (фон)
         self.viewport_surface.fill((10, 10, 10))
@@ -227,8 +258,13 @@ class Renderer:
                     # Сброс камеры
                     self.camera_offset = pygame.Vector2(0, 0)
                     self.camera_scale = 1.0
+                else:
+                    self.gui.handle_event(event)
             
             # Обработка событий мыши для управления картой
+            # ЭТА ШТУКА ЗАМЕДЛЯЕТ РАБОЧИЙ ЦИКЛ!!! 
+            # СДЕЛАЙ С НЕЙ ЧТОНИБУДЬ
+            # Но с другой стороны на длинных запусках - я отхожу от компа и мышка простаивает
             self.handle_mouse_events(event)
         
         return False
