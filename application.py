@@ -30,7 +30,7 @@ class Application():
 				self.world.update_map()
 			
 			if self.animate_flag:
-				self.renderer.draw_map()
+				self.renderer.draw()
 			
 			#self.limit_fps()
 			self.renderer.control_run()

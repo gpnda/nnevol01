@@ -2,71 +2,84 @@ import pygame
 import sys
 from typing import Dict, Any, Callable, Optional, List, Tuple
 
-class BIOSStyleGUI:
-    def __init__(self, screen: pygame.Surface, font_size: int = 24):
-        """
-        Инициализация GUI в стиле BIOS/Norton Commander
-        
-        Args:
-            screen: Surface PyGame для отрисовки
-            font_size: Размер шрифта
-        """
+
+class VariablesPanel:
+    """Панель переменных в BIOS/Norton Commander стиле"""
+    
+    FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
+    MAX_VISIBLE_VARS = 15
+    
+    # Геометрия панели: позиция (левый верхний угол) и размеры
+    # Все значения в пикселях, за исключением указанных иначе
+    PANEL_X = 0           # Абсолютная X координата (левая граница)
+    PANEL_Y = 0           # Абсолютная Y координата (верхняя граница)
+    PANEL_WIDTH = 0       # 0 = весь экран, >0 = фиксированная ширина
+    PANEL_HEIGHT = 0      # 0 = весь экран минус нижняя панель, >0 = фиксированная высота
+    FUNC_KEYS_PANEL_HEIGHT = 80  # Высота нижней панели функциональных клавиш
+    
+    # Внутренние смещения элементов в панели
+    PADDING_X = 10        # Отступ слева и справа
+    PADDING_Y = 10        # Отступ сверху и снизу
+    TITLE_Y_OFFSET = 10   # Y смещение заголовка от верхнего края панели
+    TITLE_BOTTOM_OFFSET = 50  # Смещение первого элемента от верхнего края панели
+    ITEM_VALUE_X = 50     # X смещение значения переменной
+    HIGHLIGHT_X_OFFSET = 5   # Смещение выделения слева
+    HIGHLIGHT_Y_OFFSET = 3   # Смещение выделения сверху
+    HIGHLIGHT_WIDTH_OFFSET = 10  # Вычитается из ширины выделения
+    HIGHLIGHT_HEIGHT_OFFSET = 4  # Вычитается из высоты выделения
+    
+    # Цвета панели переменных
+    COLORS = {
+        'panel_bg': (5, 41, 158),
+        'text': (170, 170, 170),
+        'highlight': (255, 255, 255),
+        'selected': (0, 167, 225),
+        'active': (0, 170, 0),
+    }
+
+    def __init__(self, screen: pygame.Surface, font_size: int = 24, line_height: int = 30):
+        """Инициализация панели переменных"""
         self.screen = screen
-        self.width, self.height = screen.get_size()
+        self.screen_width, self.screen_height = screen.get_size()
+        self.font_size = font_size
+        self.line_height = line_height
         
-        # Шрифт в стиле терминала
-        #self.font = pygame.font.SysFont('couriernew', font_size)
-        #self.font_bold = pygame.font.SysFont('couriernew', font_size, bold=True)
-        self.font = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', font_size)
-        self.font_bold = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', font_size)
+        # Инициализация шрифтов
+        self.font = pygame.font.Font(self.FONT_PATH, font_size)
+        self.font_bold = pygame.font.Font(self.FONT_PATH, font_size)
         
-        # Цвета BIOS-стиля
-        self.COLORS = {
-            'bg': (0, 0, 0),           # Черный фон
-            'text': (170, 170, 170),   # Серый текст
-            'highlight': (255, 255, 255), # Белый выделение
-            'selected': (0, 85, 0),    # Темно-зеленый выбранный
-            'active': (0, 170, 0),     # Зеленый активный
-            'panel_bg': (0, 0, 85),    # Темно-синий фон панели
-            'border': (85, 85, 85),    # Серый бордюр
-            'func_keys': (170, 170, 0),# Желтый для функциональных клавиш
-        }
-        
-        # Переменные приложения (имя: [значение, тип, min, max])
+        # Переменные приложения
         self.variables: Dict[str, Dict[str, Any]] = {}
         
-        # Функциональные клавиши (key: [описание, callback])
-        self.function_keys: Dict[str, Tuple[str, Callable]] = {}
+        # Состояние панели
+        self.selected_index = 0
+        self.editing = False
+        self.input_buffer = ""
         
-        # Состояние GUI
-        self.selected_index = 0  # Выбранная строка в панели переменных
-        self.editing = False     # Режим редактирования значения
-        self.input_buffer = ""   # Буфер ввода для редактирования
-        self.active_panel = "variables"  # Активная панель: "variables" или "func_keys"
+        # Вычисление фактических размеров панели
+        self._calculate_bounds()
+    
+    def _calculate_bounds(self) -> None:
+        """Расчет границ и размеров панели на основе констант и размера экрана"""
+        # Позиция
+        self.x = self.PANEL_X
+        self.y = self.PANEL_Y
         
-        # Области отрисовки
-        self.panel_width = self.width // 2 - 50
-        self.panel_height = self.height - 100
-        self.panel_x = 10
-        self.panel_y = 10
-        
-        # Функциональные клавиши внизу
-        self.func_keys_y = self.height - 60
+        # Размеры
+        if self.PANEL_WIDTH == 0:
+            self.width = self.screen_width
+        else:
+            self.width = self.PANEL_WIDTH
+            
+        if self.PANEL_HEIGHT == 0:
+            self.height = self.screen_height - self.FUNC_KEYS_PANEL_HEIGHT
+        else:
+            self.height = self.PANEL_HEIGHT
         
     def add_variable(self, name: str, value: Any, var_type: type = int, 
                      min_val: Optional[float] = None, max_val: Optional[float] = None,
-                     readonly: bool = False):
-        """
-        Добавить переменную в левую панель
-        
-        Args:
-            name: Имя переменной
-            value: Начальное значение
-            var_type: Тип переменной (int, float, str)
-            min_val: Минимальное значение (для чисел)
-            max_val: Максимальное значение (для чисел)
-            readonly: Только для чтения
-        """
+                     readonly: bool = False) -> None:
+        """Добавить переменную в панель"""
         self.variables[name] = {
             'value': value,
             'type': var_type,
@@ -76,240 +89,308 @@ class BIOSStyleGUI:
             'display_name': name
         }
     
-    def add_function_key(self, key: str, description: str, callback: Callable):
-        """
-        Добавить функциональную клавишу
-        
-        Args:
-            key: Обозначение клавиши (F1, F2, ...)
-            description: Описание функции
-            callback: Функция-обработчик
-        """
-        self.function_keys[key] = (description, callback)
-    
     def get_variable(self, name: str) -> Any:
         """Получить значение переменной"""
         return self.variables[name]['value'] if name in self.variables else None
     
-    def set_variable(self, name: str, value: Any):
+    def set_variable(self, name: str, value: Any) -> None:
         """Установить значение переменной с проверкой диапазона"""
-        if name in self.variables:
-            var_info = self.variables[name]
+        if name not in self.variables:
+            return
             
-            # Проверка типа и диапазона
-            try:
-                if var_info['type'] == int:
-                    value = int(value)
-                elif var_info['type'] == float:
-                    value = float(value)
-                
-                if var_info['min'] is not None and value < var_info['min']:
-                    value = var_info['min']
-                if var_info['max'] is not None and value > var_info['max']:
-                    value = var_info['max']
-                
-                var_info['value'] = value
-            except (ValueError, TypeError):
-                pass  # Сохраняем старое значение при ошибке
+        var_info = self.variables[name]
+        
+        try:
+            # Преобразование типа
+            if var_info['type'] == int:
+                value = int(value)
+            elif var_info['type'] == float:
+                value = float(value)
+            
+            # Проверка диапазона
+            if var_info['min'] is not None:
+                value = max(value, var_info['min'])
+            if var_info['max'] is not None:
+                value = min(value, var_info['max'])
+            
+            var_info['value'] = value
+        except (ValueError, TypeError):
+            pass
     
-    def draw_panel(self):
-        """Отрисовка левой панели с переменными"""
+    def _draw_variable_item(self, index: int, y_pos: int, var_name: str, var_info: Dict) -> None:
+        """Отрисовка одной переменной"""
+        # Выделение выбранной строки
+        if index == self.selected_index:
+            pygame.draw.rect(self.screen, self.COLORS['selected'],
+                           (self.x + self.HIGHLIGHT_X_OFFSET, y_pos - self.HIGHLIGHT_Y_OFFSET, 
+                            self.width - self.HIGHLIGHT_WIDTH_OFFSET, self.line_height - self.HIGHLIGHT_HEIGHT_OFFSET))
+        
+        # Имя переменной
+        name_text = var_info.get('display_name', var_name)
+        text_color = self.COLORS['highlight'] if index == self.selected_index else self.COLORS['text']
+        name_surf = self.font.render(f"{name_text:<20}", False, text_color)
+        self.screen.blit(name_surf, (self.x + self.PADDING_X, y_pos))
+        
+        # Значение переменной
+        if index == self.selected_index and self.editing:
+            value_text = self.input_buffer + "_"
+            value_color = self.COLORS['active']
+        else:
+            value_text = str(var_info['value'])
+            value_color = self.COLORS['text']
+        
+        value_surf = self.font.render(f"{value_text:>15}", False, value_color)
+        self.screen.blit(value_surf, (self.x + self.ITEM_VALUE_X, y_pos))
+    
+    def draw(self) -> None:
+        """Отрисовка панели с переменными"""
         # Фон панели
         pygame.draw.rect(self.screen, self.COLORS['panel_bg'],
-                        (self.panel_x, self.panel_y, self.panel_width, self.panel_height))
+                        (self.x, self.y, self.width, self.height))
         
-        # Заголовок панели
-        title = "Settings"
-        title_surf = self.font_bold.render(title, False, self.COLORS['highlight'])
-        self.screen.blit(title_surf, (self.panel_x + 10, self.panel_y + 10))
+        # Заголовок
+        title_surf = self.font_bold.render("Settings", False, self.COLORS['highlight'])
+        self.screen.blit(title_surf, (self.x + self.PADDING_X, self.y + self.TITLE_Y_OFFSET))
         
         # Список переменных
         var_list = list(self.variables.items())
-        max_display = min(15, len(var_list))  # Максимум 15 строк на экране
+        max_display = min(self.MAX_VISIBLE_VARS, len(var_list))
         
         for i in range(max_display):
-            if i >= len(var_list):
-                break
-                
             var_name, var_info = var_list[i]
-            y_pos = self.panel_y + 50 + i * 30
-            
-            # Выделение выбранной строки
-            if i == self.selected_index and self.active_panel == "variables":
-                pygame.draw.rect(self.screen, self.COLORS['selected'],
-                               (self.panel_x + 5, y_pos - 3, self.panel_width - 10, 26))
-            
-            # Имя переменной
-            name_text = var_info.get('display_name', var_name)
-            name_surf = self.font.render(f"{name_text:<20}", False, 
-                                        self.COLORS['highlight'] if i == self.selected_index 
-                                        else self.COLORS['text'])
-            self.screen.blit(name_surf, (self.panel_x + 10, y_pos))
-            
-            # Значение переменной
-            value_color = self.COLORS['active'] if (i == self.selected_index and self.editing) else self.COLORS['text']
-            value_text = str(var_info['value'])
-            
-            # Если редактируем эту переменную, показываем буфер ввода
-            if i == self.selected_index and self.editing:
-                value_text = self.input_buffer + "_"
-            
-            value_surf = self.font.render(f"{value_text:>15}", False, value_color)
-            self.screen.blit(value_surf, (self.panel_x + 50, y_pos))
+            y_pos = self.y + self.TITLE_BOTTOM_OFFSET + i * self.line_height
+            self._draw_variable_item(i, y_pos, var_name, var_info)
+
+
+class FunctionKeysPanel:
+    """Панель функциональных клавиш в BIOS/Norton Commander стиле"""
     
-    def draw_function_keys(self):
-        """Отрисовка панели функциональных клавиш"""
-        # Линия разделения
-        pygame.draw.line(self.screen, self.COLORS['border'],
-                        (20, self.func_keys_y - 20),
-                        (self.width - 20, self.func_keys_y - 20), 2)
+    FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
+    MAX_FUNC_KEYS = 8
+    FUNC_KEYS_PER_ROW = 1
+    
+    # Геометрия панели: позиция и размеры
+    PANEL_X = 0           # Абсолютная X координата
+    PANEL_Y = 300           # 0 = автоматически (экран_высота - PANEL_HEIGHT)
+    PANEL_WIDTH = 0       # 0 = весь экран, >0 = фиксированная ширина
+    PANEL_HEIGHT = 80     # Высота панели функциональных клавиш
+    
+    # Внутренние смещения элементов в панели
+    PADDING_X = 20        # Отступ элементов слева
+    PADDING_Y = 10        # Отступ элементов сверху
+    ROW_HEIGHT = 30       # Высота строки с функциональными клавишами
+    SEPARATOR_HEIGHT = 20  # Высота линии разделения выше панели
+    SEPARATOR_WIDTH = 2   # Толщина линии разделения
+    
+    # Цвета панели функциональных клавиш
+    COLORS = {
+        'text': (170, 170, 170),
+        'func_keys': (170, 170, 0),
+        'border': (255, 85, 85),
+    }
+
+    def __init__(self, screen: pygame.Surface, font_size: int = 24):
+        """Инициализация панели функциональных клавиш"""
+        self.screen = screen
+        self.screen_width, self.screen_height = screen.get_size()
+        self.font_size = font_size
+        
+        # Инициализация шрифтов
+        self.font = pygame.font.Font(self.FONT_PATH, font_size)
         
         # Функциональные клавиши
-        keys_per_row = 4
-        key_width = self.width // keys_per_row
+        self.function_keys: Dict[str, Tuple[str, Callable]] = {}
         
+        # Состояние панели
+        self.selected_index = 0
+        
+        # Вычисление фактических размеров панели
+        self._calculate_bounds()
+    
+    def _calculate_bounds(self) -> None:
+        """Расчет границ и размеров панели на основе констант и размера экрана"""
+        # Позиция
+        self.x = self.PANEL_X
+        if self.PANEL_Y == 0:
+            self.y = self.screen_height - self.PANEL_HEIGHT
+        else:
+            self.y = self.PANEL_Y
+        
+        # Размеры
+        if self.PANEL_WIDTH == 0:
+            self.width = self.screen_width
+        else:
+            self.width = self.PANEL_WIDTH
+        self.height = self.PANEL_HEIGHT
+        
+    def add_function_key(self, key: str, description: str, callback: Callable) -> None:
+        """Добавить функциональную клавишу"""
+        self.function_keys[key] = (description, callback)
+    
+    def draw(self, selected_index: int = 0) -> None:
+        """Отрисовка панели функциональных клавиш"""
+        # Линия разделения
+        separator_y = self.y - self.SEPARATOR_HEIGHT
+        pygame.draw.line(self.screen, self.COLORS['border'],
+                        (self.x, separator_y),
+                        (self.x + self.width, separator_y), 
+                        self.SEPARATOR_WIDTH)
+        
+        # Функциональные клавиши
         for idx, (key, (desc, _)) in enumerate(self.function_keys.items()):
-            if idx >= 8:  # Ограничим 8 клавишами
+            if idx >= self.MAX_FUNC_KEYS:
                 break
-                
-            row = idx // keys_per_row
-            col = idx % keys_per_row
             
-            x_pos = 20 + col * key_width
-            y_pos = self.func_keys_y + row * 30
+            row = idx // self.FUNC_KEYS_PER_ROW
+            col = idx % self.FUNC_KEYS_PER_ROW
             
-            # Отображение клавиши
+            x_pos = self.x + self.PADDING_X + col * (self.width // self.FUNC_KEYS_PER_ROW)
+            y_pos = self.y + self.PADDING_Y + row * self.ROW_HEIGHT
+            
             key_text = f"{key}: {desc}"
-            color = self.COLORS['func_keys'] if self.active_panel == "func_keys" and idx == self.selected_index else self.COLORS['text']
+            color = self.COLORS['func_keys'] if idx == selected_index else self.COLORS['text']
             key_surf = self.font.render(key_text, False, color)
             self.screen.blit(key_surf, (x_pos, y_pos))
+
+
+class BIOSStyleGUI:
+    """Комбинированный GUI: переменные и функциональные клавиши"""
+
+    def __init__(self, screen: pygame.Surface, font_size: int = 24, line_height: int = 30):
+        """Инициализация GUI"""
+        self.screen = screen
+        
+        # Создание компонентов
+        self.variables_panel = VariablesPanel(screen, font_size, line_height)
+        self.func_keys_panel = FunctionKeysPanel(screen, font_size)
+        
+        # Состояние GUI
+        self.active_panel = "variables"
+        
+    def add_variable(self, name: str, value: Any, var_type: type = int, 
+                     min_val: Optional[float] = None, max_val: Optional[float] = None,
+                     readonly: bool = False) -> None:
+        """Добавить переменную в панель"""
+        self.variables_panel.add_variable(name, value, var_type, min_val, max_val, readonly)
     
-    def draw(self):
+    def add_function_key(self, key: str, description: str, callback: Callable) -> None:
+        """Добавить функциональную клавишу"""
+        self.func_keys_panel.add_function_key(key, description, callback)
+    
+    def get_variable(self, name: str) -> Any:
+        """Получить значение переменной"""
+        return self.variables_panel.get_variable(name)
+    
+    def set_variable(self, name: str, value: Any) -> None:
+        """Установить значение переменной"""
+        self.variables_panel.set_variable(name, value)
+    
+    def draw(self) -> None:
         """Основной метод отрисовки GUI"""
-        # Очистка экрана
-        self.screen.fill(self.COLORS['bg'])
+        self.variables_panel.draw()
+        self.func_keys_panel.draw(self.variables_panel.selected_index if self.active_panel == "func_keys" else 0)
         
-        # Отрисовка панелей
-        self.draw_panel()
-        self.draw_function_keys()
-        
-        # Инструкция
-        help_text = "TAB: переключить панель | ENTER: выбрать/подтвердить | ESC: отмена"
-        help_surf = self.font.render(help_text, False, self.COLORS['text'])
-        self.screen.blit(help_surf, (20, self.height - 30))
-    
     def handle_event(self, event: pygame.event.Event) -> bool:
-        """
-        Обработка событий ввода
+        """Обработка событий ввода"""
+        if event.type != pygame.KEYDOWN:
+            return False
         
-        Returns:
-            True если событие обработано GUI, False если нужно передать дальше
-        """
-        if event.type == pygame.KEYDOWN:
-            var_list = list(self.variables.items())
-            
-            if self.editing:
-                # Режим редактирования значения
-                return self._handle_editing(event, var_list)
-            else:
-                # Обычный режим навигации
-                return self._handle_navigation(event, var_list)
+        var_list = list(self.variables_panel.variables.items())
         
-        return False
+        if self.variables_panel.editing:
+            return self._handle_editing(event, var_list)
+        else:
+            return self._handle_navigation(event, var_list)
     
     def _handle_editing(self, event: pygame.event.Event, var_list: List) -> bool:
         """Обработка событий в режиме редактирования"""
         if event.key == pygame.K_RETURN:
-            # Подтверждение ввода
             self._finish_editing(var_list)
             return True
-            
         elif event.key == pygame.K_ESCAPE:
-            # Отмена редактирования
-            self.editing = False
-            self.input_buffer = ""
+            self.variables_panel.editing = False
+            self.variables_panel.input_buffer = ""
             return True
-            
         elif event.key == pygame.K_BACKSPACE:
-            # Удаление символа
-            self.input_buffer = self.input_buffer[:-1]
+            self.variables_panel.input_buffer = self.variables_panel.input_buffer[:-1]
             return True
-            
-        elif event.key in (pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4,
-                          pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9):
-            # Ввод цифр
+        elif event.key in self._get_digit_keys():
             digit = event.key - pygame.K_0
-            self.input_buffer += str(digit)
+            self.variables_panel.input_buffer += str(digit)
             return True
-            
-        elif event.key == pygame.K_MINUS and not self.input_buffer:
-            # Минус для отрицательных чисел
-            self.input_buffer = "-"
+        elif event.key == pygame.K_MINUS and not self.variables_panel.input_buffer:
+            self.variables_panel.input_buffer = "-"
             return True
-            
-        elif event.key == pygame.K_PERIOD and float in [v['type'] for v in self.variables.values()]:
-            # Точка для дробных чисел
-            if "." not in self.input_buffer:
-                self.input_buffer += "."
+        elif event.key == pygame.K_PERIOD:
+            if "." not in self.variables_panel.input_buffer:
+                self.variables_panel.input_buffer += "."
             return True
         
         return False
+    
+    @staticmethod
+    def _get_digit_keys() -> tuple:
+        """Возвращает кортеж кодов цифровых клавиш"""
+        return (pygame.K_0, pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4,
+                pygame.K_5, pygame.K_6, pygame.K_7, pygame.K_8, pygame.K_9)
     
     def _handle_navigation(self, event: pygame.event.Event, var_list: List) -> bool:
         """Обработка событий в режиме навигации"""
         if event.key == pygame.K_TAB:
-            # Переключение между панелями
             self.active_panel = "func_keys" if self.active_panel == "variables" else "variables"
-            self.selected_index = 0
             return True
-            
+        
         elif event.key == pygame.K_UP:
-            # Перемещение вверх
-            max_index = len(var_list) - 1 if self.active_panel == "variables" else min(7, len(self.function_keys) - 1)
-            self.selected_index = max(0, self.selected_index - 1)
+            if self.active_panel == "variables":
+                self.variables_panel.selected_index = max(0, self.variables_panel.selected_index - 1)
+            else:
+                self.variables_panel.selected_index = max(0, self.variables_panel.selected_index - 1)
             return True
-            
+        
         elif event.key == pygame.K_DOWN:
-            # Перемещение вниз
-            max_index = len(var_list) - 1 if self.active_panel == "variables" else min(7, len(self.function_keys) - 1)
-            self.selected_index = min(max_index, self.selected_index + 1)
+            max_index_vars = len(var_list) - 1
+            max_index_func = min(FunctionKeysPanel.MAX_FUNC_KEYS - 1, len(self.func_keys_panel.function_keys) - 1)
+            if self.active_panel == "variables":
+                self.variables_panel.selected_index = min(max_index_vars, self.variables_panel.selected_index + 1)
+            else:
+                self.variables_panel.selected_index = min(max_index_func, self.variables_panel.selected_index + 1)
             return True
-            
+        
         elif event.key == pygame.K_RETURN:
-            # Активация выбранного элемента
-            if self.active_panel == "variables" and var_list:
-                var_name, var_info = var_list[self.selected_index]
-                if not var_info['readonly']:
-                    # Начало редактирования
-                    self.editing = True
-                    self.input_buffer = str(var_info['value'])
-                    return True
-            elif self.active_panel == "func_keys":
-                # Вызов callback функции
-                func_keys_list = list(self.function_keys.items())
-                if self.selected_index < len(func_keys_list):
-                    key, (desc, callback) = func_keys_list[self.selected_index]
-                    callback()
-                    return True
+            return self._activate_selected(var_list)
         
         return False
     
-    def _finish_editing(self, var_list: List):
+    def _activate_selected(self, var_list: List) -> bool:
+        """Активирует выбранный элемент"""
+        if self.active_panel == "variables":
+            if var_list and self.variables_panel.selected_index < len(var_list):
+                var_name, var_info = var_list[self.variables_panel.selected_index]
+                if not var_info['readonly']:
+                    self.variables_panel.editing = True
+                    self.variables_panel.input_buffer = str(var_info['value'])
+                    return True
+        
+        elif self.active_panel == "func_keys":
+            func_keys_list = list(self.func_keys_panel.function_keys.items())
+            if self.variables_panel.selected_index < len(func_keys_list):
+                key, (desc, callback) = func_keys_list[self.variables_panel.selected_index]
+                callback()
+                return True
+        
+        return False
+    
+    def _finish_editing(self, var_list: List) -> None:
         """Завершение редактирования и сохранение значения"""
-        if var_list and self.selected_index < len(var_list):
-            var_name, var_info = var_list[self.selected_index]
-            
-            if self.input_buffer:  # Если что-то введено
-                self.set_variable(var_name, self.input_buffer)
-            
-            self.editing = False
-            self.input_buffer = ""
+        if var_list and self.variables_panel.selected_index < len(var_list):
+            var_name, var_info = var_list[self.variables_panel.selected_index]
+            if self.variables_panel.input_buffer:
+                self.variables_panel.set_variable(var_name, self.variables_panel.input_buffer)
+        
+        self.variables_panel.editing = False
+        self.variables_panel.input_buffer = ""
     
-    def update(self):
-        """Обновление состояния GUI (пустой метод для совместимости)"""
-        pass
-    
-    def run(self):
+    def run(self) -> None:
         """Запуск основного цикла GUI (для тестирования)"""
         clock = pygame.time.Clock()
         running = True
@@ -318,23 +399,21 @@ class BIOSStyleGUI:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        running = False
-                    self.handle_event(event)
+                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    running = False
+                self.handle_event(event)
             
             self.draw()
             pygame.display.flip()
             clock.tick(60)
 
 
-# Пример использования
+# Демонстрация использования
 if __name__ == "__main__":
     pygame.init()
     screen = pygame.display.set_mode((800, 600))
     pygame.display.set_caption("BIOS/Norton Commander Style GUI")
     
-    # Создание GUI
     gui = BIOSStyleGUI(screen)
     
     # Добавление переменных
@@ -345,17 +424,17 @@ if __name__ == "__main__":
     gui.add_variable("Mode", 1, min_val=1, max_val=5)
     gui.add_variable("Timeout", 30, min_val=1, max_val=300)
     
-    # Пример функции для callback
+    # Callback функции
     def save_settings():
         print("Сохранение настроек...")
-        for name, info in gui.variables.items():
+        for name, info in gui.variables_panel.variables.items():
             print(f"{name}: {info['value']}")
     
     def reset_settings():
-        print("Reset settings")
-        gui.set_variable("speed", 50)
-        gui.set_variable("power", 75.5)
-        gui.set_variable("temperature", 25)
+        print("Сброс настроек")
+        gui.set_variable("Speed", 50)
+        gui.set_variable("Power", 75.5)
+        gui.set_variable("Temperature", 25)
     
     def exit_app():
         pygame.quit()
@@ -368,5 +447,4 @@ if __name__ == "__main__":
     gui.add_function_key("F4", "Exit", exit_app)
     gui.add_function_key("F5", "Test", lambda: print("Тестовая функция"))
     
-    # Запуск основного цикла
     gui.run()
