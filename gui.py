@@ -24,9 +24,9 @@ class VariablesPanel:
     TITLE_BOTTOM_OFFSET = 50  # Смещение первого элемента от верхнего края панели
     ITEM_VALUE_X = 50     # X смещение значения переменной
     HIGHLIGHT_X_OFFSET = 5   # Смещение выделения слева
-    HIGHLIGHT_Y_OFFSET = 3   # Смещение выделения сверху
+    HIGHLIGHT_Y_OFFSET = 2   # Смещение выделения сверху
     HIGHLIGHT_WIDTH_OFFSET = 10  # Вычитается из ширины выделения
-    HIGHLIGHT_HEIGHT_OFFSET = 4  # Вычитается из высоты выделения
+    HIGHLIGHT_HEIGHT_OFFSET = 0  # Вычитается из высоты выделения
     
     # Цвета панели переменных
     COLORS = {
@@ -34,7 +34,7 @@ class VariablesPanel:
         'text': (170, 170, 170),
         'highlight': (255, 255, 255),
         'selected': (0, 167, 225),
-        'active': (0, 170, 0),
+        'active': (0, 0, 0),
     }
 
     def __init__(self, screen: pygame.Surface, font_size: int = 24, line_height: int = 30):
@@ -135,6 +135,9 @@ class VariablesPanel:
         if index == self.selected_index and self.editing:
             value_text = self.input_buffer + "_"
             value_color = self.COLORS['active']
+        elif index == self.selected_index:
+            value_text = str(var_info['value'])
+            value_color = self.COLORS['highlight']
         else:
             value_text = str(var_info['value'])
             value_color = self.COLORS['text']
@@ -171,14 +174,14 @@ class FunctionKeysPanel:
     
     # Геометрия панели: позиция и размеры
     PANEL_X = 0           # Абсолютная X координата
-    PANEL_Y = 300           # 0 = автоматически (экран_высота - PANEL_HEIGHT)
+    PANEL_Y = 0           # 0 = автоматически (экран_высота - PANEL_HEIGHT)
     PANEL_WIDTH = 0       # 0 = весь экран, >0 = фиксированная ширина
-    PANEL_HEIGHT = 80     # Высота панели функциональных клавиш
+    PANEL_HEIGHT = 170     # Высота панели функциональных клавиш
     
     # Внутренние смещения элементов в панели
     PADDING_X = 20        # Отступ элементов слева
     PADDING_Y = 10        # Отступ элементов сверху
-    ROW_HEIGHT = 30       # Высота строки с функциональными клавишами
+    ROW_HEIGHT = 24       # Высота строки с функциональными клавишами
     SEPARATOR_HEIGHT = 20  # Высота линии разделения выше панели
     SEPARATOR_WIDTH = 2   # Толщина линии разделения
     
