@@ -13,8 +13,8 @@ class VariablesPanel:
     # Геометрия панели на экране
     PANEL_X = 5
     PANEL_Y = 5
-    PANEL_WIDTH = 200
-    PANEL_HEIGHT = 400
+    PANEL_WIDTH = 220
+    PANEL_HEIGHT = 545
     
     # Параметры отображения
     FONT_SIZE = 16
@@ -23,7 +23,7 @@ class VariablesPanel:
     
     TITLE_Y_OFFSET = 10
     TITLE_BOTTOM_OFFSET = 40
-    ITEM_VALUE_X = 50
+    ITEM_VALUE_X = 150
     PADDING_X = 5
     PADDING_Y = 5
     
@@ -227,7 +227,7 @@ class VariablesPanel:
         pygame.draw.rect(screen, self.COLORS['highlight'], self.rect, 2)
         
         # Заголовок
-        title_surf = self.font.render("VARIABLES", False, self.COLORS['highlight'])
+        title_surf = self.font.render("VARS", False, self.COLORS['highlight'])
         screen.blit(title_surf, (self.rect.x + self.PADDING_X, 
                                  self.rect.y + self.TITLE_Y_OFFSET))
         
@@ -254,7 +254,10 @@ class VariablesPanel:
                 value_text = self.input_buffer + "_"
                 value_color = (255, 255, 0)  # Жёлтый для редактируемого
             else:
-                value_text = str(var_info['value'])
+                if len(str(var_info['value'])) <= 10:
+                    value_text = str(var_info['value'])
+                else:
+                    value_text = str(var_info['value'])[0:8] + ".."
                 value_color = text_color
             
             value_surf = self.font.render(f"{value_text:>10}", False, value_color)

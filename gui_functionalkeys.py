@@ -12,23 +12,19 @@ class FunctionKeysPanel:
     
     # Геометрия панели на экране (явные значения)
     PANEL_X = 5
-    PANEL_Y = 400
-    PANEL_WIDTH = 200
-    PANEL_HEIGHT = 90
+    PANEL_Y = 545
+    PANEL_WIDTH = 220
+    PANEL_HEIGHT = 50
     
     # Параметры отображения
-    FONT_SIZE = 14
+    FONT_SIZE = 16
     FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
     
     # Внутренние смещения
     PADDING_X = 10
     PADDING_Y = 8
     ROW_HEIGHT = 20
-    KEYS_PER_ROW = 1  # Сколько клавиш в строке
-    
-    # Линия разделения над панелью
-    SEPARATOR_Y_OFFSET = 5
-    SEPARATOR_WIDTH = 2
+    KEYS_PER_ROW = 3  # Сколько клавиш в строке
     
     # Цвета
     COLORS = {
@@ -111,12 +107,6 @@ class FunctionKeysPanel:
         Args:
             screen: pygame.Surface главного экрана
         """
-        # Линия разделения над панелью
-        separator_y = self.rect.y - self.SEPARATOR_Y_OFFSET
-        pygame.draw.line(screen, self.COLORS['border'],
-                        (self.rect.x, separator_y),
-                        (self.rect.x + self.rect.width, separator_y),
-                        self.SEPARATOR_WIDTH)
         
         # Фон панели
         pygame.draw.rect(screen, self.COLORS['bg'], self.rect)

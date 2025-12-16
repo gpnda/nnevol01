@@ -10,13 +10,6 @@ class Application():
 		self.quit_flag = False
 		self.is_running = True
 
-		# Параметры симуляции
-		self.parameter1 = 10
-		self.parameter2 = 0.5
-		self.parameter3 = 55000
-		self.parameter4 = 0.15
-		self.parameter5 = 0.35
-
 		# Генерация мира
 		self.world = WorldGenerator.generate_world(
 			width=100,
@@ -28,11 +21,25 @@ class Application():
 		self.renderer = Renderer(self.world, self)
 
 		# Добавляем переменные в панель с callback функциями
-		self.renderer.add_variable("parameter1", self.parameter1, min_val=0, max_val=100, on_change=self._on_parameter1_change )
-		self.renderer.add_variable("parameter2", self.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
-		self.renderer.add_variable("parameter3", self.parameter3, min_val=-20, max_val=50, on_change=self._on_parameter3_change )
-		self.renderer.add_variable("parameter4", self.parameter4, float, 0.0, 1.0, on_change=self._on_parameter4_change )
-		self.renderer.add_variable("parameter5", self.parameter5, int, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_mutation_probability", self.world.parameter1, min_val=0, max_val=100, on_change=self._on_parameter1_change )
+		self.renderer.add_variable("sim_mutation_strength", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+
+		self.renderer.add_variable("sim_creature_max_age", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+		self.renderer.add_variable("sim_food_amount", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+		self.renderer.add_variable("sim_food_energy_capacity", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+		self.renderer.add_variable("sim_food_energy_chunk", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+
+		self.renderer.add_variable("sim_reproduction_ages", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+		self.renderer.add_variable("sim_reproduction_offsprings", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+
+		self.renderer.add_variable("sim_energy_cost_tick", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+		self.renderer.add_variable("sim_energy_cost_move", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter2_change )
+		self.renderer.add_variable("sim_energy_cost_rotate", self.world.parameter3, min_val=-20, max_val=50, on_change=self._on_parameter3_change )
+		self.renderer.add_variable("sim_energy_cost_bite", self.world.parameter4, float, 0.0, 1.0, on_change=self._on_parameter4_change )
+		self.renderer.add_variable("sim_energy_gain_from_food", self.world.parameter5, int, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_energy_gain_from_bite_cr", self.world.parameter5, int, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_energy_loss_bitten", self.world.parameter5, int, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_energy_loss_collision", self.world.parameter5, int, on_change=self._on_parameter5_change )
 		
 
 	def run(self):
@@ -99,28 +106,28 @@ class Application():
 	
 	def _on_parameter1_change(self, value):
 		"""Callback при изменении parameter1."""
-		self.parameter1 = value
-		print(f"parameter1 changed to: {self.parameter1}")
+		self.world.parameter1 = value
+		print(f"parameter1 changed to: {self.world.parameter1}")
 	
 	def _on_parameter2_change(self, value):
 		"""Callback при изменении parameter2."""
-		self.parameter2 = value
-		print(f"parameter2 changed to: {self.parameter2}")
+		self.world.parameter2 = value
+		print(f"parameter2 changed to: {self.world.parameter2}")
 	
 	def _on_parameter3_change(self, value):
 		"""Callback при изменении parameter3."""
-		self.parameter3 = value
-		print(f"parameter3 changed to: {value}")
+		self.world.parameter3 = value
+		print(f"parameter3 changed to: {self.world.parameter3}")
 	
 	def _on_parameter4_change(self, value):
 		"""Callback при изменении parameter4."""
-		self.parameter4 = value
-		print(f"parameter4 changed to: {value}")
+		self.world.parameter4 = value
+		print(f"parameter4 changed to: {self.world.parameter4}")
 	
 	def _on_parameter5_change(self, value):
 		"""Callback при изменении parameter5."""
-		self.parameter5 = value
-		print(f"parameter5 changed to: {value}")
+		self.world.parameter5 = value
+		print(f"parameter5 changed to: {self.world.parameter5}")
 
 	def saveWorld(self):
 		"""Сохранить мир (F1)."""

@@ -11,7 +11,7 @@ class Viewport:
     """Управляет просмотром и отрисовкой карты с камерой."""
     
     # Расположение viewport на экране (пиксели)
-    VIEWPORT_X = 210
+    VIEWPORT_X = 230
     VIEWPORT_Y = 5
     VIEWPORT_WIDTH = 700
     VIEWPORT_HEIGHT = 500
