@@ -31,6 +31,7 @@ class World():
 		# Параметры мира, влияющие на симуляцию
 		self.sim_mutation_probability = 0.03 
 		self.sim_mutation_strength = 0.1
+		self.sim_creature_max_age = 250
 		
 
 
@@ -132,7 +133,7 @@ class World():
 			if all_outs[index][2] > 0.5:
 				self.creature_bite(creature)
 
-			creature.update()
+			creature.update(self.sim_creature_max_age)
 			
 			
 

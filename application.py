@@ -24,7 +24,7 @@ class Application():
 		self.renderer.add_variable("sim_mutation_probability", self.world.sim_mutation_probability, float, 0.0, 1.0, on_change=self._on_sim_mutation_probability_change )
 		self.renderer.add_variable("sim_mutation_strength", self.world.sim_mutation_strength, float, 0.0, 100.0, on_change=self._on_sim_mutation_strength_change )
 
-		self.renderer.add_variable("sim_creature_max_age", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_creature_max_age", self.world.sim_creature_max_age, int, 0, 50000, on_change=self._on_sim_creature_max_age_change )
 		self.renderer.add_variable("sim_food_amount", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_food_energy_capacity", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_food_energy_chunk", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
@@ -34,7 +34,7 @@ class Application():
 
 		self.renderer.add_variable("sim_energy_cost_tick", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_energy_cost_move", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
-		self.renderer.add_variable("sim_energy_cost_rotate", self.world.parameter3, min_val=-20, max_val=50, on_change=self._on_parameter3_change )
+		self.renderer.add_variable("sim_energy_cost_rotate", self.world.parameter3, min_val=-20, max_val=50, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_energy_cost_bite", self.world.parameter4, float, 0.0, 1.0, on_change=self._on_parameter4_change )
 		self.renderer.add_variable("sim_energy_gain_from_food", self.world.parameter5, int, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_energy_gain_from_bite_cr", self.world.parameter5, int, on_change=self._on_parameter5_change )
@@ -118,10 +118,10 @@ class Application():
 		self.world.sim_mutation_strength = value
 		print(f"sim_mutation_strength changed to: {self.world.sim_mutation_strength}")
 	
-	def _on_parameter3_change(self, value):
-		"""Callback при изменении parameter3."""
-		self.world.parameter3 = value
-		print(f"parameter3 changed to: {self.world.parameter3}")
+	def _on_sim_creature_max_age_change(self, value):
+		"""Callback при изменении sim_creature_max_age."""
+		self.world.sim_creature_max_age = value
+		print(f"sim_creature_max_age changed to: {self.world.sim_creature_max_age}")
 	
 	def _on_parameter4_change(self, value):
 		"""Callback при изменении parameter4."""

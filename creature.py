@@ -53,13 +53,13 @@ class Creature():
         return cr_babies
     
     
-    def update(self):
+    def update(self, creature_max_age):
         # Существо тратит энергию на просто существование в мире
         self.energy -= 0.01
 
         # Существо стареет
         self.age += 1
-        if self.age > 250:
+        if self.age > creature_max_age:
             self.energy = -100.0
 
 
