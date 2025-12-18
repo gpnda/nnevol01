@@ -24,7 +24,7 @@ class Creature():
             ]
 
 
-    def reprodCreature(self):
+    def reprodCreature(self, mutation_probability, mutation_strength):
         cr_babies = []
         print ("начало цикла по рождению детей")
         for j in range(0, 3):
@@ -39,7 +39,7 @@ class Creature():
             # print ("Процесс рождения существа. 5")
             c = Creature(self.x, self.y)
             c.nn = NeuralNetwork.copy(self.nn)
-            c.nn.mutate(0.1, 0.5)
+            c.nn.mutate( mutation_probability, mutation_strength )
             c.birth_ages = [
                 random.randint(90, 110), 
                 random.randint(190, 210), 

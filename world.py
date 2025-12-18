@@ -28,6 +28,12 @@ class World():
 		self.parameter4 = "35000,40000,45000,50000"
 		self.parameter5 = 0.35
 
+		# Параметры мира, влияющие на симуляцию
+		self.sim_mutation_probability = 0.03 
+		self.sim_mutation_strength = 0.1
+		
+
+
 	
 	def update_map(self):
 		"""Обновляет карту для отображения (рендерер использует эту)"""
@@ -191,7 +197,7 @@ class World():
 		# Цикл размножения
 		baby_creatures = []
 		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
-			baby_creatures += i.reprodCreature()
+			baby_creatures += i.reprodCreature( self.sim_mutation_probability, self.sim_mutation_strength )
 		self.creatures += baby_creatures
 
 	def creature_bite(self, cr):
