@@ -5,4 +5,10 @@ class Food():
         self.x = x
         self.y = y
         self.nutrition = nutrition
+
+    def decrement(self):
+        self.nutrition -= 0.1
+        print("Food at (" + str(self.x) + "," + str(self.y) + ") decremented to " + str(self.nutrition))    
+        
+
     

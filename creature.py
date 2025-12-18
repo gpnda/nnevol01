@@ -26,7 +26,7 @@ class Creature():
 
     def reprodCreature(self, mutation_probability, mutation_strength):
         cr_babies = []
-        print ("начало цикла по рождению детей")
+        #print ("начало цикла по рождению детей")
         for j in range(0, 3):
             # print ("Процесс рождения существа. 1 Погнали")
             # c = copy.deepcopy(self)

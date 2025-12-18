@@ -160,7 +160,7 @@ class World():
 
 		self.control_population()
 
-		print("POPULATION: " + str(len(self.creatures)))
+		# print("POPULATION: " + str(len(self.creatures)))
 
 			
 
@@ -221,11 +221,20 @@ class World():
 		if biteplace == 2:
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
 			# print("Существу повезло, оно укусило пищу. Увеличить энергию существа.")
-			cr.energy += 0.5
+			cr.energy += 0.1
 			if cr.energy > 1.0:
 				cr.energy = 1.0
 			
 			# # Уменьшить энергию у пищи.
+			bitten_food = self.bitten_food( int(bitex), int(bitey) )
+			
+			bitten_food.decrement()
+			
+			print("Контрольная точка 2")
+			if bitten_food.nutrition < 0.0:
+				self.delete_food( bitten_food )
+			
+			
 			# app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable -= 0.35
 			# # Если еда съедена полностью, сотрем ее с карты.
 			# if ( app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable < 0) :
@@ -278,6 +287,24 @@ class World():
 		# Если укусили воздух - возвращаем false
 		return False
 		
+
+
+
+	def bitten_food(self, x, y):
+		for food in self.foods:
+			if food.x == x and food.y == y:
+				return food
+		return None
+
+	def delete_food(self, food):
+		print("Попытка скушать пищу.")	
+		if food in self.foods:
+			print("Food at (" + str(food.x) + "," + str(food.y) + ") is fully eaten and removed.")
+			self.foods.remove(food)
+		return True
+
+
+
 
 
 
