@@ -160,6 +160,9 @@ class World():
 
 		self.control_population()
 
+		self.proceed_food()
+		print(len(self.foods))
+
 		# print("POPULATION: " + str(len(self.creatures)))
 
 			
@@ -193,6 +196,11 @@ class World():
 		
 		# Иначе удаляем существ с энергией < 0
 		self.creatures = [creature for creature in self.creatures if creature.energy >= 0]
+	
+	def proceed_food(self):
+		# Цикл обработки пищи
+		self.foods = [food for food in self.foods if food.nutrition >= 0]
+		
 
 	def reprod(self):
 		# Цикл размножения
@@ -230,9 +238,6 @@ class World():
 			
 			bitten_food.decrement()
 			
-			print("Контрольная точка 2")
-			if bitten_food.nutrition < 0.0:
-				self.delete_food( bitten_food )
 			
 			
 			# app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable -= 0.35
