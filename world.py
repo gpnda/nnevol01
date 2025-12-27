@@ -185,6 +185,15 @@ class World():
 			# пищи слишком много, удалим часть
 			self.foods = self.foods[0:self.sim_food_amount]
 		
+
+		# Это замедляет, при случае можно удалить. 
+		# Этот код просто возволяет уменьшить food_energy_capacity у всей пищи не карте
+		# добавил просто чтобы посмотреть что управление параметром работает, 
+		# и понаблюдать как существа выедают дырки в пище на карте
+		for f in self.foods:
+			if f.nutrition > self.sim_food_energy_capacity:
+				f.nutrition = self.sim_food_energy_capacity
+
 		# # Рандомизировать положение пищи.
 		# for f in self.foods:
 		#     f.setPositionRandom(self)
