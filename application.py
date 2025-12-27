@@ -27,7 +27,7 @@ class Application():
 		self.renderer.add_variable("sim_creature_max_age", self.world.sim_creature_max_age, int, 0, 50000, on_change=self._on_sim_creature_max_age_change )
 		self.renderer.add_variable("sim_food_amount", self.world.sim_food_amount, int, 0, 50000, on_change=self._on_sim_food_amount_change )
 		self.renderer.add_variable("sim_food_energy_capacity", self.world.sim_food_energy_capacity, float, 0.0, 100.0, on_change=self._on_sim_food_energy_capacity_change )
-		self.renderer.add_variable("sim_food_energy_chunk", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_food_energy_chunk", self.world.sim_food_energy_chunk, float, 0.0, 100.0, on_change=self._on_sim_food_energy_chunk_change )
 
 		self.renderer.add_variable("sim_reproduction_ages", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_reproduction_offsprings", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
@@ -132,6 +132,11 @@ class Application():
 		"""Callback при изменении sim_food_energy_capacity."""
 		self.world.sim_food_energy_capacity = value
 		print(f"sim_food_energy_capacity changed to: {self.world.sim_food_energy_capacity}")
+
+	def _on_sim_food_energy_chunk_change(self, value):
+		"""Callback при изменении sim_food_energy_chunk."""
+		self.world.sim_food_energy_chunk = value
+		print(f"sim_food_energy_chunk changed to: {self.world.sim_food_energy_chunk}")
 
 	def _on_parameter4_change(self, value):
 		"""Callback при изменении parameter4."""

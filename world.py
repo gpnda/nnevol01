@@ -35,6 +35,7 @@ class World():
 		self.sim_creature_max_age = 250
 		self.sim_food_amount = 1
 		self.sim_food_energy_capacity = 1.0
+		self.sim_food_energy_chunk = 0.2
 		
 
 
@@ -164,7 +165,7 @@ class World():
 		self.control_population()
 
 		self.proceed_food()
-		print(len(self.foods))
+		# print(len(self.foods))
 
 		self.tick += 1
 		if self.tick % 50 == 0:
@@ -269,7 +270,7 @@ class World():
 			# # Уменьшить энергию у пищи.
 			bitten_food = self.bitten_food( int(bitex), int(bitey) )
 			
-			bitten_food.decrement()
+			bitten_food.decrement( self.sim_food_energy_chunk )
 			
 			
 			
