@@ -34,6 +34,7 @@ class World():
 		self.sim_mutation_strength = 0.1
 		self.sim_creature_max_age = 250
 		self.sim_food_amount = 1
+		self.sim_food_energy_capacity = 1.0
 		
 
 
