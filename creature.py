@@ -24,10 +24,13 @@ class Creature():
             ]
 
 
-    def reprodCreature(self, mutation_probability, mutation_strength):
+    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings):
         cr_babies = []
+        #Если не задан sim_reproduction_offsprings, то приравнять его = 3
+        # if (!sim_reproduction_offsprings):
+        #     sim_reproduction_offsprings = 3
         #print ("начало цикла по рождению детей")
-        for j in range(0, 3):
+        for j in range( 0, sim_reproduction_offsprings ): # Рождаем 3х детей. Сюда надо sim_reproduction_offsprings
             # print ("Процесс рождения существа. 1 Погнали")
             # c = copy.deepcopy(self)
             # print ("Процесс рождения существа. 2")

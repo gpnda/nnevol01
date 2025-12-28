@@ -30,7 +30,7 @@ class Application():
 		self.renderer.add_variable("sim_food_energy_chunk", self.world.sim_food_energy_chunk, float, 0.0, 100.0, on_change=self._on_sim_food_energy_chunk_change )
 
 		self.renderer.add_variable("sim_reproduction_ages", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
-		self.renderer.add_variable("sim_reproduction_offsprings", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
+		self.renderer.add_variable("sim_reproduction_offsprings", self.world.sim_reproduction_offsprings, int, 1, 20, on_change=self._on_sim_reproduction_offsprings_change )
 
 		self.renderer.add_variable("sim_energy_cost_tick", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
 		self.renderer.add_variable("sim_energy_cost_move", self.world.parameter2, float, 0.0, 100.0, on_change=self._on_parameter5_change )
@@ -137,6 +137,11 @@ class Application():
 		"""Callback при изменении sim_food_energy_chunk."""
 		self.world.sim_food_energy_chunk = value
 		print(f"sim_food_energy_chunk changed to: {self.world.sim_food_energy_chunk}")
+
+	def _on_sim_reproduction_offsprings_change(self, value):
+		"""Callback при изменении sim_reproduction_offsprings."""
+		self.world.sim_reproduction_offsprings = value
+		print(f"sim_reproduction_offsprings changed to: {self.world.sim_reproduction_offsprings}")
 
 	def _on_parameter4_change(self, value):
 		"""Callback при изменении parameter4."""
