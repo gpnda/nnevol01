@@ -6,7 +6,7 @@ import random
 
 class Creature():
     
-    def __init__(self, x: float, y: float):
+    def __init__(self, x: float, y: float, sim_reproduction_ages: list):
         self.x = x
         self.y = y
         self.energy = 1.0
@@ -24,7 +24,7 @@ class Creature():
             ]
 
 
-    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings):
+    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings, sim_reproduction_ages):
         cr_babies = []
         #Если не задан sim_reproduction_offsprings, то приравнять его = 3
         # if (!sim_reproduction_offsprings):
@@ -43,12 +43,13 @@ class Creature():
             c = Creature(self.x, self.y)
             c.nn = NeuralNetwork.copy(self.nn)
             c.nn.mutate( mutation_probability, mutation_strength )
-            c.birth_ages = [
-                random.randint(90, 110), 
-                random.randint(190, 210), 
-                random.randint(290, 310),
-                random.randint(490, 510),
-                ]
+            # Когда вызывается конструктов Creature, там уже задаются рандомные birth_ages
+            # c.birth_ages = [
+            #     random.randint(90, 110), 
+            #     random.randint(190, 210), 
+            #     random.randint(290, 310),
+            #     random.randint(490, 510),
+            #     ]
             # c.isSelected = False
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)

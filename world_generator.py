@@ -64,6 +64,6 @@ class WorldGenerator:
                 x, y = random.randint(0, width-1), random.randint(0, height-1)
                 # Проверим, что существо создается на пустой ячейке
                 if world.get_cell(x,y) == 0:
-                    world.add_creature(Creature(x, y))
+                    world.add_creature( Creature(x, y, world.sim_reproduction_ages) )
                     break
 		

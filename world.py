@@ -36,8 +36,9 @@ class World():
 		self.sim_food_amount = 1
 		self.sim_food_energy_capacity = 1.0
 		self.sim_food_energy_chunk = 0.2
+		self.sim_reproduction_ages = [100, 200, 300, 500]
 		self.sim_reproduction_offsprings = 3
-		
+
 		
 
 
