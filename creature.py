@@ -6,7 +6,7 @@ import random
 
 class Creature():
     
-    def __init__(self, x: float, y: float, sim_reproduction_ages: list):
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
         self.energy = 1.0
@@ -24,7 +24,7 @@ class Creature():
             ]
 
 
-    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings, sim_reproduction_ages):
+    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings):
         cr_babies = []
         #Если не задан sim_reproduction_offsprings, то приравнять его = 3
         # if (!sim_reproduction_offsprings):
