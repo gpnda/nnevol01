@@ -6,7 +6,7 @@ import random
 
 class Creature():
     
-    def __init__(self, x: float, y: float):
+    def __init__(self, x: float, y: float, sim_reproduction_ages: list):
         self.x = x
         self.y = y
         self.energy = 1.0
@@ -16,15 +16,18 @@ class Creature():
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
-        self.birth_ages = [
-            random.randint(90, 110), 
-            random.randint(190, 210), 
-            random.randint(290, 310),
-            random.randint(490, 510),
-            ]
+        self.birth_ages = Creature.diceRandomAges(sim_reproduction_ages) # Рандомные возрасты для рождения потомства
 
 
-    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings):
+    @staticmethod
+    def diceRandomAges(sim_reproduction_ages):
+        ages = []
+        for age in sim_reproduction_ages:
+            variation = random.randint(-10, 10)
+            ages.append(age + variation)
+        return ages
+
+    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings, sim_reproduction_ages):
         cr_babies = []
         #Если не задан sim_reproduction_offsprings, то приравнять его = 3
         # if (!sim_reproduction_offsprings):
@@ -40,7 +43,7 @@ class Creature():
             # print ("Процесс рождения существа. 4")
             # c.generation = self.generation + 1
             # print ("Процесс рождения существа. 5")
-            c = Creature(self.x, self.y)
+            c = Creature(self.x, self.y, sim_reproduction_ages)
             c.nn = NeuralNetwork.copy(self.nn)
             c.nn.mutate( mutation_probability, mutation_strength )
             # Когда вызывается конструктов Creature, там уже задаются рандомные birth_ages

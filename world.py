@@ -243,7 +243,11 @@ class World():
 		# Цикл размножения
 		baby_creatures = []
 		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
-			baby_creatures += i.reprodCreature( self.sim_mutation_probability, self.sim_mutation_strength, self.sim_reproduction_offsprings )
+			baby_creatures += i.reprodCreature( 
+				self.sim_mutation_probability, 
+				self.sim_mutation_strength, 
+				self.sim_reproduction_offsprings,
+				self.sim_reproduction_ages)
 		self.creatures += baby_creatures
 
 	def creature_bite(self, cr):
