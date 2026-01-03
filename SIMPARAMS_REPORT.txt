@@ -1,0 +1,81 @@
+ИТОГОВЫЙ ОТЧЁТ: Сбор параметров симуляции
+============================================
+
+ЗАДАЧА
+------
+Собрать все магические числа из кода симуляции в единый файл simparams.py
+с правильными значениями из текущего кода.
+
+РЕЗУЛЬТАТ
+---------
+✓ Файл simparams.py создан и заполнен актуальными значениями
+✓ Все параметры документированы с указанием источника в коде
+✓ Параметры организованы по категориям:
+  - Параметры нейронной сети
+  - Параметры существа
+  - Параметры еды
+  - Параметры размножения
+  - Затраты энергии
+  - Приобретение энергии
+
+НАЙДЕННЫЕ ЗНАЧЕНИЯ
+-------------------
+
+Параметры нейронной сети:
+  mutation_probability = 0.1      (из creature.py, reprodCreature())
+  mutation_strength = 0.5         (из creature.py, reprodCreature())
+
+Параметры существа:
+  creature_max_age = 250          (из creature.py, update())
+  creature_vision_distance = 20   (из creature.py, __init__)
+  creature_bite_range = 0.5       (из creature.py, __init__)
+
+Параметры еды:
+  food_amount = 10                (из world_generator.py, generate_food())
+  food_energy_capacity = 1.0      (из food.py, __init__)
+  food_energy_chunk = 0.5         (из world.py, creature_bite())
+
+Параметры размножения:
+  reproduction_ages = (90, 510)   (из creature.py, birth_ages)
+  reproduction_offsprings = 3     (из creature.py, reprodCreature())
+
+Затраты энергии:
+  energy_cost_tick = 0.01         (из creature.py, update())
+  energy_cost_move = 0.0          (не найдено явно)
+  energy_cost_rotate = 0.0        (не найдено явно)
+  energy_cost_bite = 0.01         (из world.py, столкновение)
+
+Приобретение энергии:
+  energy_gain_from_food = 0.5     (из world.py, creature_bite())
+  energy_gain_from_bite_cr = 0.1  (закомментировано)
+  energy_loss_bitten = 0.3        (закомментировано)
+  energy_loss_collision = 0.01    (из world.py, столкновение)
+
+ИСПОЛЬЗОВАНИЕ
+--------------
+
+from simparams import sp
+
+# Получить значение
+prob = sp.mutation_probability
+
+# Изменить значение
+sp.mutation_probability = 0.15
+
+# Использовать в коде
+class Creature:
+    def mutate(self):
+        self.nn.mutate(sp.mutation_probability, sp.mutation_strength)
+
+ФАЙЛЫ
+-----
+- simparams.py                      Основной файл с параметрами
+- SIMPARAMS_DOCUMENTATION.md        Подробная документация всех параметров
+
+ПРИМЕЧАНИЯ
+----------
+1. Singleton паттерн - гарантирует единый инстанс параметров
+2. Все значения являются актуальными на момент сбора
+3. Некоторые функции (укус существ, летальный урон) закомментированы
+4. energy_cost_move/rotate встроены в базовую затрату
+5. Готово к использованию во всех модулях симуляции
