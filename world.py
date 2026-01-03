@@ -21,13 +21,6 @@ class World():
 		self.creatures = []
 		self.foods = []
 
-		# Параметры мира, влияющие на симуляцию
-		self.parameter1 = 10
-		self.parameter2 = 0.5
-		self.parameter3 = 55000
-		self.parameter4 = "35000,40000,45000,50000"
-		self.parameter5 = 0.35
-
 	
 	def update_map(self):
 		"""Обновляет карту для отображения (рендерер использует эту)"""
