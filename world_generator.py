@@ -51,7 +51,7 @@ class WorldGenerator:
                 x, y = random.randint(0, width-1), random.randint(0, height-1)
                 # Проверим, что пища создается на пустой ячейке
                 if world.get_cell(x,y) == 0:
-                    world.add_food(Food(x, y, nutrition=1.0))
+                    world.add_food(Food(x, y))
                     break
     
     @staticmethod

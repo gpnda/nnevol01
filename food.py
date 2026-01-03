@@ -2,10 +2,10 @@
 from simparams import sp
 
 class Food():
-    def __init__(self, x, y, nutrition):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.nutrition = nutrition
+        self.nutrition = sp.food_energy_capacity
     
 
     def decrement(self):
