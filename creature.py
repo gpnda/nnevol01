@@ -60,7 +60,7 @@ class Creature():
 
         # Существо стареет
         self.age += 1
-        if self.age > 250:
+        if self.age > sp.creature_max_age:
             self.energy = -100.0
 
 
