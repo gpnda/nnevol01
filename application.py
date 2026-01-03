@@ -23,7 +23,7 @@ class Application():
 
 		# Добавляем переменные в панель с callback функциями
 		self.renderer.add_variable("mutation_probability", 		sp.mutation_probability, 		float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_mutation_probability_change )
-		self.renderer.add_variable("mutation_strength", 		sp.mutation_strength, 			float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_mutation_strength_change )
+		self.renderer.add_variable("mutation_strength", 		sp.mutation_strength, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_mutation_strength_change )
 		self.renderer.add_variable("creature_max_age", 			sp.creature_max_age, 			int, 	min_val=1, 		max_val=100000, on_change=self._on_creature_max_age_change )
 		self.renderer.add_variable("food_amount", 				sp.food_amount, 				int, 	min_val=1, 		max_val=100000, on_change=self._on_food_amount_change )
 		self.renderer.add_variable("food_energy_capacity", 		sp.food_energy_capacity, 		float, 	min_val=0.0, 	max_val=50.0, 	on_change=self._on_food_energy_capacity_change )

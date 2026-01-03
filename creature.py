@@ -3,6 +3,7 @@
 from nn.my_handmade_ff import NeuralNetwork
 import copy
 import random
+from simparams import sp
 
 class Creature():
     
@@ -39,7 +40,7 @@ class Creature():
             # print ("Процесс рождения существа. 5")
             c = Creature(self.x, self.y)
             c.nn = NeuralNetwork.copy(self.nn)
-            c.nn.mutate(0.1, 0.5)
+            c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
             c.birth_ages = [
                 random.randint(90, 110), 
                 random.randint(190, 210), 
