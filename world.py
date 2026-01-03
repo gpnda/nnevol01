@@ -7,6 +7,7 @@ import random
 import math
 import numpy as np
 from numba import jit
+from simparams import sp
 
 from debugger import debug
 
@@ -164,6 +165,11 @@ class World():
 		# Цикл обработки пищи
 		self.foods = [food for food in self.foods if food.nutrition >= 0]
 		
+
+	def change_food_capacity(self):
+		# Изменение параметра еды в зависимости от текущей популяции
+		for f in self.foods:
+			f.nutrition = sp.food_energy_capacity
 
 	def death(self):
 		"""

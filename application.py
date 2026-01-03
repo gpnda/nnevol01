@@ -128,6 +128,7 @@ class Application():
 	def _on_food_energy_capacity_change(self, value):
 		"""Callback при изменении food_energy_capacity."""
 		sp.food_energy_capacity = value
+		self.world.change_food_capacity() # Обновляем текущую еду в мире
 		print(f"food_energy_capacity changed to: {sp.food_energy_capacity}")
 	
 	def _on_food_energy_chunk_change(self, value):
