@@ -23,7 +23,7 @@ class SimParams:
         self.food_amount = 10
         # Энергия одного куска пищи (из food.py - nutrition параметр)
         self.food_energy_capacity = 1.0
-        # Энергия, получаемая существом за укус еды (из world.py creature_bite)
+        # Энергия, откусываемая от еды за один укус
         self.food_energy_chunk = 0.5
         
         # === Параметры размножения ===

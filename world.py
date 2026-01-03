@@ -146,6 +146,8 @@ class World():
 
 		self.control_population()
 
+		self.regulate_food()
+
 		print("POPULATION: " + str(len(self.creatures)))
 
 			
@@ -158,6 +160,10 @@ class World():
 		if len(self.creatures)<90:
 			self.reprod()
 
+	def regulate_food(self):
+		# Цикл обработки пищи
+		self.foods = [food for food in self.foods if food.nutrition >= 0]
+		
 
 	def death(self):
 		"""
@@ -212,6 +218,11 @@ class World():
 				cr.energy = 1.0
 			
 			# # Уменьшить энергию у пищи.
+			bitten_food = self.bitten_food( int(bitex), int(bitey) )
+
+			bitten_food.decrement()
+
+
 			# app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable -= 0.35
 			# # Если еда съедена полностью, сотрем ее с карты.
 			# if ( app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable < 0) :
@@ -265,7 +276,11 @@ class World():
 		return False
 		
 
-
+	def bitten_food(self, x, y):
+		for food in self.foods:
+			if food.x == x and food.y == y:
+				return food
+		return None
 
 	@staticmethod
 	@jit(nopython=True, fastmath=True)
