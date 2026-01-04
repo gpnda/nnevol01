@@ -53,6 +53,7 @@ class Creature():
     
     
     def update(self):
+        
         # Существо тратит энергию на просто существование в мире
         self.energy -= sp.energy_cost_tick
 
@@ -62,6 +63,9 @@ class Creature():
         # Существо тратит энергию на поворот, пропорционально углу поворота
         self.energy -= abs(self.angle) * sp.energy_cost_rotate
         
+        # Существо тратит энергию на укус, пропорционально силе укуса
+        self.energy -= abs(self.bite_effort) * sp.energy_cost_bite
+
 
         # Существо стареет
         self.age += 1
