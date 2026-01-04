@@ -147,7 +147,7 @@ class World():
 
 		self.control_population()
 
-		self.regulate_food()
+		self.proceed_food()
 
 		print("POPULATION: " + str(len(self.creatures)))
 
@@ -161,7 +161,7 @@ class World():
 		if len(self.creatures)<90:
 			self.reprod()
 
-	def regulate_food(self):
+	def proceed_food(self):
 		# Цикл обработки пищи
 		self.foods = [food for food in self.foods if food.nutrition >= 0]
 		
