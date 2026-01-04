@@ -3,6 +3,7 @@
 from nn.my_handmade_ff import NeuralNetwork
 import copy
 import random
+from simparams import sp
 
 class Creature():
     
@@ -13,27 +14,25 @@ class Creature():
         self.age = random.randint(0,500)
         self.speed = 1
         self.angle = random.random()*3.14
+        self.bite_effort = 0.0
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
-        self.birth_ages = Creature.diceRandomAges(sim_reproduction_ages) # Рандомные возрасты для рождения потомства
+        self.birth_ages = Creature.diceRandomAges(sp.reproduction_ages) # Рандомные возрасты для рождения потомства
 
 
     @staticmethod
-    def diceRandomAges(sim_reproduction_ages):
+    def diceRandomAges(reproduction_ages):
         ages = []
-        for age in sim_reproduction_ages:
+        for age in reproduction_ages:
             variation = random.randint(-10, 10)
             ages.append(age + variation)
         return ages
-
-    def reprodCreature(self, mutation_probability, mutation_strength, sim_reproduction_offsprings, sim_reproduction_ages):
+    
+    def reprodCreature(self):
         cr_babies = []
-        #Если не задан sim_reproduction_offsprings, то приравнять его = 3
-        # if (!sim_reproduction_offsprings):
-        #     sim_reproduction_offsprings = 3
-        #print ("начало цикла по рождению детей")
-        for j in range( 0, sim_reproduction_offsprings ): # Рождаем 3х детей. Сюда надо sim_reproduction_offsprings
+        # print ("начало цикла по рождению детей")
+        for j in range(0, sp.reproduction_offsprings):
             # print ("Процесс рождения существа. 1 Погнали")
             # c = copy.deepcopy(self)
             # print ("Процесс рождения существа. 2")
@@ -45,14 +44,7 @@ class Creature():
             # print ("Процесс рождения существа. 5")
             c = Creature(self.x, self.y, sim_reproduction_ages)
             c.nn = NeuralNetwork.copy(self.nn)
-            c.nn.mutate( mutation_probability, mutation_strength )
-            # Когда вызывается конструктов Creature, там уже задаются рандомные birth_ages
-            # c.birth_ages = [
-            #     random.randint(90, 110), 
-            #     random.randint(190, 210), 
-            #     random.randint(290, 310),
-            #     random.randint(490, 510),
-            #     ]
+            c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
             # c.isSelected = False
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)
@@ -60,19 +52,36 @@ class Creature():
         return cr_babies
     
     
-    def update(self, creature_max_age):
+    def update(self):
+
         # Существо тратит энергию на просто существование в мире
-        self.energy -= 0.01
+        self.energy -= sp.energy_cost_tick
+
+        # Существо тратит энергию на перемещение, пропорционально скорости
+        self.energy -= abs(self.speed) * sp.energy_cost_speed
+
+        # Существо тратит энергию на поворот, пропорционально углу поворота
+        self.energy -= abs(self.angle) * sp.energy_cost_rotate
+        
+        # Существо тратит энергию на укус, пропорционально силе укуса
+        self.energy -= abs(self.bite_effort) * sp.energy_cost_bite
+
 
         # Существо стареет
         self.age += 1
-        if self.age > creature_max_age:
+        if self.age > sp.creature_max_age:
             self.energy = -100.0
 
 
         # Существо тратит энергию на бег в зависимости от скорости
         # Существо тратит энергию на поворот, в зависимости от резкого поворота
         # Существо тратит энергию на поворот, в зависимости от резкого поворота
+
+    
+    def gain_energy(self, amount: float):
+        self.energy += amount
+        if self.energy > 1.0:
+            self.energy = 1.0
 
 
 

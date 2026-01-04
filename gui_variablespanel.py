@@ -104,14 +104,20 @@ class VariablesPanel:
             # Преобразование типа
             if var_info['type'] == int:
                 value = int(value)
+                # Проверка диапазона
+                if var_info['min'] is not None:
+                    value = max(value, var_info['min'])
+                if var_info['max'] is not None:
+                    value = min(value, var_info['max'])
             elif var_info['type'] == float:
                 value = float(value)
-            
-            # Проверка диапазона
-            if var_info['min'] is not None:
-                value = max(value, var_info['min'])
-            if var_info['max'] is not None:
-                value = min(value, var_info['max'])
+                # Проверка диапазона
+                if var_info['min'] is not None:
+                    value = max(value, var_info['min'])
+                if var_info['max'] is not None:
+                    value = min(value, var_info['max'])
+            elif var_info['type'] == str:
+                value = value
             
             var_info['value'] = value
             
@@ -169,6 +175,23 @@ class VariablesPanel:
         elif event.key == pygame.K_PERIOD:
             if "." not in self.input_buffer:
                 self.input_buffer += "."
+            return True
+        
+        elif event.key == pygame.K_COMMA:
+            self.input_buffer += ","
+            return True
+        
+        elif event.key == pygame.K_LEFTBRACKET:
+            self.input_buffer += "["
+            return True
+        
+        elif event.key == pygame.K_RIGHTBRACKET:
+            self.input_buffer += "]"
+            return True
+        
+        elif event.key == pygame.K_SPACE:
+            # Пробел - добавляем в buffer и закрываем редактирование
+            self.input_buffer += " "
             return True
         
         return False

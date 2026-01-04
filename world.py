@@ -7,6 +7,7 @@ import random
 import math
 import numpy as np
 from numba import jit
+from simparams import sp
 
 from debugger import debug
 
@@ -21,13 +22,7 @@ class World():
 		self.tick = 0
 		self.creatures = []
 		self.foods = []
-
-		# Параметры мира, влияющие на симуляцию
-		self.parameter1 = 10
-		self.parameter2 = 0.5
-		self.parameter3 = 55000
-		self.parameter4 = "35000,40000,45000,50000"
-		self.parameter5 = 0.35
+		self.tick = 0
 
 		# Параметры мира, влияющие на симуляцию
 		self.sim_mutation_probability = 0.03 
@@ -129,7 +124,7 @@ class World():
 			if self.get_cell(int(newx),int(newy)) == 1:
 				# Существо столкнулось со стеной
 				is_ok_to_go = False
-				creature.energy -= 0.01
+				creature.energy -= sp.energy_loss_collision     # штраф за столкновение со стеной
 				
 			# Меняем или не меняем координаты на новые
 			if is_ok_to_go:
@@ -137,10 +132,12 @@ class World():
 				creature.y = newy
 			
 			# Если существо куснуло - проверить что оно куснуло.
-			if all_outs[index][2] > 0.5:
+			creature.bite_effort = all_outs[index][2]
+			if creature.bite_effort > 0.5:
 				self.creature_bite(creature)
 
-			creature.update(self.sim_creature_max_age)
+
+			creature.update()
 			
 			
 
@@ -168,15 +165,29 @@ class World():
 		self.control_population()
 
 		self.proceed_food()
-		# print(len(self.foods))
 
 		self.tick += 1
 		if self.tick % 50 == 0:
 			self.regulate_food()
 
 		# print("POPULATION: " + str(len(self.creatures)))
+		# print("tick: " + str(self.tick) + "   | cr[0].age:"+ str(self.creatures[0].age) + " cr[0].energy:" + str(self.creatures[0].energy) + "   | cr[0].birth_ages: " + str(self.creatures[0].birth_ages) )
 
 			
+	def regulate_food(self):
+		# добавление или уничтожение пищи из массива world.foods[] в соответствии с  sim_food_amount
+		if (sp.food_amount > len(self.foods)):
+			# добавим недостающее количество пищи
+			add_amount = sp.food_amount - len(self.foods)
+			from world_generator import WorldGenerator
+			WorldGenerator.generate_food(self, add_amount)
+		else:
+			# пищи слишком много, удалим часть
+			self.foods = self.foods[0:sp.food_amount]
+		
+		# # Рандомизировать положение пищи.
+		# for f in self.foods:
+		#     f.setPositionRandom(self)
 
 	def regulate_food(self):
 		# добавление или уничтожение пищи из массива world.foods[] в соответствии с  sim_food_amount
@@ -212,6 +223,14 @@ class World():
 		if len(self.creatures)<90:
 			self.reprod()
 
+	def proceed_food(self):
+		# Цикл обработки пищи
+		self.foods = [food for food in self.foods if food.nutrition >= 0]
+
+	def change_food_capacity(self):
+		# Изменение параметра еды в зависимости от текущей популяции
+		for f in self.foods:
+			f.nutrition = sp.food_energy_capacity
 
 	def death(self):
 		"""
@@ -267,20 +286,18 @@ class World():
 		
 		# получим информацию о том, что находится в клетке, которую существо кусает
 		biteplace =  self.get_cell(int(bitex), int(bitey))
+
 		if biteplace == 2:
+			
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
-			# print("Существу повезло, оно укусило пищу. Увеличить энергию существа.")
-			cr.energy += 0.1
-			if cr.energy > 1.0:
-				cr.energy = 1.0
+			cr.gain_energy(sp.energy_gain_from_food)
 			
 			# # Уменьшить энергию у пищи.
 			bitten_food = self.bitten_food( int(bitex), int(bitey) )
-			
-			bitten_food.decrement( self.sim_food_energy_chunk )
-			
-			
-			
+
+			bitten_food.decrement()
+
+
 			# app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable -= 0.35
 			# # Если еда съедена полностью, сотрем ее с карты.
 			# if ( app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable < 0) :
@@ -334,7 +351,11 @@ class World():
 		return False
 		
 
-
+	def bitten_food(self, x, y):
+		for food in self.foods:
+			if food.x == x and food.y == y:
+				return food
+		return None
 
 	def bitten_food(self, x, y):
 		for food in self.foods:
