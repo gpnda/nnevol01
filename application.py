@@ -3,6 +3,7 @@
 from world_generator import WorldGenerator
 from renderer import Renderer
 import random
+from creature import Creature
 from simparams import sp
 
 class Application():
@@ -148,6 +149,12 @@ class Application():
 			ages = [int(x.strip()) for x in value.split(",")]
 			sp.reproduction_ages = ages
 			print(f"reproduction_ages changed to: {sp.reproduction_ages}")
+
+			# Обновляем возрасты рождения у всех существ
+			for cr in self.world.creatures:
+				cr.birth_ages = Creature.diceRandomAges(sp.reproduction_ages)
+				print("diceRandomAges!!!!!!!!!!!!!!!")
+			
 		except Exception as e:
 			print(f"Ошибка разбора reproduction_ages: {e}")
 	

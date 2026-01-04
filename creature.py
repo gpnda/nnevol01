@@ -17,14 +17,17 @@ class Creature():
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
-        self.birth_ages = [
-            random.randint(90, 110), 
-            random.randint(190, 210), 
-            random.randint(290, 310),
-            random.randint(490, 510),
-            ]
+        self.birth_ages = Creature.diceRandomAges(sp.reproduction_ages) # Рандомные возрасты для рождения потомства
 
 
+    @staticmethod
+    def diceRandomAges(reproduction_ages):
+        ages = []
+        for age in reproduction_ages:
+            variation = random.randint(-10, 10)
+            ages.append(age + variation)
+        return ages
+    
     def reprodCreature(self):
         cr_babies = []
         print ("начало цикла по рождению детей")
@@ -41,12 +44,6 @@ class Creature():
             c = Creature(self.x, self.y)
             c.nn = NeuralNetwork.copy(self.nn)
             c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
-            c.birth_ages = [
-                random.randint(90, 110), 
-                random.randint(190, 210), 
-                random.randint(290, 310),
-                random.randint(490, 510),
-                ]
             # c.isSelected = False
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)

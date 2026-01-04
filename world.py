@@ -154,7 +154,8 @@ class World():
 		if self.tick % 50 == 0:
 			self.regulate_food()
 
-		print("POPULATION: " + str(len(self.creatures)))
+		# print("POPULATION: " + str(len(self.creatures)))
+		print("tick: " + str(self.tick) + "   | cr[0].age:"+ str(self.creatures[0].age) + " cr[0].energy:" + str(self.creatures[0].energy) + "   | cr[0].birth_ages: " + str(self.creatures[0].birth_ages) )
 
 			
 	def regulate_food(self):
