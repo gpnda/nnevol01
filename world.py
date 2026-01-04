@@ -157,7 +157,7 @@ class World():
 			self.regulate_food()
 
 		# print("POPULATION: " + str(len(self.creatures)))
-		print("tick: " + str(self.tick) + "   | cr[0].age:"+ str(self.creatures[0].age) + " cr[0].energy:" + str(self.creatures[0].energy) + "   | cr[0].birth_ages: " + str(self.creatures[0].birth_ages) )
+		# print("tick: " + str(self.tick) + "   | cr[0].age:"+ str(self.creatures[0].age) + " cr[0].energy:" + str(self.creatures[0].energy) + "   | cr[0].birth_ages: " + str(self.creatures[0].birth_ages) )
 
 			
 	def regulate_food(self):
@@ -237,7 +237,7 @@ class World():
 		
 		# получим информацию о том, что находится в клетке, которую существо кусает
 		biteplace =  self.get_cell(int(bitex), int(bitey))
-		
+
 		if biteplace == 2:
 			
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.

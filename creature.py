@@ -31,7 +31,7 @@ class Creature():
     
     def reprodCreature(self):
         cr_babies = []
-        print ("начало цикла по рождению детей")
+        # print ("начало цикла по рождению детей")
         for j in range(0, sp.reproduction_offsprings):
             # print ("Процесс рождения существа. 1 Погнали")
             # c = copy.deepcopy(self)

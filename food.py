@@ -10,5 +10,5 @@ class Food():
 
     def decrement(self):
         self.nutrition -= sp.food_energy_chunk
-        print("Food at (" + str(self.x) + "," + str(self.y) + ") decremented to " + str(self.nutrition))
+        # print("Food at (" + str(self.x) + "," + str(self.y) + ") decremented to " + str(self.nutrition))
         
