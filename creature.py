@@ -59,6 +59,10 @@ class Creature():
         # Существо тратит энергию на перемещение, пропорционально скорости
         self.energy -= abs(self.speed) * sp.energy_cost_speed
 
+        # Существо тратит энергию на поворот, пропорционально углу поворота
+        self.energy -= abs(self.angle) * sp.energy_cost_rotate
+        
+
         # Существо стареет
         self.age += 1
         if self.age > sp.creature_max_age:
