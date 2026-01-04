@@ -172,7 +172,6 @@ class World():
 		# for f in self.foods:
 		#     f.setPositionRandom(self)
 
-
 	def control_population(self):
 
 		if len(self.creatures)>=10:
@@ -184,7 +183,6 @@ class World():
 	def proceed_food(self):
 		# Цикл обработки пищи
 		self.foods = [food for food in self.foods if food.nutrition >= 0]
-		
 
 	def change_food_capacity(self):
 		# Изменение параметра еды в зависимости от текущей популяции
