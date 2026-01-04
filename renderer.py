@@ -13,6 +13,7 @@ from typing import Callable, Optional, Any
 from gui_viewport import Viewport
 from gui_variablespanel import VariablesPanel
 from gui_functionalkeys import FunctionKeysPanel
+from gui_creatures_popup import CreaturesPopup
 
 
 class Renderer:
@@ -59,9 +60,10 @@ class Renderer:
         self.viewport = Viewport(world=self.world)
         self.variables_panel = VariablesPanel()
         self.func_keys_panel = FunctionKeysPanel()
+        self.creatures_popup = CreaturesPopup(world=self.world)
 
         # Добавляем функциональные клавиши
-        self.add_function_key("F1", "Save", self.app.saveWorld)
+        #self.add_function_key("F1", "Save", self.app.saveWorld)
         self.add_function_key("F2", "Load", self.app.loadWorld)
         self.add_function_key("F3", "Reset", self.app.resetWorld)
         self.add_function_key("F4", "Exit", self.app.terminate)
@@ -110,12 +112,21 @@ class Renderer:
         Returns:
             True если надо выходить из приложения
         """
+        # Обработка popup окна (имеет приоритет)
+        if self.creatures_popup.handle_event(event):
+            return False
+        
         # Сначала проверяем функциональные клавиши
         if self.func_keys_panel.handle_event(event):
             return False
         
         # Затем пытаемся обработать в VariablesPanel
         if self.variables_panel.handle_event(event):
+            return False
+        
+        # F1: открыть/закрыть popup существ (если он не обработан выше)
+        if event.key == pygame.K_F1:
+            self.creatures_popup.toggle()
             return False
         
         # Затем обработка глобальных команд Renderer
@@ -179,6 +190,9 @@ class Renderer:
         
         # Отрисовка панели функциональных клавиш
         self.func_keys_panel.draw(self.screen)
+        
+        # Отрисовка popup окна со списком существ (в последнюю очередь, чтобы было сверху)
+        self.creatures_popup.draw(self.screen)
         
         # Обновление дисплея
         pygame.display.flip()
