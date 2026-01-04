@@ -19,20 +19,10 @@ class World():
 		self.height = height
 		self.map = np.zeros((height, width), dtype='int')
 		self.walls_map = np.zeros((height, width), dtype='int')
-		self.tick = 0
 		self.creatures = []
 		self.foods = []
 		self.tick = 0
 
-		# Параметры мира, влияющие на симуляцию
-		self.sim_mutation_probability = 0.03 
-		self.sim_mutation_strength = 0.1
-		self.sim_creature_max_age = 250
-		self.sim_food_amount = 1
-		self.sim_food_energy_capacity = 1.0
-		self.sim_food_energy_chunk = 0.2
-		self.sim_reproduction_ages = [100, 200, 300, 500]
-		self.sim_reproduction_offsprings = 3
 
 		
 
@@ -189,29 +179,6 @@ class World():
 		# for f in self.foods:
 		#     f.setPositionRandom(self)
 
-	def regulate_food(self):
-		# добавление или уничтожение пищи из массива world.foods[] в соответствии с  sim_food_amount
-		if (self.sim_food_amount > len(self.foods)):
-			# добавим недостающее количество пищи
-			add_amount = self.sim_food_amount - len(self.foods)
-			from world_generator import WorldGenerator
-			WorldGenerator.generate_food(self, add_amount)
-		else:
-			# пищи слишком много, удалим часть
-			self.foods = self.foods[0:self.sim_food_amount]
-		
-
-		# Это замедляет, при случае можно удалить. 
-		# Этот код просто возволяет уменьшить food_energy_capacity у всей пищи не карте
-		# добавил просто чтобы посмотреть что управление параметром работает, 
-		# и понаблюдать как существа выедают дырки в пище на карте
-		for f in self.foods:
-			if f.nutrition > self.sim_food_energy_capacity:
-				f.nutrition = self.sim_food_energy_capacity
-
-		# # Рандомизировать положение пищи.
-		# for f in self.foods:
-		#     f.setPositionRandom(self)
 
 
 
@@ -253,20 +220,13 @@ class World():
 		# Иначе удаляем существ с энергией < 0
 		self.creatures = [creature for creature in self.creatures if creature.energy >= 0]
 	
-	def proceed_food(self):
-		# Цикл обработки пищи
-		self.foods = [food for food in self.foods if food.nutrition >= 0]
 		
 
 	def reprod(self):
 		# Цикл размножения
 		baby_creatures = []
 		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
-			baby_creatures += i.reprodCreature( 
-				self.sim_mutation_probability, 
-				self.sim_mutation_strength, 
-				self.sim_reproduction_offsprings,
-				self.sim_reproduction_ages)
+			baby_creatures += i.reprodCreature()
 		self.creatures += baby_creatures
 
 	def creature_bite(self, cr):
@@ -357,18 +317,6 @@ class World():
 				return food
 		return None
 
-	def bitten_food(self, x, y):
-		for food in self.foods:
-			if food.x == x and food.y == y:
-				return food
-		return None
-
-	def delete_food(self, food):
-		print("Попытка скушать пищу.")	
-		if food in self.foods:
-			print("Food at (" + str(food.x) + "," + str(food.y) + ") is fully eaten and removed.")
-			self.foods.remove(food)
-		return True
 
 
 

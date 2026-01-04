@@ -7,7 +7,7 @@ from simparams import sp
 
 class Creature():
     
-    def __init__(self, x: float, y: float, sim_reproduction_ages: list):
+    def __init__(self, x: float, y: float):
         self.x = x
         self.y = y
         self.energy = 1.0
@@ -42,7 +42,7 @@ class Creature():
             # print ("Процесс рождения существа. 4")
             # c.generation = self.generation + 1
             # print ("Процесс рождения существа. 5")
-            c = Creature(self.x, self.y, sim_reproduction_ages)
+            c = Creature(self.x, self.y)
             c.nn = NeuralNetwork.copy(self.nn)
             c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
             # c.isSelected = False
