@@ -110,7 +110,7 @@ class World():
 			if self.get_cell(int(newx),int(newy)) == 1:
 				# Существо столкнулось со стеной
 				is_ok_to_go = False
-				creature.energy -= 0.01
+				creature.energy -= sp.energy_loss_collision     # штраф за столкновение со стеной
 				
 			# Меняем или не меняем координаты на новые
 			if is_ok_to_go:
@@ -237,12 +237,11 @@ class World():
 		
 		# получим информацию о том, что находится в клетке, которую существо кусает
 		biteplace =  self.get_cell(int(bitex), int(bitey))
+		
 		if biteplace == 2:
+			
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
-			# print("Существу повезло, оно укусило пищу. Увеличить энергию существа.")
-			cr.energy += 0.5
-			if cr.energy > 1.0:
-				cr.energy = 1.0
+			cr.gain_energy(sp.energy_gain_from_food)
 			
 			# # Уменьшить энергию у пищи.
 			bitten_food = self.bitten_food( int(bitex), int(bitey) )

@@ -189,6 +189,10 @@ class VariablesPanel:
             self.input_buffer += "]"
             return True
         
+        elif event.key == pygame.K_SPACE:
+            # Пробел - добавляем в buffer и закрываем редактирование
+            self.input_buffer += " "
+            return True
         
         return False
     

@@ -53,7 +53,7 @@ class Creature():
     
     
     def update(self):
-        
+
         # Существо тратит энергию на просто существование в мире
         self.energy -= sp.energy_cost_tick
 
@@ -76,6 +76,12 @@ class Creature():
         # Существо тратит энергию на бег в зависимости от скорости
         # Существо тратит энергию на поворот, в зависимости от резкого поворота
         # Существо тратит энергию на поворот, в зависимости от резкого поворота
+
+    
+    def gain_energy(self, amount: float):
+        self.energy += amount
+        if self.energy > 1.0:
+            self.energy = 1.0
 
 
 
