@@ -53,7 +53,7 @@ class Creature():
     
     def update(self):
         # Существо тратит энергию на просто существование в мире
-        self.energy -= 0.01
+        self.energy -= sp.energy_cost_tick
 
         # Существо стареет
         self.age += 1
