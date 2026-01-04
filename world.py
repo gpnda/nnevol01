@@ -118,8 +118,10 @@ class World():
 				creature.y = newy
 			
 			# Если существо куснуло - проверить что оно куснуло.
-			if all_outs[index][2] > 0.5:
+			creature.bite_effort = all_outs[index][2]
+			if creature.bite_effort > 0.5:
 				self.creature_bite(creature)
+
 
 			creature.update()
 			

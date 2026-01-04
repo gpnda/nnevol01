@@ -14,6 +14,7 @@ class Creature():
         self.age = random.randint(0,500)
         self.speed = 1
         self.angle = random.random()*3.14
+        self.bite_effort = 0.0
         self.vision_distance = 20
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
@@ -54,6 +55,9 @@ class Creature():
     def update(self):
         # Существо тратит энергию на просто существование в мире
         self.energy -= sp.energy_cost_tick
+
+        # Существо тратит энергию на перемещение, пропорционально скорости
+        self.energy -= abs(self.speed) * sp.energy_cost_speed
 
         # Существо стареет
         self.age += 1
