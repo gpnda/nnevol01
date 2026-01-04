@@ -32,7 +32,7 @@ class Application():
 		self.renderer.add_variable("reproduction_ages", 		sp.reproduction_ages, 			str, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_reproduction_ages_change )
 		self.renderer.add_variable("reproduction_offsprings", 	sp.reproduction_offsprings, 	int, 	min_val=1, 		max_val=100, 	on_change=self._on_reproduction_offsprings_change )
 		self.renderer.add_variable("energy_cost_tick", 			sp.energy_cost_tick, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_energy_cost_tick_change )
-		self.renderer.add_variable("energy_cost_move", 			sp.energy_cost_move, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_energy_cost_move_change )
+		self.renderer.add_variable("energy_cost_speed", 		sp.energy_cost_speed, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_energy_cost_speed_change )
 		self.renderer.add_variable("energy_cost_rotate", 		sp.energy_cost_rotate, 			float, 	min_val=-20.0, 	max_val=50.0, 	on_change=self._on_energy_cost_rotate_change )
 		self.renderer.add_variable("energy_cost_bite", 			sp.energy_cost_bite, 			float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_cost_bite_change )
 		self.renderer.add_variable("energy_gain_from_food", 	sp.energy_gain_from_food, 		float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_gain_from_food_change )
@@ -168,10 +168,10 @@ class Application():
 		sp.energy_cost_tick = value
 		print(f"energy_cost_tick changed to: {sp.energy_cost_tick}")
 	
-	def _on_energy_cost_move_change(self, value):
-		"""Callback при изменении energy_cost_move."""
-		sp.energy_cost_move = value
-		print(f"energy_cost_move changed to: {sp.energy_cost_move}")
+	def _on_energy_cost_speed_change(self, value):
+		"""Callback при изменении energy_cost_speed."""
+		sp.energy_cost_speed = value
+		print(f"energy_cost_speed changed to: {sp.energy_cost_speed}")
 	
 	def _on_energy_cost_rotate_change(self, value):
 		"""Callback при изменении energy_cost_rotate."""
@@ -218,7 +218,7 @@ class Application():
 		print(f"reproduction_ages: {sp.reproduction_ages} type: {type(sp.reproduction_ages)}")
 		print(f"reproduction_offsprings: {sp.reproduction_offsprings}")
 		print(f"energy_cost_tick: {sp.energy_cost_tick}")
-		print(f"energy_cost_move: {sp.energy_cost_move}")
+		print(f"energy_cost_speed: {sp.energy_cost_speed}")
 		print(f"energy_cost_rotate: {sp.energy_cost_rotate}")
 		print(f"energy_cost_bite: {sp.energy_cost_bite}")
 		print(f"energy_gain_from_food: {sp.energy_gain_from_food}")
