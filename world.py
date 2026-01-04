@@ -21,6 +21,7 @@ class World():
 		self.walls_map = np.zeros((height, width), dtype='int')
 		self.creatures = []
 		self.foods = []
+		self.tick = 0
 
 	
 	def update_map(self):
@@ -149,9 +150,28 @@ class World():
 
 		self.proceed_food()
 
+		self.tick += 1
+		if self.tick % 50 == 0:
+			self.regulate_food()
+
 		print("POPULATION: " + str(len(self.creatures)))
 
 			
+	def regulate_food(self):
+		# добавление или уничтожение пищи из массива world.foods[] в соответствии с  sim_food_amount
+		if (sp.food_amount > len(self.foods)):
+			# добавим недостающее количество пищи
+			add_amount = sp.food_amount - len(self.foods)
+			from world_generator import WorldGenerator
+			WorldGenerator.generate_food(self, add_amount)
+		else:
+			# пищи слишком много, удалим часть
+			self.foods = self.foods[0:sp.food_amount]
+		
+		# # Рандомизировать положение пищи.
+		# for f in self.foods:
+		#     f.setPositionRandom(self)
+
 
 	def control_population(self):
 
