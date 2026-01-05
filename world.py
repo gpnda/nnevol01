@@ -9,7 +9,7 @@ import numpy as np
 from numba import jit
 from simparams import sp
 
-from debugger import debug
+from service.debugger.debugger import debug
 
 
 

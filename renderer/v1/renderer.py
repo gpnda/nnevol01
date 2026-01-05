@@ -10,10 +10,10 @@ Renderer управляет:
 
 import pygame
 from typing import Callable, Optional, Any
-from gui_viewport import Viewport
-from gui_variablespanel import VariablesPanel
-from gui_functionalkeys import FunctionKeysPanel
-from gui_creatures_popup import CreaturesPopup
+from renderer.v1.gui_viewport import Viewport
+from renderer.v1.gui_variablespanel import VariablesPanel
+from renderer.v1.gui_functionalkeys import FunctionKeysPanel
+from renderer.v1.gui_creatures_popup import CreaturesPopup
 
 
 class Renderer:

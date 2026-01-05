@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from world_generator import WorldGenerator
-from renderer import Renderer
+from renderer.v1.renderer import Renderer
+# from renderer.mock.renderer import Renderer
 import random
 from creature import Creature
 from simparams import sp

@@ -4,7 +4,7 @@ Viewport для отрисовки карты мира с поддержкой �
 """
 
 import pygame
-from debugger import debug
+from service.debugger.debugger import debug
 
 
 class Viewport:
