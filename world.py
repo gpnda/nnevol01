@@ -428,4 +428,24 @@ class World():
 		return all_visions / 255.0, raycast_dots
 
 
+	def simparams_print(self):
+		"""Вывод всех параметров симуляции в консоль."""
+		print("=== SimParams ===")
+		print(f"mutation_probability: {sp.mutation_probability}")
+		print(f"mutation_strength: {sp.mutation_strength}")
+		print(f"creature_max_age: {sp.creature_max_age}")
+		print(f"food_amount: {sp.food_amount}")
+		print(f"food_energy_capacity: {sp.food_energy_capacity}")
+		print(f"food_energy_chunk: {sp.food_energy_chunk}")
+		print(f"reproduction_ages: {sp.reproduction_ages} type: {type(sp.reproduction_ages)}")
+		print(f"reproduction_offsprings: {sp.reproduction_offsprings}")
+		print(f"energy_cost_tick: {sp.energy_cost_tick}")
+		print(f"energy_cost_speed: {sp.energy_cost_speed}")
+		print(f"energy_cost_rotate: {sp.energy_cost_rotate}")
+		print(f"energy_cost_bite: {sp.energy_cost_bite}")
+		print(f"energy_gain_from_food: {sp.energy_gain_from_food}")
+		print(f"energy_gain_from_bite_cr: {sp.energy_gain_from_bite_cr}")
+		print(f"energy_loss_bitten: {sp.energy_loss_bitten}")
+		print(f"energy_loss_collision: {sp.energy_loss_collision}")
+
 	

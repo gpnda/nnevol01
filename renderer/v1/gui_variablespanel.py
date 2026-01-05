@@ -5,6 +5,8 @@
 
 import pygame
 from typing import Dict, Any, Optional, List, Callable
+from simparams import sp
+from creature import Creature
 
 
 class VariablesPanel:
@@ -35,7 +37,11 @@ class VariablesPanel:
         'selected': (0, 167, 225),
     }
     
-    def __init__(self):
+    def __init__(self, world):
+
+        # TODO: Надо бы вынести из виджета gui_variablespanel.py зависимость от world и app - без этого связанность будет меньше и код чище. Сечас мог бы это сделать, но не хочу отвлекаться.
+        self.world = world
+        
         """Инициализация панели переменных."""
         # Геометрия
         self.rect = pygame.Rect(self.PANEL_X, self.PANEL_Y, 
@@ -54,6 +60,25 @@ class VariablesPanel:
         self.selected_index = 0
         self.editing = False
         self.input_buffer = ""
+
+        # Добавляем переменные в панель с callback функциями
+        self.add_variable("mutation_probability", 		sp.mutation_probability, 		float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_mutation_probability_change )
+        self.add_variable("mutation_strength", 		    sp.mutation_strength, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_mutation_strength_change )
+        self.add_variable("creature_max_age", 			sp.creature_max_age, 			int, 	min_val=1, 		max_val=100000, on_change=self._on_creature_max_age_change )
+        self.add_variable("food_amount", 				sp.food_amount, 				int, 	min_val=1, 		max_val=100000, on_change=self._on_food_amount_change )
+        self.add_variable("food_energy_capacity", 		sp.food_energy_capacity, 		float, 	min_val=0.0, 	max_val=50.0, 	on_change=self._on_food_energy_capacity_change )
+        self.add_variable("food_energy_chunk", 		    sp.food_energy_chunk, 			float, 	min_val=0.0, 	max_val=50.0, 	on_change=self._on_food_energy_chunk_change )
+        self.add_variable("reproduction_ages", 		    sp.reproduction_ages, 			str, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_reproduction_ages_change )
+        self.add_variable("reproduction_offsprings", 	sp.reproduction_offsprings, 	int, 	min_val=1, 		max_val=100, 	on_change=self._on_reproduction_offsprings_change )
+        self.add_variable("energy_cost_tick", 			sp.energy_cost_tick, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_energy_cost_tick_change )
+        self.add_variable("energy_cost_speed", 		    sp.energy_cost_speed, 			float, 	min_val=0.0, 	max_val=100.0, 	on_change=self._on_energy_cost_speed_change )
+        self.add_variable("energy_cost_rotate", 		sp.energy_cost_rotate, 			float, 	min_val=-20.0, 	max_val=50.0, 	on_change=self._on_energy_cost_rotate_change )
+        self.add_variable("energy_cost_bite", 			sp.energy_cost_bite, 			float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_cost_bite_change )
+        self.add_variable("energy_gain_from_food", 	    sp.energy_gain_from_food, 		float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_gain_from_food_change )
+        self.add_variable("energy_gain_from_bite_cr", 	sp.energy_gain_from_bite_cr, 	float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_gain_from_bite_cr_change )
+        self.add_variable("energy_loss_bitten", 		sp.energy_loss_bitten, 			float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_loss_bitten_change )
+        self.add_variable("energy_loss_collision", 	    sp.energy_loss_collision, 		float, 	min_val=0.0, 	max_val=1.0, 	on_change=self._on_energy_loss_collision_change )
+        
     
     def add_variable(self, name: str, value: Any, var_type: type = int,
                      min_val: Optional[float] = None, 
@@ -287,3 +312,117 @@ class VariablesPanel:
             screen.blit(value_surf, (self.rect.x + self.ITEM_VALUE_X, y_offset))
             
             y_offset += self.LINE_HEIGHT
+
+
+
+
+
+
+
+
+
+
+
+
+
+    def _on_mutation_probability_change(self, value):
+        """Callback при изменении mutation_probability."""
+        sp.mutation_probability = value
+        print(f"mutation_probability changed to: {sp.mutation_probability}")
+
+    def _on_mutation_strength_change(self, value):
+        """Callback при изменении mutation_strength."""
+        sp.mutation_strength = value
+        print(f"mutation_strength changed to: {sp.mutation_strength}")
+
+    def _on_creature_max_age_change(self, value):
+        """Callback при изменении creature_max_age."""
+        sp.creature_max_age = value
+        print(f"creature_max_age changed to: {sp.creature_max_age}")
+
+    def _on_food_amount_change(self, value):
+        """Callback при изменении food_amount."""
+        sp.food_amount = value
+        print(f"food_amount changed to: {sp.food_amount}")
+
+    def _on_food_energy_capacity_change(self, value):
+        """Callback при изменении food_energy_capacity."""
+        sp.food_energy_capacity = value
+        self.world.change_food_capacity() # Обновляем текущую еду в мире
+        print(f"food_energy_capacity changed to: {sp.food_energy_capacity}")
+
+    def _on_food_energy_chunk_change(self, value):
+        """Callback при изменении food_energy_chunk."""
+        sp.food_energy_chunk = value
+        print(f"food_energy_chunk changed to: {sp.food_energy_chunk}")
+
+    def _on_reproduction_ages_change(self, value):
+        """Callback при изменении reproduction_ages.
+        sp.reproduction_ages = [100, 200, 300, 500]
+        """
+        print("Callback при изменении reproduction_ages...")
+        try:
+            # remove square brackets if present
+            if value.startswith('[') and value.endswith(']'):
+                value = value[1:-1]
+            ages = [int(x.strip()) for x in value.split(",")]
+            sp.reproduction_ages = ages
+            print(f"reproduction_ages changed to: {sp.reproduction_ages}")
+
+            # Обновляем возрасты рождения у всех существ
+            for cr in self.world.creatures:
+                cr.birth_ages = Creature.diceRandomAges(sp.reproduction_ages)
+                print("diceRandomAges!!!!!!!!!!!!!!!")
+            
+        except Exception as e:
+            print(f"Ошибка разбора reproduction_ages: {e}")
+
+    def _on_reproduction_offsprings_change(self, value):
+        """Callback при изменении reproduction_offsprings."""
+        sp.reproduction_offsprings = value
+        print(f"reproduction_offsprings changed to: {sp.reproduction_offsprings}")
+
+    def _on_energy_cost_tick_change(self, value):
+        """Callback при изменении energy_cost_tick."""
+        sp.energy_cost_tick = value
+        print(f"energy_cost_tick changed to: {sp.energy_cost_tick}")
+
+    def _on_energy_cost_speed_change(self, value):
+        """Callback при изменении energy_cost_speed."""
+        sp.energy_cost_speed = value
+        print(f"energy_cost_speed changed to: {sp.energy_cost_speed}")
+
+    def _on_energy_cost_rotate_change(self, value):
+        """Callback при изменении energy_cost_rotate."""
+        sp.energy_cost_rotate = value
+        print(f"energy_cost_rotate changed to: {sp.energy_cost_rotate}")
+
+    def _on_energy_cost_bite_change(self, value):
+        """Callback при изменении energy_cost_bite."""
+        sp.energy_cost_bite = value
+        print(f"energy_cost_bite changed to: {sp.energy_cost_bite}")
+
+    def _on_energy_gain_from_food_change(self, value):
+        """Callback при изменении energy_gain_from_food."""
+        sp.energy_gain_from_food = value
+        print(f"energy_gain_from_food changed to: {sp.energy_gain_from_food}")
+
+    def _on_energy_gain_from_bite_cr_change(self, value):
+        """Callback при изменении energy_gain_from_bite_cr."""
+        sp.energy_gain_from_bite_cr = value
+        print(f"energy_gain_from_bite_cr changed to: {sp.energy_gain_from_bite_cr}")
+
+    def _on_energy_loss_bitten_change(self, value):
+        """Callback при изменении energy_loss_bitten."""
+        sp.energy_loss_bitten = value
+        print(f"energy_loss_bitten changed to: {sp.energy_loss_bitten}")
+
+    def _on_energy_loss_collision_change(self, value):
+        """Callback при изменении energy_loss_collision."""
+        sp.energy_loss_collision = value
+        print(f"energy_loss_collision changed to: {sp.energy_loss_collision}")
+
+
+
+
+    

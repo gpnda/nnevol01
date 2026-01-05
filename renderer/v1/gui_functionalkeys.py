@@ -35,8 +35,11 @@ class FunctionKeysPanel:
         'border': (5, 41, 158),
     }
     
-    def __init__(self):
+    def __init__(self, app):
         """Инициализация панели функциональных клавиш."""
+
+        self.app = app
+
         # Геометрия
         self.rect = pygame.Rect(self.PANEL_X, self.PANEL_Y,
                                 self.PANEL_WIDTH, self.PANEL_HEIGHT)
@@ -49,6 +52,14 @@ class FunctionKeysPanel:
         
         # Функциональные клавиши: {key: (description, callback)}
         self.function_keys: Dict[str, Tuple[str, Callable]] = {}
+
+        # Добавление функциональных клавиш
+        #self.func_keys_panel.add_function_key("F1", "Save", self.app.saveWorld)
+        self.add_function_key("F2", "Load", self.app.loadWorld)
+        self.add_function_key("F3", "Reset", self.app.resetWorld)
+        self.add_function_key("F4", "Exit", self.app.terminate)
+        
+        self.add_function_key("F3", "SimParams", self.app.world.simparams_print)
     
     def add_function_key(self, key: str, description: str, 
                         callback: Callable) -> None:

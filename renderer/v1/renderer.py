@@ -58,49 +58,12 @@ class Renderer:
         
         # Инициализация компонентов визуализации
         self.viewport = Viewport(world=self.world)
-        self.variables_panel = VariablesPanel()
-        self.func_keys_panel = FunctionKeysPanel()
+        self.variables_panel = VariablesPanel(world=self.world)
+        self.func_keys_panel = FunctionKeysPanel(app=self.app)
         self.creatures_popup = CreaturesPopup(world=self.world)
-
-        # Добавляем функциональные клавиши
-        #self.add_function_key("F1", "Save", self.app.saveWorld)
-        self.add_function_key("F2", "Load", self.app.loadWorld)
-        self.add_function_key("F3", "Reset", self.app.resetWorld)
-        self.add_function_key("F4", "Exit", self.app.terminate)
         
         # Часы для управления FPS
         self.clock = pygame.time.Clock()
-    
-    def add_variable(self, name: str, value, var_type: type = int,
-                     min_val=None, max_val=None,
-                     on_change: Optional[Callable[[Any], None]] = None) -> None:
-        """
-        Удобный метод для добавления переменной в панель.
-        
-        Делегирует вызов в VariablesPanel.
-        
-        Args:
-            name: Имя переменной
-            value: Начальное значение
-            var_type: Тип переменной (int, float, str)
-            min_val: Минимальное значение
-            max_val: Максимальное значение
-            on_change: Callback функция вызываемая при изменении значения
-                       Получает на вход новое значение: on_change(new_value)
-        """
-        self.variables_panel.add_variable(name, value, var_type, min_val, max_val, on_change)
-    
-    def add_function_key(self, key: str, description: str, 
-                        callback: Callable) -> None:
-        """
-        Добавить функциональную клавишу в панель.
-        
-        Args:
-            key: Название клавиши (например "F1", "F2")
-            description: Описание функции (выводится в панели)
-            callback: Функция вызываемая при нажатии клавиши
-        """
-        self.func_keys_panel.add_function_key(key, description, callback)
 
     def _handle_keyboard(self, event: pygame.event.Event) -> bool:
         """
