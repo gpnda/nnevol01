@@ -84,6 +84,9 @@ class Renderer:
         self.viewport = Viewport(world=self.world)
         self.variables_panel = VariablesPanel(world=self.world)
         
+        # ВЫБОР СУЩЕСТВА
+        self.selected_creature = None  # Текущее выбранное существо
+        
         # TODO: Добавить остальные виджеты
         # self.func_keys_panel = FunctionKeysPanel(app=self.app)
         # ... и т.д.
@@ -112,8 +115,9 @@ class Renderer:
             
             # Управление паузой: модальные окна ставят симуляцию на паузу
             if state_name != 'main':
-                # Переход в модальное окно - пауза
+                # Переход в модальное окно - пауза и очистка выбора
                 self.app.is_running = False
+                self.selected_creature = None  # Очищаем выбор при открытии popup
             else:
                 self.app.is_running = True
             
@@ -234,6 +238,8 @@ class Renderer:
         if event.key == pygame.K_SPACE:
             # Space: включить/выключить симуляцию
             self.app.toggle_run()
+            print("SELECTED CREATURE:")
+            print (self.selected_creature)
             return False
         
         elif event.key == pygame.K_a:
@@ -328,8 +334,18 @@ class Renderer:
         События маршрутизируются в зависимости от текущего состояния.
         """
         # Мышь обрабатывается только в основном состоянии
-        # (для viewport пан/зум)
+        # (для viewport пан/зум и выбор существа)
         if self.current_state == 'main':
+            # Правая кнопка мыши - выбор существа
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                creature = self.viewport.get_creature_at_position(event.pos)
+                if creature:
+                    self.selected_creature = creature
+                    print(f"✓ Creature selected: age={creature.age}, pos=({int(creature.x)}, {int(creature.y)}), energy={creature.energy:.2f}")
+                else:
+                    print("✗ No creature at this position")
+            
+            # Остальные события мыши (пан, зум)
             self.viewport.handle_event(event)
 
     def control_run(self) -> bool:
@@ -396,8 +412,8 @@ class Renderer:
         - SelectedCreaturePanel (информация о выбранном существе)
         - WorldStatsPanel (статистика мира)
         """
-        # Отрисовка viewport (карта мира)
-        self.viewport.draw(self.screen, self.font)
+        # Отрисовка viewport (карта мира) с рамкой вокруг выбранного существа
+        self.viewport.draw(self.screen, self.font, selected_creature=self.selected_creature)
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)

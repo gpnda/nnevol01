@@ -113,6 +113,31 @@ class Viewport:
         
         return min_x, max_x, min_y, max_y
     
+    def get_creature_at_position(self, screen_pos: tuple) -> any:
+        """
+        Получить существо в точке клика.
+        
+        Args:
+            screen_pos: (x, y) координаты на экране
+            
+        Returns:
+            Объект Creature если существо найдено, иначе None
+        """
+        map_pos = self.screen_to_map(screen_pos)
+        if map_pos is None:
+            return None
+        
+        x, y = int(map_pos.x), int(map_pos.y)
+        
+        # Проверяем есть ли существо в этой клетке
+        if self.world:
+            for creature in self.world.creatures:
+                # Сравниваем с учётом того, что координаты могут быть float
+                if int(creature.x) == x and int(creature.y) == y:
+                    return creature
+        
+        return None
+    
     def handle_mouse_down(self, event: pygame.event.Event) -> None:
         """Обработка нажатия кнопки мыши."""
         if not self.rect.collidepoint(event.pos):
@@ -254,6 +279,91 @@ class Viewport:
                     self.COLORS['raycast_dot']
                 )
     
+    def _draw_selected_creature_box(self, creature) -> None:
+        """
+        Отрисовка рамки и точки выбранного существа.
+        
+        Рисует:
+        1. Рамку вокруг клетки (целочисленные координаты)
+        2. Маленький квадрат 3x3 пикселя в точных координатах существа (float)
+        
+        Это показывает разницу между целочисленными и вещественными координатами.
+        
+        Args:
+            creature: Объект Creature с атрибутами x, y (float)
+        """
+        if creature is None:
+            return
+        
+        # ===== РАМКА ВОКРУГ ЦЕЛОЧИСЛЕННОЙ КЛЕТКИ =====
+        # Преобразуем целочисленные координаты клетки
+        int_x, int_y = int(creature.x), int(creature.y)
+        int_pos = pygame.Vector2(int_x, int_y)
+        int_viewport_pos = self.map_to_viewport(int_pos)
+        
+        # Проверяем видимость рамки
+        if 0 <= int_viewport_pos.x < self.rect.width and 0 <= int_viewport_pos.y < self.rect.height:
+            box_size = int(self.camera_scale) + 12
+            box_rect = pygame.Rect(
+                int(int_viewport_pos.x - 6),
+                int(int_viewport_pos.y - 6),
+                box_size,
+                box_size
+            )
+            # Рисуем белую рамку толщиной 1 пиксель вокруг клетки
+            # Размер угла - 1/4 от стороны квадрата
+            corner_length = box_rect.width // 4
+
+            # Левый верхний угол
+            pygame.draw.line(self.surface, (255, 255, 255), 
+                            (box_rect.left, box_rect.top), 
+                            (box_rect.left + corner_length, box_rect.top), 3)
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.left, box_rect.top),
+                            (box_rect.left, box_rect.top + corner_length), 3)
+
+            # Правый верхний угол
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.right - corner_length, box_rect.top),
+                            (box_rect.right, box_rect.top), 3)
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.right, box_rect.top),
+                            (box_rect.right, box_rect.top + corner_length), 3)
+
+            # Левый нижний угол
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.left, box_rect.bottom - corner_length),
+                            (box_rect.left, box_rect.bottom), 3)
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.left, box_rect.bottom),
+                            (box_rect.left + corner_length, box_rect.bottom), 3)
+
+            # Правый нижний угол
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.right, box_rect.bottom - corner_length),
+                            (box_rect.right, box_rect.bottom), 3)
+            pygame.draw.line(self.surface, (255, 255, 255),
+                            (box_rect.right - corner_length, box_rect.bottom),
+                            (box_rect.right, box_rect.bottom), 3)
+        
+        # ===== КВАДРАТ 3x3 В ТОЧНЫХ КООРДИНАТАХ =====
+        # Преобразуем точные координаты существа (float)
+        creature_pos = pygame.Vector2(creature.x, creature.y)
+        viewport_pos = self.map_to_viewport(creature_pos)
+        
+        # Проверяем видимость квадрата
+        if 0 <= viewport_pos.x < self.rect.width and 0 <= viewport_pos.y < self.rect.height:
+            # Рисуем маленький квадрат 3x3 пикселя в точных координатах
+            # Центруем квадрат вокруг точки существа
+            marker_rect = pygame.Rect(
+                int(viewport_pos.x) - 1,
+                int(viewport_pos.y) - 1,
+                3,
+                3
+            )
+            # Рисуем жёлтый квадрат (заполненный)
+            pygame.draw.rect(self.surface, (255, 255, 0), marker_rect)
+    
     def _draw_debug_info(self, surface: pygame.Surface, font: pygame.font.Font) -> None:
         """Отрисовка отладочной информации (камера, видимые клетки)."""
         min_x, max_x, min_y, max_y = self.get_visible_range()
@@ -270,13 +380,14 @@ class Viewport:
             surface.blit(text_surf, (self.rect.x + 5, self.rect.y + y_offset))
             y_offset += 15
     
-    def draw(self, screen: pygame.Surface, font: pygame.font.Font = None) -> None:
+    def draw(self, screen: pygame.Surface, font: pygame.font.Font = None, selected_creature=None) -> None:
         """
         Отрисовка viewport на экран.
         
         Args:
             screen: pygame.Surface главного экрана
             font: pygame.font.Font для отрисовки текста (опционально)
+            selected_creature: Объект выбранного существа (опционально)
         """
         # Очистка поверхности viewport
         self.surface.fill(self.COLORS['bg'])
@@ -286,6 +397,10 @@ class Viewport:
         
         # Отрисовка raycast точек для отладки
         self._draw_raycast_dots()
+        
+        # Отрисовка рамки вокруг выбранного существа
+        if (selected_creature) and (selected_creature in self.world.creatures):
+            self._draw_selected_creature_box(selected_creature)
         
         # Рисуем viewport на главный экран
         screen.blit(self.surface, (self.rect.x, self.rect.y))
