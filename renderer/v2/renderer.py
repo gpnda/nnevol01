@@ -16,6 +16,7 @@ import pygame
 from typing import Dict, Optional, Callable
 from renderer.v2.gui_viewport import Viewport
 from renderer.v2.gui_variablespanel import VariablesPanel
+from renderer.v2.gui_selected_creature import SelectedCreaturePanel
 
 
 class Renderer:
@@ -83,6 +84,7 @@ class Renderer:
         # ИНИЦИАЛИЗАЦИЯ ВИДЖЕТОВ
         self.viewport = Viewport(world=self.world)
         self.variables_panel = VariablesPanel(world=self.world)
+        self.selected_creature_panel = SelectedCreaturePanel()
         
         # ВЫБОР СУЩЕСТВА
         self.selected_creature = None  # Текущее выбранное существо
@@ -415,10 +417,12 @@ class Renderer:
         # Отрисовка viewport (карта мира) с рамкой вокруг выбранного существа
         self.viewport.draw(self.screen, self.font, selected_creature=self.selected_creature)
         
+        # Отрисовка панели информации о выбранном существе
+        self.selected_creature_panel.draw(self.screen, self.selected_creature)
+        
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)
         # self.func_keys_panel.draw(self.screen)
-        # self.selected_creature_panel.draw(self.screen)
         # self.world_stats_panel.draw(self.screen)
     
     def _draw_popup_simparams(self) -> None:
