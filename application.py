@@ -4,6 +4,7 @@ from world_generator import WorldGenerator
 # from renderer.v1.renderer import Renderer
 # from renderer.mock.renderer import Renderer
 from renderer.v2.renderer import Renderer
+from simparams import sp
 
 class Application():
 
@@ -16,7 +17,7 @@ class Application():
 			width=100,
             height=50,
             wall_count=350, 
-            food_count=300,
+            food_count=sp.food_amount,
             creatures_count=30
         )
 		self.renderer = Renderer(self.world, self)

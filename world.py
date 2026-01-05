@@ -184,10 +184,10 @@ class World():
 
 	def control_population(self):
 
-		if len(self.creatures)>=10:
+		if len(self.creatures)>=20:
 			self.death()
 		
-		if len(self.creatures)<90:
+		if len(self.creatures)<900:
 			self.reprod()
 
 	def proceed_food(self):

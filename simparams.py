@@ -8,11 +8,11 @@ class SimParams:
         # Вероятность мутации каждого веса (из creature.py reprodCreature())
         self.mutation_probability = 0.1
         # Сила мутации - насколько сильно изменяются веса (из creature.py reprodCreature())
-        self.mutation_strength = 0.5
+        self.mutation_strength = 2.5
         
         # === Параметры существа ===
         # Максимальный возраст существа в тиках (из creature.py update())
-        self.creature_max_age = 250
+        self.creature_max_age = 5000
         # Расстояние видения существа в ячейках (из creature.py __init__)
         # self.creature_vision_distance = 20
         # Диапазон укуса существа (из creature.py __init__)
@@ -20,7 +20,7 @@ class SimParams:
         
         # === Параметры еды ===
         # Количество еды при инициализации (из world_generator.py)
-        self.food_amount = 10
+        self.food_amount = 1500
         # Энергия одного куска пищи (из food.py - nutrition параметр)
         self.food_energy_capacity = 1.0
         # Энергия, откусываемая от еды за один укус
@@ -29,29 +29,29 @@ class SimParams:
         # === Параметры размножения ===
         # Возраст в диапазонах, при котором существо может размножаться (из creature.py birth_ages)
         # Примерно: 90-110, 190-210, 290-310, 490-510
-        self.reproduction_ages = [100, 200, 300, 500]
+        self.reproduction_ages = [3500, 4000, 4500, 4900]
         # Количество потомков при одном размножении (из creature.py reprodCreature())
-        self.reproduction_offsprings = 3
+        self.reproduction_offsprings = 4
         
         # === Затраты энергии ===
         # Затрата энергии за просто существование (из creature.py update())
-        self.energy_cost_tick = 0.01
+        self.energy_cost_tick = 0.002
         # Затрата энергии на движение (интегрирована в общую)
-        self.energy_cost_speed = 0.0  # не найдено явно, встроено в базовую затрату
+        self.energy_cost_speed = 0.001  # не найдено явно, встроено в базовую затрату
         # Затрата энергии на поворот (интегрирована в общую)
-        self.energy_cost_rotate = 0.0  # не найдено явно, встроено в базовую затрату
+        self.energy_cost_rotate = 0.001  # не найдено явно, встроено в базовую затрату
         # Затрата энергии при столкновении со стеной (из world.py update())
-        self.energy_cost_bite = 0.01  # при столкновении со стеной
+        self.energy_cost_bite = 0.001  # при столкновении со стеной
         
         # === Приобретение энергии ===
         # Энергия, получаемая при укусе еды (из world.py creature_bite)
-        self.energy_gain_from_food = 0.5
+        self.energy_gain_from_food = 0.7
         # Энергия, получаемая при укусе другого существа (закомментировано)
         self.energy_gain_from_bite_cr = 0.1
         # Энергия, теряемая при укусе (закомментировано)
         self.energy_loss_bitten = 0.3
         # Энергия, теряемая при столкновении (из world.py update())
-        self.energy_loss_collision = 0.01
+        self.energy_loss_collision = 0.001
 
     def __new__(cls):
         if cls._instance is None:
