@@ -87,11 +87,6 @@ class Renderer:
         if self.variables_panel.handle_event(event):
             return False
         
-        # F1: открыть/закрыть popup существ (если он не обработан выше)
-        if event.key == pygame.K_F1:
-            self.creatures_popup.toggle()
-            return False
-        
         # Затем обработка глобальных команд Renderer
         if event.key == pygame.K_SPACE:
             # Space: включить/выключить симуляцию
@@ -101,9 +96,6 @@ class Renderer:
             # A: включить/выключить анимацию (отрисовку)
             self.app.toggle_animate()
         
-        elif event.key == pygame.K_r:
-            # R: сброс камеры viewport
-            self.viewport.reset_camera()
         
         return False
 

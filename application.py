@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 from world_generator import WorldGenerator
-from renderer.v1.renderer import Renderer
+# from renderer.v1.renderer import Renderer
 # from renderer.mock.renderer import Renderer
-
+from renderer.v2.renderer import Renderer
 
 class Application():
 

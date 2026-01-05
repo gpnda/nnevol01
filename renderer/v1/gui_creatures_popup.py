@@ -88,16 +88,22 @@ class CreaturesPopup:
         Returns:
             True если событие обработано
         """
-        if not self.visible:
+        if event.type != pygame.KEYDOWN:
             return False
         
-        if event.type != pygame.KEYDOWN:
+        # F1: открыть/закрыть popup существ (обрабатываем независимо от видимости)
+        if event.key == pygame.K_F1:
+            self.toggle()
+            return True
+        
+        # Остальные события обрабатываются только если popup видим
+        if not self.visible:
             return False
         
         creatures_count = len(self.world.creatures)
         if creatures_count == 0:
             # Закрыть popup если нет существ
-            if event.key in (pygame.K_ESCAPE, pygame.K_F1):
+            if event.key == pygame.K_ESCAPE:
                 self.visible = False
                 return True
             return False
@@ -134,7 +140,7 @@ class CreaturesPopup:
             self.scroll_offset = max_scroll
             return True
         
-        elif event.key in (pygame.K_ESCAPE, pygame.K_F1):
+        elif event.key == pygame.K_ESCAPE:
             # Закрыть popup
             self.visible = False
             return True
