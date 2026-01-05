@@ -84,7 +84,7 @@ class Renderer:
         # ИНИЦИАЛИЗАЦИЯ ВИДЖЕТОВ
         self.viewport = Viewport(world=self.world)
         self.variables_panel = VariablesPanel(world=self.world)
-        self.selected_creature_panel = SelectedCreaturePanel()
+        self.selected_creature_panel = SelectedCreaturePanel(world=self.world)
         
         # ВЫБОР СУЩЕСТВА
         self.selected_creature = None  # Текущее выбранное существо

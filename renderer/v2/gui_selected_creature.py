@@ -11,8 +11,10 @@
 """
 
 import pygame
+import numpy as np
 from typing import Optional
 from creature import Creature
+from service.debugger.debugger import debug
 
 
 class SelectedCreaturePanel:
@@ -41,11 +43,17 @@ class SelectedCreaturePanel:
     BORDER_WIDTH = 2
     PADDING = 15
     LINE_HEIGHT = 25
-    FONT_SIZE = 14
+    FONT_SIZE = 20
     
-    def __init__(self):
+    def __init__(self, world):
+
+        # TODO: Надо бы вынести из виджета gui_selected_creature.py зависимость от world и app 
+        # - без этого связанность будет меньше и код чище. 
+        # Сейчас мог бы это сделать, но не хочу отвлекаться.
+        self.world = world
+
         """Инициализация панели."""
-        self.surface = pygame.Surface((self.WIDTH, self.HEIGHT))
+        self.surface = pygame.Surface((self.WIDTH, self.HEIGHT), pygame.SRCALPHA)
         
         # Шрифт для текста
         try:
@@ -64,17 +72,27 @@ class SelectedCreaturePanel:
         # Если существо не выбрано, ничего не рисуем
         if selected_creature is None:
             return
+
+        # Получим индекс этого существа в массиве world.creatures
+        try:
+            index = self.world.creatures.index(selected_creature)
+        except ValueError:
+            print("Элемент не найден в списке!!!")
+
+
+        
+
         
         # Очистка поверхности
-        self.surface.fill(self.COLORS['background'])
+        # self.surface.fill(self.COLORS['background'])
         
         # Рисование границы
-        pygame.draw.rect(
-            self.surface,
-            self.COLORS['border'],
-            (0, 0, self.WIDTH, self.HEIGHT),
-            self.BORDER_WIDTH
-        )
+        # pygame.draw.rect(
+        #     self.surface,
+        #     self.COLORS['border'],
+        #     (0, 0, self.WIDTH, self.HEIGHT),
+        #     self.BORDER_WIDTH
+        # )
         
         # Заголовок
         title_text = self.font.render("Selected Creature", True, self.COLORS['highlight'])
@@ -130,5 +148,33 @@ class SelectedCreaturePanel:
         speed_value = self.font.render(f"{selected_creature.speed:.2f}", True, self.COLORS['text'])
         self.surface.blit(speed_value, (self.PADDING + 100, y_offset))
         
+
+
+        # #################################################################################
+        # Получим и нарисуем массви видения выбранного существа.
+        selected_creature_vison = debug.get("all_visions")[index]
+        # type(selected_creature_vison) --------------> <class 'numpy.ndarray'>
+
+        selected_creature_vison_int = (selected_creature_vison * 255).astype(np.uint8)
+        selected_creature_vison_int_list = selected_creature_vison_int.tolist()
+        # print(selected_creature_vison_int)
+        # [255 255 255 255 255 255 255 255 255 255 255 255 255 255 255   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0]
+        
+        rgb_tuples = list(zip(
+            selected_creature_vison_int_list[0:15], 
+            selected_creature_vison_int_list[15:30], 
+            selected_creature_vison_int_list[30:45])
+            )
+        
+        # Рисование видения в виде 15 цветных квадратов
+        vision_block_y = self.HEIGHT - self.PADDING - 30
+        square_size = (self.WIDTH - 2 * self.PADDING) // 15
+        for i, rgb in enumerate(rgb_tuples):
+            x = self.PADDING + i * square_size
+            y = vision_block_y
+            pygame.draw.rect(self.surface, rgb, (x, y, square_size, square_size))
+        # #################################################################################
+
+
         # Отрисовка на главный экран
         screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))

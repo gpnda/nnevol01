@@ -59,7 +59,7 @@ class Application():
 	
 	def limit_fps(self):
 		"""Ограничение FPS."""
-		self.renderer.clock.tick(15)
+		self.renderer.clock.tick(2)
 
 	def saveWorld(self):
 		"""Сохранить мир (F1)."""

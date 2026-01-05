@@ -70,6 +70,8 @@ class World():
 		# запускаем быструю функцию
 		all_visions, raycast_dots = self.fast_get_all_visions(current_map, creatures_pos)
 		debug.set("raycast_dots", raycast_dots)
+
+		debug.set("all_visions", all_visions)
 		
 		
 		# 2. Мышление (параллельно)  
@@ -82,6 +84,8 @@ class World():
 		# запускаем быструю функцию
 		all_outs = NeuralNetwork.make_all_decisions(all_visions, creatures_nns)
 		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
+
+		debug.set("all_outs", all_outs)
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
