@@ -1,7 +1,7 @@
 # nnevol by Khan RL Lab
 
 ##  What is this?
-This is a simulation of evolution of neural networks in a 2D world. Creatures look by raycast algorithm, controlled by neural networks move around, eat food, reproduce, and evolve over generations.
+This is a simulation of evolution of neural networks in a 2D world. Creatures look by raycast algorithm, controlled by neural networks move around, eat food, reproduce, and evolve over generations. Its all about evolution of behavior, not evolution of morphology. its about emergent complexity from simple rules. Коныечные автоматы ебать как их Finite State Machines (FSM) копайлот подсказал. 
 
 Application is written in Python using Pygame for rendering. It a monolithic application without client-server architecture.
 
