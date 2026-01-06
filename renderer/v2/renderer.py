@@ -55,7 +55,9 @@ class Renderer:
         # Инициализация PyGame
         pygame.init()
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
-        pygame.display.set_caption("Evolutionary Simulation")
+        pygame.display.set_caption("NNEvol (Khan RL Lab)")
+        icon_surface = pygame.image.load('./docs/icon.png')
+        pygame.display.set_icon(icon_surface)
         
         # Инициализация шрифта
         try:
