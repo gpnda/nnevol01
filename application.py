@@ -5,12 +5,15 @@ from world_generator import WorldGenerator
 # from renderer.mock.renderer import Renderer
 from renderer.v2.renderer import Renderer
 from simparams import sp
+from service.logger import Logger
 
 class Application():
 
 	def __init__(self):
 		self.quit_flag = False
 		self.is_running = True
+		self.animate_flag = True
+		self.is_logging = True
 
 		# Генерация мира
 		self.world = WorldGenerator.generate_world(
@@ -21,13 +24,12 @@ class Application():
             creatures_count=30
         )
 		self.renderer = Renderer(self.world, self)
+		self.logger = Logger(self.world)
 		
 	def run(self):
-		
-		self.quit_flag = False # Флаг о том, что приложение надо закрыть
-		self.is_running = True # Флаг о том что процесс симуляции запущен
-		self.animate_flag = True # Флаг о том, что надо анимировать симуляцию
 
+		print("/ Fucking go! /")
+		
 		while self.quit_flag == False:
 
 			if self.is_running:
@@ -36,10 +38,15 @@ class Application():
 			
 			if self.animate_flag:
 				self.renderer.draw()
+
+			if self.is_logging:
+				self.logger.write_stats()
 			
 			#self.limit_fps()
+
 			self.renderer.control_run()
-		print("---===   Terminated   ===---")
+
+		print("/ Terminated. /")
 
 	def terminate(self):
 		self.quit_flag = True
@@ -57,6 +64,13 @@ class Application():
 			self.animate_flag = False
 		else:
 			self.animate_flag = True
+
+	def toggle_logging(self):
+		"""Включить/выключить логгирование (L)."""
+		if self.is_logging:
+			self.is_logging = False
+		else:
+			self.is_logging = True
 	
 	def limit_fps(self):
 		"""Ограничение FPS."""
