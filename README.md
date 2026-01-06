@@ -11,9 +11,9 @@ Application is written in Python using Pygame for rendering. It a monolithic app
 3. python nnevol.py
 
 ## Controls
-<Space>: Start/Pause simulation
-<A>: Toggle animation on/off
-<L>: Toggle logging on/off
-<F9> Edit simulation parameters
+Space: Start/Pause simulation
+A: Toggle animation on/off
+L: Toggle logging on/off
+F9 Edit simulation parameters
 
 
