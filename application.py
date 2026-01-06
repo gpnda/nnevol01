@@ -23,6 +23,7 @@ class Application():
 		self.renderer = Renderer(self.world, self)
 		
 	def run(self):
+		
 		self.quit_flag = False # Флаг о том, что приложение надо закрыть
 		self.is_running = True # Флаг о том что процесс симуляции запущен
 		self.animate_flag = True # Флаг о том, что надо анимировать симуляцию
