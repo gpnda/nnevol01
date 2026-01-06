@@ -121,7 +121,7 @@ class Viewport:
             screen_pos: (x, y) координаты на экране
             
         Returns:
-            Объект Creature если существо найдено, иначе None
+            Целочисленное значение creature.id если существо найдено, иначе None
         """
         map_pos = self.screen_to_map(screen_pos)
         if map_pos is None:
@@ -134,7 +134,7 @@ class Viewport:
             for creature in self.world.creatures:
                 # Сравниваем с учётом того, что координаты могут быть float
                 if int(creature.x) == x and int(creature.y) == y:
-                    return creature
+                    return creature.id
         
         return None
     
@@ -380,14 +380,14 @@ class Viewport:
             surface.blit(text_surf, (self.rect.x + 5, self.rect.y + y_offset))
             y_offset += 15
     
-    def draw(self, screen: pygame.Surface, font: pygame.font.Font = None, selected_creature=None) -> None:
+    def draw(self, screen: pygame.Surface, font: pygame.font.Font = None, selected_creature_id=None) -> None:
         """
         Отрисовка viewport на экран.
         
         Args:
             screen: pygame.Surface главного экрана
             font: pygame.font.Font для отрисовки текста (опционально)
-            selected_creature: Объект выбранного существа (опционально)
+            selected_creature_id: id выбранного существа (опционально)
         """
         # Очистка поверхности viewport
         self.surface.fill(self.COLORS['bg'])
@@ -399,8 +399,12 @@ class Viewport:
         self._draw_raycast_dots()
         
         # Отрисовка рамки вокруг выбранного существа
-        if (selected_creature) and (selected_creature in self.world.creatures):
-            self._draw_selected_creature_box(selected_creature)
+        if selected_creature_id is not None:
+            selected_creature = self.world.get_creature_by_id(selected_creature_id)
+            if selected_creature is not None:
+                self._draw_selected_creature_box(selected_creature)
+        
+            
         
         # Рисуем viewport на главный экран
         screen.blit(self.surface, (self.rect.x, self.rect.y))

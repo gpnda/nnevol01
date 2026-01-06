@@ -89,7 +89,8 @@ class Renderer:
         self.selected_creature_panel = SelectedCreaturePanel(world=self.world)
         
         # ВЫБОР СУЩЕСТВА
-        self.selected_creature = None  # Текущее выбранное существо
+        self.selected_creature_id = None
+        
         
         # TODO: Добавить остальные виджеты
         # self.func_keys_panel = FunctionKeysPanel(app=self.app)
@@ -121,7 +122,7 @@ class Renderer:
             if state_name != 'main':
                 # Переход в модальное окно - пауза и очистка выбора
                 self.app.is_running = False
-                self.selected_creature = None  # Очищаем выбор при открытии popup
+                self.selected_creature_id = None  # Очищаем выбор при открытии popup
             else:
                 self.app.is_running = True
             
@@ -242,8 +243,6 @@ class Renderer:
         if event.key == pygame.K_SPACE:
             # Space: включить/выключить симуляцию
             self.app.toggle_run()
-            print("SELECTED CREATURE:")
-            print (self.selected_creature)
             return False
         
         elif event.key == pygame.K_a:
@@ -340,12 +339,14 @@ class Renderer:
         # Мышь обрабатывается только в основном состоянии
         # (для viewport пан/зум и выбор существа)
         if self.current_state == 'main':
-            # Правая кнопка мыши - выбор существа
+            # Левая кнопка мыши - выбор существа
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                creature = self.viewport.get_creature_at_position(event.pos)
-                if creature:
-                    self.selected_creature = creature
-                    print(f"✓ Creature selected: age={creature.age}, pos=({int(creature.x)}, {int(creature.y)}), energy={creature.energy:.2f}")
+                
+                creature_id = self.viewport.get_creature_at_position(event.pos)
+                if creature_id is not None:
+                    selected_creature = self.world.get_creature_by_id(creature_id)
+                    self.selected_creature_id = creature_id
+                    print(f"✓ Creature selected: id={creature_id} age={selected_creature.age}, pos=({int(selected_creature.x)}, {int(selected_creature.y)}), energy={selected_creature.energy:.2f}")
                 else:
                     print("✗ No creature at this position")
             
@@ -417,10 +418,10 @@ class Renderer:
         - WorldStatsPanel (статистика мира)
         """
         # Отрисовка viewport (карта мира) с рамкой вокруг выбранного существа
-        self.viewport.draw(self.screen, self.font, selected_creature=self.selected_creature)
+        self.viewport.draw(self.screen, self.font, selected_creature_id=self.selected_creature_id)
         
         # Отрисовка панели информации о выбранном существе
-        self.selected_creature_panel.draw(self.screen, self.selected_creature)
+        self.selected_creature_panel.draw(self.screen, self.selected_creature_id)
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)

@@ -6,8 +6,13 @@ import random
 from simparams import sp
 
 class Creature():
+    _id_counter = 0
     
     def __init__(self, x: float, y: float):
+        # назначаем уникальный ID
+        Creature._id_counter += 1
+        self.id = Creature._id_counter
+
         self.x = x
         self.y = y
         self.energy = 1.0

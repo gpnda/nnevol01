@@ -54,6 +54,11 @@ class World():
 	def add_creature(self, creature):
 		self.creatures.append(creature)
 
+	def get_creature_by_id(self, creature_id):
+		for creature in self.creatures:
+			if creature.id == creature_id:
+				return creature
+		return None
 
 	def update(self):
 		# 1. Восприятие (параллельно)

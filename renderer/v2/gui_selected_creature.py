@@ -61,15 +61,18 @@ class SelectedCreaturePanel:
         except (FileNotFoundError, pygame.error):
             self.font = pygame.font.Font(None, self.FONT_SIZE)
     
-    def draw(self, screen: pygame.Surface, selected_creature: Optional[Creature]) -> None:
+    def draw(self, screen: pygame.Surface, selected_creature_id: int) -> None:
         """
         Отрисовка панели с информацией о выбранном существе.
         
         Args:
             screen: Pygame surface для отрисовки
-            selected_creature: Выбранное существо (или None)
+            selected_creature_id: ID выбранного существа (или None)
         """
         # Если существо не выбрано, ничего не рисуем
+        if selected_creature_id is None:
+            return
+        selected_creature = self.world.get_creature_by_id(selected_creature_id)
         if selected_creature is None:
             return
 
@@ -78,13 +81,14 @@ class SelectedCreaturePanel:
             index = self.world.creatures.index(selected_creature)
         except ValueError:
             print("Элемент не найден в списке!!!")
+            # return # надо нет?
 
 
         
 
         
         # Очистка поверхности
-        # self.surface.fill(self.COLORS['background'])
+        self.surface.fill(self.COLORS['background'])
         
         # Рисование границы
         # pygame.draw.rect(
@@ -95,7 +99,7 @@ class SelectedCreaturePanel:
         # )
         
         # Заголовок
-        title_text = self.font.render("Selected Creature", True, self.COLORS['highlight'])
+        title_text = self.font.render(f"creature: {selected_creature.id}", True, self.COLORS['highlight'])
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
         
         # Информация о существе
