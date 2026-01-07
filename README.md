@@ -73,3 +73,10 @@ F9 Edit simulation parameters
 	Как далеко я заходил? До Стадии 3 с довольно неплохими конусами.
 	Как далеко я смогу зайти? Да хрен знает )))
 
+
+# What help wanted
+1. overhead analysis and optimization for fast run
+2. ovehead analysis and optimization for slow logging and rendering run
+3. experiment runs and feedback
+4. new widgets development for renderer UI
+
