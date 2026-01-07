@@ -226,6 +226,11 @@ class Renderer:
             self.set_state('popup_simparams')
             return False
         
+        elif event.key == pygame.K_F7:
+            print("F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 ")
+            print(self.app.logger.get_creature_energy_history(1))
+
+        
         elif event.key == pygame.K_F12:
             # Открыть логи
             self.set_state('logs')
@@ -283,6 +288,9 @@ class Renderer:
         if event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
             self.set_state('main')
             return True
+        elif event.key == pygame.K_F7:
+            print("Тестовое событие F7 в окне списка существ")
+
         
         # TODO: Добавить обработку событий для CreaturesPopup
         # if self.creatures_popup.handle_event(event):
