@@ -1,9 +1,9 @@
 # nnevol by Khan RL Lab
 
 ##  What is this?
-This is a simulation of evolution of neural networks in a 2D world. Creatures look by raycast algorithm, controlled by neural networks move around, eat food, reproduce, and evolve over generations. Its all about evolution of behavior, not evolution of morphology. its about emergent complexity from simple rules. Коныечные автоматы ебать как их Finite State Machines (FSM) копайлот подсказал. 
+This is a simulation of evolution of neural networks in a 2D world. Creatures look by raycast algorithm, controlled by neural networks move around, eat food, reproduce, and evolve over generations. Its all about evolution of behavior, not evolution of morphology. its about emergent complexity from simple rules. Finite State Machines (FSM).
 
-Application is written in Python using Pygame for rendering. It a monolithic application without client-server architecture.
+Application is written in Python using Pygame for rendering. It a monolithic application.
 
 ## How to run
 1. .venv
@@ -69,9 +69,9 @@ F9 Edit simulation parameters
 		Добавим необходимость "тапать личинки", ну скажем это как бы личинки требуют ухода. И появится роль нянек.
 
 
-	Омг. Даже представить страшно))) 
+	Омг. Даже представить страшно
 	Как далеко я заходил? До Стадии 3 с довольно неплохими конусами.
-	Как далеко я смогу зайти? Да хрен знает )))
+	
 
 
 # What help wanted
