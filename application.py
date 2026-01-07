@@ -5,7 +5,7 @@ from world_generator import WorldGenerator
 # from renderer.mock.renderer import Renderer
 from renderer.v2.renderer import Renderer
 from simparams import sp
-from service.logger import Logger
+from service.logger.logger import Logger
 
 class Application():
 
