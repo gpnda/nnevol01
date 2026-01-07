@@ -193,8 +193,8 @@ class World():
 
 	def control_population(self):
 
-		if len(self.creatures)>=20:
-			self.death()
+		# if len(self.creatures)>=20:  # не стал разбираться, но с этим условием - появляются существа с отрицательной энергией.
+		self.death()
 		
 		if len(self.creatures)<900:
 			self.reprod()
