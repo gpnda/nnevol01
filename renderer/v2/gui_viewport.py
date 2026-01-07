@@ -143,7 +143,7 @@ class Viewport:
         if not self.rect.collidepoint(event.pos):
             return
         
-        if event.button == 1:  # Левая кнопка - перетаскивание
+        if event.button == 3:  # Левая кнопка - перетаскивание
             self.is_dragging = True
             self.drag_start_pos = pygame.Vector2(event.pos)
             self.drag_start_offset = self.camera_offset.copy()
@@ -156,7 +156,7 @@ class Viewport:
     
     def handle_mouse_up(self, event: pygame.event.Event) -> None:
         """Обработка отпускания кнопки мыши."""
-        if event.button == 1:
+        if event.button == 3:
             self.is_dragging = False
     
     def handle_mouse_motion(self, event: pygame.event.Event) -> None:

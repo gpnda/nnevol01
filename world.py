@@ -222,8 +222,9 @@ class World():
 			# Именно тут надо поднять всем энергию, потому что существ в популяции может быть 11, 
 			# но по факту все они уже мертвы (с отрицательной энергией)
 			for cr in self.creatures:
-				cr.energy = 1.0
-				cr.age = random.randint(0, 100)
+				if cr.energy <= 0:
+					cr.energy = 1.0
+					cr.age = random.randint(0, 100)
 			return
 		
 		# Иначе удаляем существ с энергией < 0

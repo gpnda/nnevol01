@@ -358,6 +358,8 @@ class Renderer:
                     self.selected_creature_id = creature_id
                     print(f"✓ Creature selected: id={creature_id} age={selected_creature.age}, pos=({int(selected_creature.x)}, {int(selected_creature.y)}), energy={selected_creature.energy:.2f}")
                 else:
+                    selected_creature = None
+                    self.selected_creature_id = None
                     print("✗ No creature at this position")
             
             # Остальные события мыши (пан, зум)
@@ -430,11 +432,12 @@ class Renderer:
         # Отрисовка viewport (карта мира) с рамкой вокруг выбранного существа
         self.viewport.draw(self.screen, self.font, selected_creature_id=self.selected_creature_id)
         
-        # Отрисовка панели информации о выбранном существе
-        self.selected_creature_panel.draw(self.screen, self.selected_creature_id)
+        if self.selected_creature_id is not None:
+            # Отрисовка панели информации о выбранном существе
+            self.selected_creature_panel.draw(self.screen, self.selected_creature_id)
 
-        # Отрисовка панели информации о выбранном существе
-        self.selected_creature_history.draw(self.screen, self.selected_creature_id, self.app.logger)
+            # Отрисовка панели информации о выбранном существе
+            self.selected_creature_history.draw(self.screen, self.selected_creature_id, self.app.logger)
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)
