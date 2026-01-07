@@ -28,7 +28,6 @@ class Logger:
         for cr in self.creatures:
             self.energy_history[cr.id].append(float(cr.energy))
         
-        print(self.energy_history[1])
         self._cleanup_dead_creatures_stats()
                 
 

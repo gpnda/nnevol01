@@ -74,9 +74,9 @@ class World():
 		
 		# запускаем быструю функцию
 		all_visions, raycast_dots = self.fast_get_all_visions(current_map, creatures_pos)
-		debug.set("raycast_dots", raycast_dots)
+		debug.set("raycast_dots", raycast_dots) # Тут все `numpy.float32`
 
-		debug.set("all_visions", all_visions)
+		debug.set("all_visions", all_visions) # Тут все `numpy.float32`
 		
 		
 		# 2. Мышление (параллельно)  
@@ -90,13 +90,13 @@ class World():
 		all_outs = NeuralNetwork.make_all_decisions(all_visions, creatures_nns)
 		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
 
-		debug.set("all_outs", all_outs)
+		debug.set("all_outs", all_outs) # Тут все `numpy.float32`
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
 
 			# Расчитываем новые координаты, куда существо хочет перейти
-			creature.angle = creature.angle + (all_outs[index][0]-0.5)
+			creature.angle = creature.angle + (float(all_outs[index][0])-0.5)
 			# print(f"{all_outs[index][0]:.8f}")
 			# Нормализуем угол в диапазон [0, 2π)
 			creature.angle = creature.angle % (2 * math.pi)
@@ -104,7 +104,7 @@ class World():
 			if creature.angle < 0:
 				creature.angle += 2 * math.pi
 
-			creature.speed = creature.speed + (all_outs[index][1] - 0.5)
+			creature.speed = creature.speed + (float(all_outs[index][1]) - 0.5)
 			if creature.speed < -0.5:
 				creature.speed = -0.5
 			if creature.speed > 0.5:
@@ -131,7 +131,7 @@ class World():
 				creature.y = newy
 			
 			# Если существо куснуло - проверить что оно куснуло.
-			creature.bite_effort = all_outs[index][2]
+			creature.bite_effort = float(all_outs[index][2])
 			if creature.bite_effort > 0.5:
 				self.creature_bite(creature)
 
