@@ -35,12 +35,13 @@ class Application():
 			if self.is_running:
 				self.world.update()
 				self.world.update_map()
+				if self.is_logging:
+					self.logger.write_stats()
 			
 			if self.animate_flag:
 				self.renderer.draw()
 
-			if self.is_logging:
-				self.logger.write_stats()
+			
 			
 			#self.limit_fps()
 
