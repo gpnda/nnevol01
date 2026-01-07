@@ -17,6 +17,7 @@ from typing import Dict, Optional, Callable
 from renderer.v2.gui_viewport import Viewport
 from renderer.v2.gui_variablespanel import VariablesPanel
 from renderer.v2.gui_selected_creature import SelectedCreaturePanel
+from renderer.v2.gui_selected_creature_history import SelectedCreatureHistory
 
 
 class Renderer:
@@ -87,6 +88,7 @@ class Renderer:
         self.viewport = Viewport(world=self.world)
         self.variables_panel = VariablesPanel(world=self.world)
         self.selected_creature_panel = SelectedCreaturePanel(world=self.world)
+        self.selected_creature_history = SelectedCreatureHistory(world=self.world)
         
         # ВЫБОР СУЩЕСТВА
         self.selected_creature_id = None
@@ -430,6 +432,9 @@ class Renderer:
         
         # Отрисовка панели информации о выбранном существе
         self.selected_creature_panel.draw(self.screen, self.selected_creature_id)
+
+        # Отрисовка панели информации о выбранном существе
+        self.selected_creature_history.draw(self.screen, self.selected_creature_id, self.app.logger)
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)
