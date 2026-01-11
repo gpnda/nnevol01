@@ -12,6 +12,7 @@ class Creature():
         # назначаем уникальный ID
         Creature._id_counter += 1
         self.id = Creature._id_counter
+        self.generation = 0
 
         self.x = x
         self.y = y
@@ -48,6 +49,8 @@ class Creature():
             # c.generation = self.generation + 1
             # print ("Процесс рождения существа. 5")
             c = Creature(self.x, self.y)
+            c.generation = self.generation + 1
+            print ("Рождение существа поколения №" + str(c.generation))
             c.nn = NeuralNetwork.copy(self.nn)
             c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
             # c.isSelected = False

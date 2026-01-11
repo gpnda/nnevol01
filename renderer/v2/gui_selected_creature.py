@@ -123,16 +123,16 @@ class SelectedCreaturePanel:
         
         y_offset += self.LINE_HEIGHT
         
-        # Позиция
-        position_label = self.font.render("Position:", True, self.COLORS['label'])
-        self.surface.blit(position_label, (self.PADDING, y_offset))
+        # Поколение
+        generation_label = self.font.render("Generation:", True, self.COLORS['label'])
+        self.surface.blit(generation_label, (self.PADDING, y_offset))
         
-        position_value = self.font.render(
-            f"({int(selected_creature.x)}, {int(selected_creature.y)})",
+        generation_value = self.font.render(
+            f"{selected_creature.generation}",
             True,
             self.COLORS['text']
         )
-        self.surface.blit(position_value, (self.PADDING + 100, y_offset))
+        self.surface.blit(generation_value, (self.PADDING + 100, y_offset))
         
         y_offset += self.LINE_HEIGHT
         
