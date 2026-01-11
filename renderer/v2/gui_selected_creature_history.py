@@ -12,7 +12,7 @@
 
 import pygame
 from typing import Optional, List, Tuple
-from service.logger.logger import Logger
+from service.logger.logger import logme
 
 
 class SelectedCreatureHistory:
@@ -56,7 +56,6 @@ class SelectedCreatureHistory:
     def __init__(self, world):
         """Инициализация панели."""
         self.world = world
-        self.logger = Logger(world)
         self.surface = pygame.Surface((self.WIDTH, self.HEIGHT), pygame.SRCALPHA)
         
         # Шрифты для текста
@@ -67,14 +66,13 @@ class SelectedCreatureHistory:
             self.font = pygame.font.Font(None, self.FONT_SIZE)
             self.small_font = pygame.font.Font(None, self.SMALL_FONT_SIZE)
     
-    def draw(self, screen: pygame.Surface, selected_creature_id: int, logger: Optional[Logger] = None) -> None:
+    def draw(self, screen: pygame.Surface, selected_creature_id: int) -> None:
         """
         Отрисовка панели с графиком энергии выбранного существа.
         
         Args:
             screen: Pygame surface для отрисовки
             selected_creature_id: ID выбранного существа (или None)
-            logger: Logger объект для получения истории энергии
         """
         # Если существо не выбрано, ничего не рисуем
         if selected_creature_id is None:
@@ -84,9 +82,6 @@ class SelectedCreatureHistory:
         if selected_creature is None:
             return
         
-        # Используем переданный logger или глобальный
-        if logger is not None:
-            self.logger = logger
         
         # Очистка поверхности
         self.surface.fill(self.COLORS['background'])
@@ -95,8 +90,41 @@ class SelectedCreatureHistory:
         title_text = self.font.render("Energy History", True, self.COLORS['highlight'])
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
         
+        # #################################################################################
+        # ДОСТУП К ИНФОРМАЦИИ О СОБЫТИЯХ ИЗ ЛОГГЕРА
+        # 
+        # Логгер хранит историю событий каждого существа, включая:
+        # - поедание пищи (EAT_FOOD)
+        # - размножение/создание потомков (CREATE_CHILD)
+        # - и другие события
+        #
+        # Способы получить информацию:
+        #
+        # 1. Получить все события существа:
+        #    events = self.logger.get_creature_events(selected_creature_id)
+        #    # events - список объектов CreatureEvent
+        #
+        # 2. Получить события определённого типа:
+        #    food_events = self.logger.get_creature_events_by_type(selected_creature_id, "EAT_FOOD")
+        #    children_events = self.logger.get_creature_events_by_type(selected_creature_id, "CREATE_CHILD")
+        #
+        # 3. Каждое событие содержит:
+        #    - event.creature_id: ID существа
+        #    - event.tick_number: номер тика симуляции
+        #    - event.event_type: тип события (строка)
+        #    - event.value: значение события (может быть число, ID, и т.д.)
+        #
+        # 4. Получить историю энергии (текущий способ в этой панели):
+        #    energy_history = self.logger.get_creature_energy_history(selected_creature_id)
+        #    # energy_history - список значений энергии по каждому тику
+        #
+        # 5. Получить количество событий определённого типа:
+        #    count = self.logger.get_events_count(selected_creature_id, "EAT_FOOD")
+        #
+        # #################################################################################
+        
         # Получаем историю энергии
-        energy_history = self.logger.get_creature_energy_history(selected_creature_id)
+        energy_history = logme.get_creature_energy_history(selected_creature_id)
         
         # Если история пуста, выводим сообщение
         if not energy_history:

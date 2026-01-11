@@ -165,3 +165,7 @@ class Logger:
         return len(self.get_creature_events_by_type(creature_id, event_type))
     
     
+
+
+logme = Logger()# Глобальный синглтон Logger для использования в других модулях
+# Инициализация world происходит в application.py после создания World объекта

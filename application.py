@@ -5,7 +5,8 @@ from world_generator import WorldGenerator
 # from renderer.mock.renderer import Renderer
 from renderer.v2.renderer import Renderer
 from simparams import sp
-from service.logger.logger import Logger
+from service.logger.logger import logme
+
 
 class Application():
 
@@ -26,8 +27,7 @@ class Application():
 		self.renderer = Renderer(self.world, self)
 		
 		# Инициализируем Logger с world объектом
-		self.logger = Logger()
-		self.logger.initialize(self.world)
+		logme.initialize(self.world)
 		
 	def run(self):
 
@@ -39,7 +39,7 @@ class Application():
 				self.world.update()
 				self.world.update_map()
 				if self.is_logging:
-					self.logger.write_stats()
+					logme.write_stats()
 			
 			if self.animate_flag:
 				self.renderer.draw()

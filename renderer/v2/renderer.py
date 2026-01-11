@@ -18,6 +18,7 @@ from renderer.v2.gui_viewport import Viewport
 from renderer.v2.gui_variablespanel import VariablesPanel
 from renderer.v2.gui_selected_creature import SelectedCreaturePanel
 from renderer.v2.gui_selected_creature_history import SelectedCreatureHistory
+from service.logger.logger import logme
 
 
 class Renderer:
@@ -230,7 +231,7 @@ class Renderer:
         
         elif event.key == pygame.K_F7:
             print("F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 F7 ")
-            print(self.app.logger.get_creature_energy_history(1))
+            print(logme.get_creature_energy_history(1))
 
         
         elif event.key == pygame.K_F12:
@@ -437,7 +438,7 @@ class Renderer:
             self.selected_creature_panel.draw(self.screen, self.selected_creature_id)
 
             # Отрисовка панели информации о выбранном существе
-            self.selected_creature_history.draw(self.screen, self.selected_creature_id, self.app.logger)
+            self.selected_creature_history.draw(self.screen, self.selected_creature_id)
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)
