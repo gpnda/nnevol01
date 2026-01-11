@@ -4,6 +4,10 @@ from nn.my_handmade_ff import NeuralNetwork
 import copy
 import random
 from simparams import sp
+from service.logger.logger import Logger
+
+# Logger будет инициализирован в application.py после создания World
+logger = Logger()
 
 class Creature():
     _id_counter = 0
@@ -57,6 +61,7 @@ class Creature():
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)
             # print ("Процесс рождения существа. 7. Родили уфф..")
+        logger.log_event(creature_id=self.id, event_type="CREATE_CHILD", value=len(cr_babies))
         return cr_babies
     
     

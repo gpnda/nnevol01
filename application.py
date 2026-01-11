@@ -24,7 +24,10 @@ class Application():
             creatures_count=30
         )
 		self.renderer = Renderer(self.world, self)
-		self.logger = Logger(self.world)
+		
+		# Инициализируем Logger с world объектом
+		self.logger = Logger()
+		self.logger.initialize(self.world)
 		
 	def run(self):
 
