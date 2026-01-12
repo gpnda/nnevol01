@@ -26,8 +26,6 @@ class Application():
         )
 		self.renderer = Renderer(self.world, self)
 		
-		# Инициализируем Logger с world объектом
-		logme.initialize(self.world)
 		
 	def run(self):
 
@@ -39,7 +37,7 @@ class Application():
 				self.world.update()
 				self.world.update_map()
 				if self.is_logging:
-					logme.write_stats()
+					logme.write_stats(self.world.creatures)
 			
 			if self.animate_flag:
 				self.renderer.draw()

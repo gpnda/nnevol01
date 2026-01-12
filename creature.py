@@ -59,7 +59,6 @@ class Creature():
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)
             # print ("Процесс рождения существа. 7. Родили уфф..")
-        logme.log_event(creature_id=self.id, event_type="CREATE_CHILD", value=len(cr_babies))
         return cr_babies
     
     

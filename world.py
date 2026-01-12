@@ -9,6 +9,7 @@ import numpy as np
 from numba import jit
 from simparams import sp
 
+from service.logger.logger import logme
 from service.debugger.debugger import debug
 
 
@@ -236,9 +237,12 @@ class World():
 		# Цикл размножения
 		baby_creatures = []
 		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
-			baby_creatures += i.reprodCreature()
+			i_children = i.reprodCreature()
+			baby_creatures += i_children
+			print("Существо с ID " + str(i.id) + " родило " + str(len(i_children)) + " детей.")
+			logme.log_event(creature_id=i.id, tick=self.tick, event_type="CREATE_CHILD", value=len(i_children))
 		self.creatures += baby_creatures
-
+		
 	def creature_bite(self, cr):
 		bitex = cr.x + cr.bite_range*math.cos(cr.angle)
 		bitey = cr.y + cr.bite_range*math.sin(cr.angle)
@@ -258,7 +262,7 @@ class World():
 		biteplace =  self.get_cell(int(bitex), int(bitey))
 
 		if biteplace == 2:
-			
+			logme.log_event(creature_id=cr.id, tick=self.tick, event_type="EAT_FOOD", value=1)
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
 			cr.gain_energy(sp.energy_gain_from_food)
 			

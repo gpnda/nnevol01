@@ -11,7 +11,7 @@
 """
 
 import pygame
-from typing import Optional, List, Tuple
+from typing import List, Tuple
 from service.logger.logger import logme
 
 
@@ -53,6 +53,14 @@ class SelectedCreatureHistory:
     FONT_SIZE = 16
     SMALL_FONT_SIZE = 12
     
+    # Цвета и параметры событий
+    EVENT_MARKER_RADIUS = 4
+    EVENT_COLORS = {
+        'EAT_FOOD': (0, 255, 0),        # Зелёный - еда
+        'CREATE_CHILD': (255, 165, 0),  # Оранжевый - потомки
+        'default': (100, 100, 255),     # Синий - прочие события
+    }
+    
     def __init__(self, world):
         """Инициализация панели."""
         self.world = world
@@ -81,7 +89,6 @@ class SelectedCreatureHistory:
         selected_creature = self.world.get_creature_by_id(selected_creature_id)
         if selected_creature is None:
             return
-        
         
         # Очистка поверхности
         self.surface.fill(self.COLORS['background'])
@@ -177,6 +184,14 @@ class SelectedCreatureHistory:
                 min_display, 
                 max_display
             )
+        
+        # Рисуем события на графике (маркеры)
+        self._draw_events_on_graph(
+            selected_creature_id,
+            energy_history,
+            graph_x,
+            graph_y
+        )
         
         # Статистика
         stats_y = graph_y + self.GRAPH_HEIGHT + 10
@@ -278,4 +293,74 @@ class SelectedCreatureHistory:
             )
             
             # Рисуем точки на концах (для лучшей видимости)
-            pygame.draw.circle(self.surface, self.COLORS['highlight'], points[-1], 3)
+            pygame.draw.circle(self.surface, self.COLORS['highlight'], points[-1], 3)    
+    def _draw_events_on_graph(
+        self,
+        creature_id: int,
+        energy_history: List[float],
+        graph_x: int,
+        graph_y: int
+    ) -> None:
+        """
+        Отрисовывает маркеры событий на графике энергии.
+        
+        Логика:
+        - Получаем все события существа из глобального logme
+        - Для каждого события вычисляем его позицию на X оси:
+          - X_смещение = world.tick_number - event.tick_number
+          - Если смещение в диапазоне [0, len(energy_history)), то событие видимо
+        - Отрисовываем маркер события цветом, соответствующим типу события
+        
+        Args:
+            creature_id: ID существа
+            energy_history: История энергии (список значений)
+            graph_x: X координата левого края графика
+            graph_y: Y координата верхнего края графика
+        """
+        # Получаем все события существа
+        events = logme.get_creature_events(creature_id)
+        
+        if not events:
+            return
+        
+        # Получаем текущий номер тика в симуляции
+        current_tick = self.world.tick_number if hasattr(self.world, 'tick_number') else 0
+        
+        # Вычисляем начальный тик для этой истории
+        # (начало видимого окна на графике)
+        history_start_tick = current_tick - len(energy_history) + 1
+        
+        # Для каждого события вычисляем позицию на графике
+        for event in events:
+            # Вычисляем смещение события от конца графика
+            tick_offset = current_tick - event.tick_number
+            
+            # Проверяем, входит ли событие в видимый диапазон
+            if tick_offset < 0 or tick_offset >= len(energy_history):
+                continue  # Событие вне диапазона видимой истории
+            
+            # Вычисляем индекс в массиве energy_history
+            # (от конца массива, так как это последние значения)
+            history_index = len(energy_history) - 1 - tick_offset
+            
+            if history_index < 0 or history_index >= len(energy_history):
+                continue
+            
+            # Вычисляем X координату маркера
+            x = graph_x + history_index
+            
+            # Вычисляем Y координату (в верхней части графика для видимости)
+            y = graph_y + 3
+            
+            # Получаем цвет маркера в зависимости от типа события
+            event_color = self.EVENT_COLORS.get(event.event_type, self.EVENT_COLORS['default'])
+            
+            # Рисуем маркер события (кружок или крест)
+            # Кружок для основных событий
+            pygame.draw.circle(
+                self.surface,
+                event_color,
+                (int(x), int(y)),
+                self.EVENT_MARKER_RADIUS,
+                2  # Толщина линии (2 = полый кружок)
+            )

@@ -12,7 +12,7 @@ class SimParams:
         
         # === Параметры существа ===
         # Максимальный возраст существа в тиках (из creature.py update())
-        self.creature_max_age = 5000
+        self.creature_max_age = 500
         # Расстояние видения существа в ячейках (из creature.py __init__)
         # self.creature_vision_distance = 20
         # Диапазон укуса существа (из creature.py __init__)
@@ -29,9 +29,9 @@ class SimParams:
         # === Параметры размножения ===
         # Возраст в диапазонах, при котором существо может размножаться (из creature.py birth_ages)
         # Примерно: 90-110, 190-210, 290-310, 490-510
-        self.reproduction_ages = [3500, 4000, 4500, 4900]
+        self.reproduction_ages = [350, 400, 450]
         # Количество потомков при одном размножении (из creature.py reprodCreature())
-        self.reproduction_offsprings = 4
+        self.reproduction_offsprings = 2
         
         # === Затраты энергии ===
         # Затрата энергии за просто существование (из creature.py update())

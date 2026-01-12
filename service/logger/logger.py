@@ -20,15 +20,13 @@ class Logger:
     _instance = None
     MAX_HISTORY = 1000  # Максимальное количество сохраняемых тиков
     
-    def __new__(cls, world=None):
+    def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, world=None):
+    def __init__(self):
         if not hasattr(self, '_initialized'):
-            self.creatures = None
-            self.world = None
             self.energy_history: Dict[int, Deque[float]] = defaultdict(
                 lambda: deque(maxlen=self.MAX_HISTORY)
             )
@@ -39,46 +37,24 @@ class Logger:
 
             self._initialized = True
             
-            # Если world передан, инициализируем сразу
-            if world is not None:
-                self.initialize(world)
-    
-    def initialize(self, world):
-        """
-        Инициализировать Logger с world объектом.
-        Вызовите это после создания World в application.py
-        
-        Args:
-            world: World объект симуляции.
-        
-        Example:
-            logger = Logger()
-            # позже в application.py:
-            logger.initialize(world)
-        """
-        if self.world is not None:
-            return  # Уже инициализирован
-        
-        self.creatures = world.creatures
-        self.world = world
 
 
-
-    def write_stats(self):
-        for cr in self.creatures:
+    def write_stats(self, creatures: List[Any]) -> None:
+        for cr in creatures:
             self.energy_history[cr.id].append(float(cr.energy))
         
         self._cleanup_dead_creatures_stats()
                 
 
     def _cleanup_dead_creatures_stats(self):
-        alive_ids = {cr.id for cr in self.creatures}
-        dead_ids = set(self.energy_history.keys()) - alive_ids # магиеская магия питона
+        # alive_ids = {cr.id for cr in self.creatures}
+        # dead_ids = set(self.energy_history.keys()) - alive_ids # магиеская магия питона
         
-        for dead_id in dead_ids:
-            del self.energy_history[dead_id]
-            if dead_id in self.events_log:
-                del self.events_log[dead_id]
+        # for dead_id in dead_ids:
+        #     del self.energy_history[dead_id]
+        #     if dead_id in self.events_log:
+        #         del self.events_log[dead_id]
+        pass
         
     
     def get_creature_energy_history(self, creature_id: int) -> list:
@@ -94,7 +70,7 @@ class Logger:
         return list(self.energy_history.get(creature_id, []))
 
     
-    def log_event(self, creature_id: int, event_type: str, value: Any) -> None:
+    def log_event(self, creature_id: int, tick: int, event_type: str, value: Any) -> None:
         """
         Логировать событие для существа с текущим номером тика.
         
@@ -104,10 +80,9 @@ class Logger:
             value: Значение события (например, количество энергии).
         
         Example:
-            logger.log_event(creature_id=65, event_type="EAT_FOOD", value=10)
+            logger.log_event(creature_id=65, tick=100, event_type="EAT_FOOD", value=10)
         """
-        tick_number = self.world.tick_number if hasattr(self.world, 'tick_number') else 0
-        event = CreatureEvent(creature_id, tick_number, event_type, value)
+        event = CreatureEvent(creature_id, tick, event_type, value)
         self.events_log[creature_id].append(event)
     
     
@@ -167,5 +142,4 @@ class Logger:
     
 
 
-logme = Logger()# Глобальный синглтон Logger для использования в других модулях
-# Инициализация world происходит в application.py после создания World объекта
+logme = Logger()
