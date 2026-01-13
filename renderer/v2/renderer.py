@@ -357,8 +357,8 @@ class Renderer:
                 if creature_id is not None:
                     selected_creature = self.world.get_creature_by_id(creature_id)
                     self.selected_creature_id = creature_id
-                    print(f"✓ Creature selected: id={creature_id} age={selected_creature.age}, pos=({int(selected_creature.x)}, {int(selected_creature.y)}), energy={selected_creature.energy:.2f}")
-                    print(f"Energy history length: {len(logme.get_creature_energy_history(creature_id))}")
+                    # print(f"✓ Creature selected: id={creature_id} age={selected_creature.age}, pos=({int(selected_creature.x)}, {int(selected_creature.y)}), energy={selected_creature.energy:.2f}")
+                    # print(f"Energy history length: {len(logme.get_creature_energy_history(creature_id))}")
                 else:
                     selected_creature = None
                     self.selected_creature_id = None
@@ -444,7 +444,7 @@ class Renderer:
 
             # Отрисовка панели информации о выбранном существе
             self.selected_creature_history.draw(self.screen, self.selected_creature_id)
-            print("Рисуем историю энергии для существа id=" + str(self.selected_creature_id))
+            # print("Рисуем историю энергии для существа id=" + str(self.selected_creature_id))
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)

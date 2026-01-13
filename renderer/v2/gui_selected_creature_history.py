@@ -318,8 +318,8 @@ class SelectedCreatureHistory:
         if not events:
             return
         
-        print(f"События для существа id={creature_id}: {len(events)} событий в истории")
-        print(f"Последние события: {[f'{e.event_type} (tick {e.tick_number})' for e in events]}")
+        # print(f"События для существа id={creature_id}: {len(events)} событий в истории")
+        # print(f"Последние события: {[f'{e.event_type} (tick {e.tick_number})' for e in events]}")
 
         # Получаем текущий номер тика в симуляции
         current_tick = self.world.tick if hasattr(self.world, 'tick') else 0
@@ -344,13 +344,14 @@ class SelectedCreatureHistory:
             if history_index < 0 or history_index >= len(energy_history):
                 continue
             
-            print(f"  EVENT: {event.event_type} tick={event.tick_number} -> index={history_index}")
+            # print(f"  EVENT: {event.event_type} tick={event.tick_number} -> index={history_index}")
             
             # Вычисляем X координату маркера
             x = graph_x + history_index
             
             # Вычисляем Y координату (в верхней части графика для видимости)
-            y = graph_y + 3
+            # y = graph_y + 3 # Фиксированная высота от верха графика
+            y = graph_y + self.GRAPH_HEIGHT - int(energy_history[history_index] * self.GRAPH_HEIGHT)  # Инвертируем Y
             
             # Получаем цвет маркера в зависимости от типа события
             event_color = self.EVENT_COLORS.get(event.event_type, self.EVENT_COLORS['default'])
