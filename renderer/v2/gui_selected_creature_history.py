@@ -82,13 +82,9 @@ class SelectedCreatureHistory:
             screen: Pygame surface для отрисовки
             selected_creature_id: ID выбранного существа (или None)
         """
-        # Если существо не выбрано, ничего не рисуем
-        if selected_creature_id is None:
-            return
         
         selected_creature = self.world.get_creature_by_id(selected_creature_id)
-        if selected_creature is None:
-            return
+
         
         # Очистка поверхности
         self.surface.fill(self.COLORS['background'])

@@ -434,12 +434,17 @@ class Renderer:
         # Отрисовка viewport (карта мира) с рамкой вокруг выбранного существа
         self.viewport.draw(self.screen, self.font, selected_creature_id=self.selected_creature_id)
         
+        # Проверка, что существо с таким id существует в мире   
+        if self.selected_creature_id is not None and self.world.get_creature_by_id(self.selected_creature_id) is None:
+            self.selected_creature_id = None
+
         if self.selected_creature_id is not None:
             # Отрисовка панели информации о выбранном существе
             self.selected_creature_panel.draw(self.screen, self.selected_creature_id)
 
             # Отрисовка панели информации о выбранном существе
             self.selected_creature_history.draw(self.screen, self.selected_creature_id)
+            print("Рисуем историю энергии для существа id=" + str(self.selected_creature_id))
         
         # TODO: Добавить отрисовку виджетов
         # self.variables_panel.draw(self.screen)
