@@ -302,9 +302,8 @@ class SelectedCreatureHistory:
         
         Логика:
         - Получаем все события существа из глобального logme
-        - Для каждого события вычисляем его позицию на X оси:
-          - X_смещение = world.tick_number - event.tick_number
-          - Если смещение в диапазоне [0, len(energy_history)), то событие видимо
+        - Для каждого события вычисляем его позицию на X оси на основе tick_number
+        - Событие должно быть в диапазоне истории: [current_tick - len(history) + 1, current_tick]
         - Отрисовываем маркер события цветом, соответствующим типу события
         
         Args:
@@ -319,28 +318,33 @@ class SelectedCreatureHistory:
         if not events:
             return
         
+        print(f"События для существа id={creature_id}: {len(events)} событий в истории")
+        print(f"Последние события: {[f'{e.event_type} (tick {e.tick_number})' for e in events]}")
+
         # Получаем текущий номер тика в симуляции
-        current_tick = self.world.tick_number if hasattr(self.world, 'tick_number') else 0
+        current_tick = self.world.tick if hasattr(self.world, 'tick') else 0
         
         # Вычисляем начальный тик для этой истории
         # (начало видимого окна на графике)
         history_start_tick = current_tick - len(energy_history) + 1
         
+        print(f"current_tick={current_tick}, history_start_tick={history_start_tick}, history_len={len(energy_history)}")
+        
         # Для каждого события вычисляем позицию на графике
         for event in events:
-            # Вычисляем смещение события от конца графика
-            tick_offset = current_tick - event.tick_number
-            
-            # Проверяем, входит ли событие в видимый диапазон
-            if tick_offset < 0 or tick_offset >= len(energy_history):
+            # Проверяем, входит ли событие в видимый диапазон истории
+            if event.tick_number < history_start_tick or event.tick_number > current_tick:
                 continue  # Событие вне диапазона видимой истории
             
             # Вычисляем индекс в массиве energy_history
-            # (от конца массива, так как это последние значения)
-            history_index = len(energy_history) - 1 - tick_offset
+            # event.tick_number лежит в диапазоне [history_start_tick, current_tick]
+            # индекс в массиве = event.tick_number - history_start_tick
+            history_index = event.tick_number - history_start_tick
             
             if history_index < 0 or history_index >= len(energy_history):
                 continue
+            
+            print(f"  EVENT: {event.event_type} tick={event.tick_number} -> index={history_index}")
             
             # Вычисляем X координату маркера
             x = graph_x + history_index
