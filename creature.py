@@ -19,7 +19,7 @@ class Creature():
         self.x = x
         self.y = y
         self.energy = 1.0
-        self.age = random.randint(0,500)
+        self.age = 0
         self.speed = 1
         self.angle = random.random()*3.14
         self.bite_effort = 0.0

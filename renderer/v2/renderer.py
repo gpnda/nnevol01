@@ -358,6 +358,7 @@ class Renderer:
                     selected_creature = self.world.get_creature_by_id(creature_id)
                     self.selected_creature_id = creature_id
                     print(f"✓ Creature selected: id={creature_id} age={selected_creature.age}, pos=({int(selected_creature.x)}, {int(selected_creature.y)}), energy={selected_creature.energy:.2f}")
+                    print(f"Energy history length: {len(logme.get_creature_energy_history(creature_id))}")
                 else:
                     selected_creature = None
                     self.selected_creature_id = None
