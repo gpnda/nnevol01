@@ -23,6 +23,7 @@ from renderer.v3dto.gui_viewport import Viewport
 from renderer.v3dto.gui_variablespanel import VariablesPanel
 from renderer.v3dto.gui_selected_creature import SelectedCreaturePanel
 from renderer.v3dto.gui_selected_creature_history import SelectedCreatureHistory
+from renderer.v3dto.gui_creatures_list import CreaturesListModal
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
@@ -104,6 +105,7 @@ class Renderer:
         self.variables_panel = VariablesPanel(on_parameter_change=self._on_parameter_change)
         self.selected_creature_panel = SelectedCreaturePanel()
         self.selected_creature_history = SelectedCreatureHistory()
+        self.creatures_list_modal = CreaturesListModal()
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
@@ -151,7 +153,9 @@ class Renderer:
     
     def _on_state_enter(self, state_name: str) -> None:
         """Вызывается при входе в новое состояние."""
-        pass
+        if state_name == 'creatures_list':
+            # Сбрасываем навигацию при открытии списка существ
+            self.creatures_list_modal.reset()
     
     # ============================================================================
     # ОБРАБОТЧИК ИЗМЕНЕНИЙ ПАРАМЕТРОВ
@@ -393,6 +397,25 @@ class Renderer:
             self.set_state('main')
             return True
         
+        # Навигация в списке существ
+        creatures_count = len(self.world.creatures)
+        
+        if event.key == pygame.K_UP:
+            self.creatures_list_modal.move_selection_up(creatures_count)
+            return True
+        
+        elif event.key == pygame.K_DOWN:
+            self.creatures_list_modal.move_selection_down(creatures_count)
+            return True
+        
+        elif event.key == pygame.K_HOME:
+            self.creatures_list_modal.move_selection_home()
+            return True
+        
+        elif event.key == pygame.K_END:
+            self.creatures_list_modal.move_selection_end(creatures_count)
+            return True
+        
         return False
     
     def _handle_keyboard_logs(self, event: pygame.event.Event) -> bool:
@@ -531,8 +554,7 @@ class Renderer:
     
     def _draw_creatures_list(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна списка существ."""
-        # TODO: self.creatures_popup.draw(self.screen, render_state)
-        self._draw_debug_info(render_state)
+        self.creatures_list_modal.draw(self.screen, render_state)
     
     def _draw_logs(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна логов в полный экран."""
