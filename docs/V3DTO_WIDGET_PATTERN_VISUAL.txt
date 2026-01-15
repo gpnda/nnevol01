@@ -1,0 +1,294 @@
+# V3DTO Widget Architecture Pattern - Visual Diagram
+
+```
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    COMMON WIDGET PATTERN IN V3DTO RENDERER                     ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  層 1: CLASS CONSTANTS CONFIGURATION                                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  ┌─── GEOMETRY ────────────────────────────────────────────────────────────┐   │
+│  │  POSITION_X = 10      WIDGET_X = 10      VIEWPORT_X = 5                │   │
+│  │  POSITION_Y = 20      WIDGET_Y = 20      VIEWPORT_Y = 5                │   │
+│  │  WIDTH = 200          HEIGHT = 100                                      │   │
+│  └──────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                   │
+│  ┌─── FONT CONFIGURATION ───────────────────────────────────────────────────┐   │
+│  │  FONT_SIZE = 14                                                         │   │
+│  │  FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'                          │   │
+│  └──────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                   │
+│  ┌─── COLORS SCHEMA ────────────────────────────────────────────────────────┐   │
+│  │  COLORS = {                                                             │   │
+│  │      'background': (r, g, b),                                           │   │
+│  │      'border': (r, g, b),                                               │   │
+│  │      'text': (r, g, b),                                                 │   │
+│  │      'highlight': (r, g, b),                                            │   │
+│  │      'selected': (r, g, b),  # если нужна выделение                    │   │
+│  │  }                                                                      │   │
+│  └──────────────────────────────────────────────────────────────────────────┘   │
+│                                                                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  層 2: __init__() INITIALIZATION                                                │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  def __init__(self, [optional: on_change_callback])                             │
+│      │                                                                           │
+│      ├─► Create pygame.Rect(x, y, w, h)                                         │
+│      │   ├─► self.rect.x = POSITION_X                                           │
+│      │   ├─► self.rect.y = POSITION_Y                                           │
+│      │   ├─► self.rect.width = WIDTH                                            │
+│      │   └─► self.rect.height = HEIGHT                                          │
+│      │                                                                           │
+│      ├─► Create pygame.Surface((width, height), [pygame.SRCALPHA])              │
+│      │   └─► self.surface = ...                                                 │
+│      │                                                                           │
+│      └─► Initialize Font (with try-except graceful fallback)                    │
+│          └─► try:                                                               │
+│              │   self.font = pygame.font.Font(FONT_PATH, FONT_SIZE)            │
+│              │ except (FileNotFoundError, pygame.error):                        │
+│              └─► self.font = pygame.font.Font(None, FONT_SIZE)  # fallback      │
+│                                                                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  層 3: draw() METHOD - DATA CONTRACT                                             │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  def draw(self, screen: pygame.Surface, render_state: RenderStateDTO) -> None  │
+│      │                                                                           │
+│      ├─► Extract Data from render_state (DTO, not from singletons!)             │
+│      │   ├─► creature_data = render_state.selected_creature                     │
+│      │   ├─► world_data = render_state.world                                    │
+│      │   └─► debug_data = render_state.debug                                    │
+│      │                                                                           │
+│      ├─► Render on self.surface                                                 │
+│      │   ├─► self.surface.fill(COLORS['background'])                            │
+│      │   ├─► pygame.draw.rect(self.surface, ...)                                │
+│      │   └─► self.surface.blit(text_surface, ...)                               │
+│      │                                                                           │
+│      └─► Blit self.surface to screen                                            │
+│          └─► screen.blit(self.surface, (self.rect.x, self.rect.y))              │
+│                                                                                   │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│  層 4: ARCHITECTURE - ISOLATION FROM SINGLETONS                                 │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                   │
+│  ❌ FORBIDDEN IMPORTS (complete isolation):                                     │
+│  │                                                                               │
+│  │  from world import World         ← NEVER                                     │
+│  │  from logger import logme        ← NEVER                                     │
+│  │  from debugger import debug      ← NEVER                                     │
+│  │  from simparams import sp        ← NEVER                                     │
+│  │  from application import app     ← NEVER                                     │
+│  │                                                                               │
+│  ✅ ALLOWED IMPORTS (only data structures):                                     │
+│  │                                                                               │
+│  │  import pygame                                                               │
+│  │  from typing import Optional, TYPE_CHECKING                                  │
+│  │  from renderer.v3dto.dto import RenderStateDTO, ...  ← DATA ONLY            │
+│  │                                                                               │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                         DATA FLOW: Renderer → Widget                           ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  Renderer.draw():                                                                │
+│                                                                                  │
+│  1. world.update()  (simulation tick)                                           │
+│  2. world.update_map()  (rebuild visual map)                                    │
+│                                                                                  │
+│  3. ┌─────────────────────────────────────────────────────┐                    │
+│     │ PREPARE DTOs from Domain Objects                    │                    │
+│     ├─────────────────────────────────────────────────────┤                    │
+│     │ world_dto = WorldStateDTO(creatures[], foods[])    │                    │
+│     │ history_dto = CreatureHistoryDTO(energy[], events) │                    │
+│     │ debug_dto = DebugDataDTO(raycast_dots, visions)   │                    │
+│     │ render_state = RenderStateDTO(                      │                    │
+│     │     world=world_dto,                                │                    │
+│     │     selected_creature=selected_dto,                 │                    │
+│     │     debug=debug_dto,                                │                    │
+│     │     ...                                              │                    │
+│     │ )                                                    │                    │
+│     └─────────────────────────────────────────────────────┘                    │
+│                ↓                                                                 │
+│  4. ┌──────────────────────────────────────────────────┐                       │
+│     │ CALL WIDGET draw() METHODS                        │                       │
+│     ├──────────────────────────────────────────────────┤                       │
+│     │ viewport.draw(screen, render_state, font)        │                       │
+│     │ selected_creature_panel.draw(screen, render_state) │                    │
+│     │ selected_creature_history.draw(screen, render_state) │                  │
+│     │ variables_panel.draw(screen)                      │                       │
+│     └──────────────────────────────────────────────────┘                       │
+│                ↓                                                                 │
+│  5. pygame.display.flip()  (show frame)                                        │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    SPECIFIC WIDGET IMPLEMENTATIONS                             ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌─ Viewport ──────────────────────────────────────┐
+│ Specialization: Map renderer with camera      │
+├─────────────────────────────────────────────────┤
+│ Constants:                                      │
+│  • VIEWPORT_WIDTH = 1240                       │
+│  • VIEWPORT_HEIGHT = 500                       │
+│  • CAMERA_SCALE_MIN = 7.0                      │
+│  • CAMERA_SCALE_MAX = 50.0                     │
+│                                                 │
+│ Extra Methods:                                  │
+│  • screen_to_map(screen_pos)                   │
+│  • map_to_viewport(map_pos)                    │
+│  • get_visible_range()                         │
+│  • handle_mouse_drag/wheel()                   │
+│                                                 │
+│ Draw Signature:                                 │
+│  draw(screen, render_state, font)              │
+│  • Font param: for debug text overlay          │
+└─────────────────────────────────────────────────┘
+
+┌─ SelectedCreaturePanel ──────────────────────────┐
+│ Specialization: Creature info display          │
+├─────────────────────────────────────────────────┤
+│ Constants:                                      │
+│  • POSITION_X = 35                             │
+│  • POSITION_Y = 150                            │
+│  • WIDTH = 250                                 │
+│  • HEIGHT = 300                                │
+│                                                 │
+│ Extra Methods:                                  │
+│  • _format_creature_info()                     │
+│                                                 │
+│ Draw Signature:                                 │
+│  draw(screen, render_state)                    │
+│  • Renders to self.surface, blits to screen    │
+└─────────────────────────────────────────────────┘
+
+┌─ SelectedCreatureHistory ──────────────────────┐
+│ Specialization: Energy timeline graph          │
+├─────────────────────────────────────────────────┤
+│ Constants:                                      │
+│  • POSITION_X = 4                              │
+│  • POSITION_Y = 505                            │
+│  • WIDTH = 1243                                │
+│  • HEIGHT = 65                                 │
+│  • MAX_HISTORY_POINTS = 1200                   │
+│                                                 │
+│ Extra Methods:                                  │
+│  • _draw_graph_line()                          │
+│  • _draw_event_markers()                       │
+│                                                 │
+│ Draw Signature:                                 │
+│  draw(screen, render_state)                    │
+│  • Renders to self.surface, blits to screen    │
+└─────────────────────────────────────────────────┘
+
+┌─ VariablesPanel ────────────────────────────────┐
+│ Specialization: Parameter editor               │
+├─────────────────────────────────────────────────┤
+│ Constants:                                      │
+│  • PANEL_X = 275                               │
+│  • PANEL_Y = 35                                │
+│  • PANEL_WIDTH = 700                           │
+│  • PANEL_HEIGHT = 420                          │
+│                                                 │
+│ State Management:                               │
+│  • self.editing = bool                         │
+│  • self.selected_index = int                   │
+│  • self.input_buffer = str                     │
+│  • self.variables = dict                       │
+│                                                 │
+│ Extra Methods:                                  │
+│  • add_variable(name, type, min, max)          │
+│  • handle_keydown()                            │
+│  • on_parameter_change(callback)  ← For Renderer│
+│                                                 │
+│ Draw Signature:                                 │
+│  draw(screen)  ← NO RenderStateDTO             │
+│  • Renders directly to screen (no surface)     │
+│  • Manages own state (editing, input)          │
+└─────────────────────────────────────────────────┘
+
+
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                      INITIALIZATION FLOW IN RENDERER                           ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+Renderer.__init__():
+│
+├─► self.viewport = Viewport()
+│   └─► Calls Viewport.__init__() with ZERO params
+│       ├─► self.rect = pygame.Rect(5, 5, 1240, 500)
+│       ├─► self.surface = pygame.Surface((1240, 500))
+│       ├─► self.camera_offset = Vector2(0, -6)
+│       ├─► self.camera_scale = 8.0
+│       └─► self.is_dragging = False
+│
+├─► self.variables_panel = VariablesPanel(on_parameter_change=self._on_parameter_change)
+│   └─► Calls VariablesPanel.__init__(callback)
+│       ├─► self.on_parameter_change = callback  ← CALLBACK STORAGE
+│       ├─► self.rect = pygame.Rect(275, 35, 700, 420)
+│       ├─► self.font = pygame.font.Font(...)
+│       ├─► self.variables = {}  ← Empty at start
+│       ├─► self.selected_index = 0
+│       ├─► self.editing = False
+│       └─► self.input_buffer = ""
+│
+├─► self.selected_creature_panel = SelectedCreaturePanel()
+│   └─► Calls SelectedCreaturePanel.__init__() with ZERO params
+│       ├─► self.rect = pygame.Rect(35, 150, 250, 300)
+│       ├─► self.surface = pygame.Surface((250, 300), pygame.SRCALPHA)
+│       └─► self.font = pygame.font.Font(...)
+│
+└─► self.selected_creature_history = SelectedCreatureHistory()
+    └─► Calls SelectedCreatureHistory.__init__() with ZERO params
+        ├─► self.surface = pygame.Surface((1243, 65), pygame.SRCALPHA)
+        ├─► self.font = pygame.font.Font(...)
+        └─► self.small_font = pygame.font.Font(...)
+
+────────────────────────────────────────────────────────────────────────────────
+RESULT: 4 fully independent widget instances, zero coupling to domain objects
+────────────────────────────────────────────────────────────────────────────────
+```
+
+## Pattern Summary
+
+```
+              ┌─────────────────────────────────┐
+              │    CLASS CONSTANTS CONFIG       │
+              │  (POSITION, SIZE, COLORS, FONT) │
+              └──────────────┬──────────────────┘
+                             │
+                             ↓
+              ┌─────────────────────────────────┐
+              │   __init__() Zero/Min Params    │
+              │  (Create Rect, Surface, Font)   │
+              └──────────────┬──────────────────┘
+                             │
+                             ↓
+              ┌─────────────────────────────────┐
+              │   draw(screen, render_state)    │
+              │  (Extract data, render, blit)   │
+              └──────────────┬──────────────────┘
+                             │
+                             ↓
+              ┌─────────────────────────────────┐
+              │   COMPLETE ISOLATION            │
+              │  (No singletons imported)       │
+              └─────────────────────────────────┘
+```
+
+**KEY INSIGHT:** All widgets follow the same 4-layer pattern, ensuring consistency,
+maintainability, and testability. Variations exist (e.g., VariablesPanel), but they
+are justified and don't violate the core architecture.

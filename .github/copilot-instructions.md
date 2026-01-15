@@ -36,37 +36,69 @@ This is a **neural network-based evolutionary simulation** written in Python wit
   3. Energy costs: base metabolism, movement, rotation
   4. Aging & reproduction check
 
-### 4. **Rendering Architecture** (Refactoring in Progress)
+### 4. **Rendering Architecture** (v3dto - DTO Isolation Pattern)
 
-#### **Renderer** (`renderer.py`) - Main Coordinator
-- **Role**: Manages pygame window, event handling, component coordination
+#### **DTO System** (`renderer/v3dto/dto.py`) - Data Layer
+- **Purpose**: Complete isolation of widgets from domain logic
+- **Key DTOs**:
+  - `CreatureDTO`: creature data (id, x, y, angle, energy, age, speed, generation)
+  - `WorldStateDTO`: map snapshot (map array, creatures[], foods[], tick)
+  - `CreatureHistoryDTO`: creature energy history + events
+  - `DebugDataDTO`: debug visualization data (raycast_dots, visions)
+  - `SimulationParamsDTO`: all simulation parameters
+  - `RenderStateDTO`: complete render context (world, selected_creature, debug, params)
+- **Benefits**: Widgets have zero knowledge of World, Logger, Debugger
+
+#### **Renderer** (`renderer/v3dto/renderer.py`) - Main Coordinator
+- **Role**: Pygame manager + DTO factory + state machine
 - **Responsibilities**:
-  - Initialize pygame, screen, clock
-  - Handle keyboard (Space=toggle_run, A=toggle_animate, R=reset_camera)
-  - Handle mouse events (delegation to Viewport)
-  - Coordinate drawing of all visual components
-  - Call `viewport.draw()` each frame
+  - Initialize pygame window and clock
+  - Manage state machine (main, popup_simparams, creatures_list, logs, experiment)
+  - Handle keyboard/mouse events and state transitions
+  - Transform domain objects → DTOs (world→WorldStateDTO, logger→HistoryDTO)
+  - Coordinate all widget drawing via RenderStateDTO
+  - Handle parameter changes from VariablesPanel via callbacks
 - **Key methods**:
-  - `control_run()`: main event loop (returns True to quit)
-  - `draw()`: orchestrates all component drawing
-  - `_handle_keyboard()`, `_handle_mouse()`: event routing
+  - `control_run()`: main event loop + state dispatcher
+  - `draw()`: orchestrates widget drawing via RenderStateDTO
+  - `set_state(state_name)`: state machine transitions
+  - `_prepare_*_dto()`: DTO factory methods
+  - `_on_parameter_change(param, value)`: callback handler for VariablesPanel
 
-#### **Viewport** (`gui_viewport.py`) - Map Visualization
-- **Role**: Camera system for viewing the world map
+#### **Viewport** (`renderer/v3dto/gui_viewport.py`) - Map Visualization
+- **Role**: Camera system + grid renderer (fully isolated via DTO)
 - **Features**:
   - Pan: left-mouse drag
-  - Zoom: mouse wheel (constrained between `CAMERA_SCALE_MIN=7` and `MAX=50`)
-  - Reset: R key
-  - Debug info: scale, offset, visible cell count
-- **Coordinate Systems** (critical):
-  - `screen_to_map(screen_pos)`: converts screen pixel → world cell coordinates
-  - `map_to_viewport(map_pos)`: converts world cell → viewport surface pixel
-  - `get_visible_range()`: returns (min_x, max_x, min_y, max_y) of visible cells
-- **Initialization**: requires `world` object for cell access
+  - Zoom: mouse wheel (CAMERA_SCALE_MIN=7, MAX=50)
+  - Reset: R key (camera to default)
+  - Receives data exclusively via RenderStateDTO
+- **Key methods**:
+  - `draw(screen, render_state, font)`: render map + debug overlay
+  - `screen_to_map(screen_pos)`: screen pixel → world cell
+  - `map_to_viewport(map_pos)`: world cell → viewport pixel
+  - `get_visible_range()`: visible cells (min_x, max_x, min_y, max_y)
+  - `handle_mouse_drag/wheel()`: camera control
+- **Design**: Zero dependency on world, logger, debugger (all data via RenderStateDTO)
 
-#### **Future GUI Components** (Planned)
-- `VariablesPanel` / `BIOSStyleGUI`: status display (see `!OLD_gui.py` for reference)
-- Will be initialized in `Renderer.__init__()` with TODO comments marking insertion points
+#### **SelectedCreaturePanel** (`renderer/v3dto/gui_selected_creature.py`)
+- **Role**: Display selected creature information (stateless widget)
+- **Features**: Shows ID, age, energy, generation, angle, speed, vision data
+- **Design**: Pure presentation, receives CreatureDTO from RenderStateDTO
+- **Key method**: `draw(screen, render_state)` → extracts creature from state
+
+#### **SelectedCreatureHistory** (`renderer/v3dto/gui_selected_creature_history.py`)
+- **Role**: Timeline graph of creature energy + events
+- **Features**: Energy history line, event markers (EAT_FOOD, CREATE_CHILD)
+- **Design**: Receives CreatureHistoryDTO from RenderStateDTO
+- **Key method**: `draw(screen, render_state)` → renders graph + events
+
+#### **VariablesPanel** (`renderer/v3dto/gui_variablespanel.py`)
+- **Role**: Interactive parameter editor (stateful widget)
+- **Features**: Edit mutation_probability, food_amount, reproduction_ages, energy_cost_*, etc.
+- **Communication**: Bidirectional via callback `on_parameter_change(param_name, value)`
+- **Design**: Manages own state (editing, selected_index, input_buffer)
+- **Key method**: `draw(screen)` → renders panel, calls callback on parameter change
+- **Important**: Callback → Renderer._on_parameter_change() → applies changes to world/SimParams
 
 ## Critical Data Flows
 
@@ -77,54 +109,112 @@ Application.run():
     world.update()           # All creatures decide/move
     world.update_map()       # Rebuild visual map from dynamic positions
   if animate_flag:
-    renderer.draw()          # Render map + GUI components
-  renderer.control_run()     # Process input events
+    renderer.draw()          # Render via DTO system
+      ├─ Prepare WorldStateDTO from world
+      ├─ Prepare CreatureHistoryDTO from logger
+      ├─ Prepare DebugDataDTO from debugger
+      └─ Assemble RenderStateDTO
+  renderer.control_run()     # Process input events + state machine
 ```
 
-### Rendering Pipeline:
+### Rendering Pipeline (v3dto - DTO Based):
 ```
 Renderer.draw():
-  Clear screen (black background)
-  → Viewport.draw(screen, font)
-      ├─ Clear viewport surface
-      ├─ _draw_cells()          # Iterate visible range, render grid squares
-      ├─ Blit viewport to screen at (VIEWPORT_X, VIEWPORT_Y)
-      ├─ Draw border rect
-      └─ _draw_debug_info()     # Camera scale, offset, cell count
-  → [TODO: GUI components draw here]
-  flip display
+  1. PREPARE DTOs
+     ├─ world → WorldStateDTO (creatures[], foods[], map)
+     ├─ logger → CreatureHistoryDTO (energy history, events)
+     ├─ debugger → DebugDataDTO (raycast, visions)
+     └─ simparams → SimulationParamsDTO (all params)
+     
+  2. CREATE RenderStateDTO
+     └─ RenderStateDTO(world=world_dto, selected_creature=..., debug=...)
+     
+  3. RENDER WIDGETS (all receive RenderStateDTO)
+     ├─ viewport.draw(screen, render_state, font)
+     ├─ selected_creature_panel.draw(screen, render_state)
+     ├─ selected_creature_history.draw(screen, render_state)
+     └─ variables_panel.draw(screen)  # Callback-based
+     
+  4. DISPLAY
+     └─ pygame.display.flip()
 ```
 
-### Coordinate System (Important!):
-- **World**: (0,0) at top-left, cells are 1×1 units
-- **Viewport screen rect**: (210, 5) to (910, 505)
-- **Viewport surface**: local (0,0) to (700, 500)
-- **Camera offset**: world cell position at top-left of viewport
-- **Camera scale**: pixels per world cell (7-50)
+### Widget Isolation Architecture:
+```
+Renderer
+  ├─ Has: world, logger, debugger, simparams (singletons)
+  └─ Converts to: RenderStateDTO (data only)
+       ↓
+    Widgets
+      ├─ Have: RenderStateDTO (data)
+      ├─ Zero knowledge of: world, logger, debugger, simparams
+      └─ Fully testable in isolation (can mock RenderStateDTO)
+```
 
 ## Design Patterns & Conventions
 
-### 1. **Refactoring Strategy - Incremental Component Extraction**
-- Current: `Renderer` is main coordinator, `Viewport` is isolated map viewer
-- Future: Add GUI panels (`VariablesPanel`, `FunctionKeysPanel`) as separate modules
-- **Philosophy**: Keep each component focused, coordinate via `Renderer`
-- **TODO markers**: Look for `# TODO:` comments in renderer.py for integration points
+### 1. **Refactoring Strategy - DTO Isolation Pattern**
+- **Current state**: v3dto renderer with complete DTO isolation
+- **Architecture**: Domain objects (world, logger, debugger) → DTO → Widgets
+- **Philosophy**: 
+  - Each widget is fully isolated (zero knowledge of singletons)
+  - Renderer is the only component touching singletons
+  - All data flows through strongly-typed DTOs
+  - Widgets are fully testable in isolation (mock RenderStateDTO)
+- **Benefits**:
+  - ✓ Loose coupling between presentation and domain
+  - ✓ Widgets can be reused in different contexts
+  - ✓ Easy to add new widgets (follow pattern)
+  - ✓ Full test coverage without singletons
 
-### 2. **Configuration via Class Constants**
-- All layout/sizing defined as `SCREEN_WIDTH`, `VIEWPORT_X`, `CAMERA_SCALE_MIN`, etc.
-- Colors in `COLORS` dictionary (keys: 'bg', 'border', 'wall', 'food', 'creature')
-- This makes layout adjustments trivial (no magic numbers scattered in code)
+### 2. **Configuration via Class Constants** (v3dto Widget Pattern)
+- **Every widget defines**:
+  - Geometry: `WIDGET_X`, `WIDGET_Y`, `WIDTH`, `HEIGHT`
+  - Font: `FONT_SIZE`, `FONT_PATH` with safe try-except fallback
+  - Colors: `COLORS = {'background': (...), 'border': (...), 'text': (...)}`
+- **Benefits**: Zero magic numbers, easy layout adjustments, consistent widget styling
+- **All 4 widgets follow this pattern** (96.5% similarity):
+  - Viewport, SelectedCreaturePanel, SelectedCreatureHistory, VariablesPanel
+- **Example**:
+  ```python
+  class MyWidget:
+      WIDGET_X = 10
+      WIDGET_Y = 10
+      WIDTH = 200
+      HEIGHT = 100
+      FONT_SIZE = 14
+      COLORS = {'background': (20,20,20), 'text': (200,200,200)}
+      
+      def __init__(self):
+          self.rect = pygame.Rect(self.WIDGET_X, self.WIDGET_Y, self.WIDTH, self.HEIGHT)
+          self.surface = pygame.Surface((self.WIDTH, self.HEIGHT), pygame.SRCALPHA)
+          try:
+              self.font = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', self.FONT_SIZE)
+          except:
+              self.font = pygame.font.Font(None, self.FONT_SIZE)
+  ```
 
 ### 3. **World Map Structure**
 - **cell values**: 0=empty, 1=wall, 2=food, 3=creature
 - Always check `if cell_value == 0: continue` to skip empty cells (optimization)
 - `walls_map` is read-only after generation, never modified during simulation
 
-### 4. **Event Handling Hierarchy**
-- `Application`: decides which components update/render
-- `Renderer.control_run()`: dispatches keyboard/mouse events
-- `Viewport.handle_mouse_*()`: handles pan/zoom independently
-- **Pattern**: avoid monolithic event handler, delegate to components
+### 4. **Event Handling & State Management**
+- **State Machine**: Renderer manages application states
+  - `main`: normal simulation + widgets
+  - `popup_simparams`: modal parameter window (pauses simulation)
+  - `creatures_list`: modal creatures list (pauses simulation)
+  - `logs`: modal logs window (pauses simulation)
+  - `experiment`: modal experiment window (pauses simulation)
+- **Event Flow**:
+  - `Renderer.control_run()`: pygame event dispatcher + state transitions
+  - `Viewport.handle_mouse_drag/wheel()`: camera pan/zoom (reads events internally)
+  - `VariablesPanel.handle_keydown()`: parameter editing
+  - Modal windows: handle their own keyboard/mouse within modal state
+- **Callback Pattern** (unique to VariablesPanel):
+  - VariablesPanel calls callback: `on_parameter_change(param_name, value)`
+  - Renderer handles: `_on_parameter_change()` applies changes to world/SimParams
+  - Prevents circular dependencies (widgets never directly touch singletons)
 
 ## Development Workflow
 
@@ -193,8 +283,54 @@ Keyboard shortcuts:
 
 ## Future Refactoring Notes
 
-- [ ] Extract GUI panels (`VariablesPanel`, `FunctionKeysPanel`) with proper module structure
+- [x] Extract GUI panels (`Viewport`, `SelectedCreaturePanel`, `SelectedCreatureHistory`, `VariablesPanel`) - **DONE** (v3dto)
+- [x] Implement DTO isolation system - **DONE**
+- [x] Implement state machine for modal windows - **DONE**
+- [x] Implement callback pattern for parameter changes - **DONE**
+- [ ] Extract modal windows (`CreaturesListModal`, `LogsWindow`, `ExperimentModal`) with same DTO pattern
 - [ ] Add configuration file for world parameters (width, height, creature count, mutation rates)
-- [ ] Consider making `Viewport` a full component that handles its own rendering (less delegation to Renderer)
+- [ ] Consider making modal windows full components with their own state management
 - [ ] Performance: optimize `_draw_cells()` with spatial indexing (grid sectors) if scaling to large maps
 - [ ] Add more visualization layers (selection box, creature rays, energy heatmap)
+
+## Widget Development Guide
+
+When adding a new widget to v3dto renderer, follow this pattern:
+
+```python
+# -*- coding: utf-8 -*-
+"""Widget description and v3dto isolation note."""
+import pygame
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from renderer.v3dto.dto import RenderStateDTO
+
+class NewWidget:
+    # 1. Configuration Constants
+    WIDGET_X, WIDGET_Y = 10, 10
+    WIDTH, HEIGHT = 200, 100
+    FONT_SIZE = 14
+    FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
+    COLORS = {'background': (20,20,20), 'text': (200,200,200)}
+    
+    # 2. Initialization (zero params or callback only)
+    def __init__(self):
+        self.rect = pygame.Rect(self.WIDGET_X, self.WIDGET_Y, self.WIDTH, self.HEIGHT)
+        self.surface = pygame.Surface((self.WIDTH, self.HEIGHT), pygame.SRCALPHA)
+        try:
+            self.font = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE)
+        except:
+            self.font = pygame.font.Font(None, self.FONT_SIZE)
+    
+    # 3. Drawing (receives RenderStateDTO)
+    def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
+        self.surface.fill(self.COLORS['background'])
+        # ... use render_state data, never import world/logger/debugger ...
+        screen.blit(self.surface, (self.rect.x, self.rect.y))
+
+# In Renderer.__init__():
+#   self.new_widget = NewWidget()
+# In Renderer.draw():
+#   self.new_widget.draw(self.screen, render_state)
+```

@@ -3,7 +3,8 @@
 from world_generator import WorldGenerator
 # from renderer.v1.renderer import Renderer
 # from renderer.mock.renderer import Renderer
-from renderer.v2.renderer import Renderer
+# from renderer.v2.renderer import Renderer
+from renderer.v3dto.renderer import Renderer
 from simparams import sp
 from service.logger.logger import logme
 
