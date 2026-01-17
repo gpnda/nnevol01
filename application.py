@@ -39,6 +39,7 @@ class Application():
 				self.world.update_map()
 				if self.is_logging:
 					logme.write_stats(self.world.creatures)
+					logme.write_population_size(len(self.world.creatures))
 			
 			if self.animate_flag:
 				self.renderer.draw()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from collections import deque, defaultdict
 from typing import Dict, Deque, List, Any
+from array import array
 
 class CreatureEvent:
     """Событие в истории существа (поедание, размножение и т.д.)"""
@@ -35,6 +36,8 @@ class Logger:
             # Ключ: ID существа, Значение: список событий (CreatureEvent)
             self.events_log: Dict[int, List[CreatureEvent]] = defaultdict(list)
 
+            self.population_size: array = array('I') # История численности популяции. Индекс будет равняться номеру тика
+
             self._initialized = True
             
 
@@ -44,6 +47,10 @@ class Logger:
             self.energy_history[cr.id].append(float(cr.energy))
         
         self._cleanup_dead_creatures_stats()
+
+    def write_population_size(self, size: int) -> None:
+        self.population_size.append(size)
+
                 
 
     def _cleanup_dead_creatures_stats(self):

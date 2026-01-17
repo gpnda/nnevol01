@@ -23,6 +23,7 @@ from renderer.v3dto.gui_viewport import Viewport
 from renderer.v3dto.gui_variablespanel import VariablesPanel
 from renderer.v3dto.gui_selected_creature import SelectedCreaturePanel
 from renderer.v3dto.gui_selected_creature_history import SelectedCreatureHistory
+from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
 
 from renderer.v3dto.dto import (
@@ -105,6 +106,7 @@ class Renderer:
         self.variables_panel = VariablesPanel(on_parameter_change=self._on_parameter_change)
         self.selected_creature_panel = SelectedCreaturePanel()
         self.selected_creature_history = SelectedCreatureHistory()
+        self.pop_chart = PopulationChart()
         self.creatures_list_modal = CreaturesListModal()
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
@@ -534,15 +536,21 @@ class Renderer:
         - Viewport (карта мира)
         - SelectedCreaturePanel (информация о выбранном существе)
         - SelectedCreatureHistory (история энергии)
+        - PopulationChart (график размера популяции)
         """
         # Отрисовка viewport
         self.viewport.draw(self.screen, render_state, self.font)
+
+        # Отрисовка графика популяции
+        self.pop_chart.draw(self.screen, render_state)
         
         # Отрисовка панели выбранного существа
         self.selected_creature_panel.draw(self.screen, render_state)
         
         # Отрисовка истории энергии
         self.selected_creature_history.draw(self.screen, render_state)
+        
+        
     
     def _draw_popup_simparams(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна параметров симуляции."""
