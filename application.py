@@ -7,6 +7,7 @@ from world_generator import WorldGenerator
 from renderer.v3dto.renderer import Renderer
 from simparams import sp
 from service.logger.logger import logme
+from service.performance_monitor.performance_monitor import PerformanceMonitor
 
 
 class Application():
@@ -16,6 +17,7 @@ class Application():
 		self.is_running = True
 		self.animate_flag = True
 		self.is_logging = True
+		self.performance_monitor = PerformanceMonitor()
 
 		# Генерация мира
 		self.world = WorldGenerator.generate_world(
@@ -49,6 +51,8 @@ class Application():
 			#self.limit_fps()
 
 			self.renderer.control_run()
+
+			self.performance_monitor.tick(self.world.tick)
 
 		print("/ Terminated. /")
 

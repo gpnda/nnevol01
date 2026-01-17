@@ -167,10 +167,13 @@ class World():
 		self.proceed_food()
 
 		self.tick += 1
+
+		# TODO: Надо ли это вынести в Application???
+		# Регулировка количества пищи в мире
 		if self.tick % 50 == 0:
 			self.regulate_food()
 
-		print("POPULATION: " + str(len(self.creatures)))
+		# print("POPULATION: " + str(len(self.creatures)))
 		# print("tick: " + str(self.tick) + "   | cr[0].age:"+ str(self.creatures[0].age) + " cr[0].energy:" + str(self.creatures[0].energy) + "   | cr[0].birth_ages: " + str(self.creatures[0].birth_ages) )
 
 			
@@ -194,7 +197,7 @@ class World():
 
 	def control_population(self):
 
-		# if len(self.creatures)>=20:  # не стал разбираться, но с этим условием - появляются существа с отрицательной энергией.
+		# if len(self.creatures)>=20:  #TODO не стал разбираться, но с этим условием - появляются существа с отрицательной энергией.
 		self.death()
 		
 		if len(self.creatures)<900:
