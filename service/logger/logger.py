@@ -47,6 +47,7 @@ class Logger:
                 
 
     def _cleanup_dead_creatures_stats(self):
+        #TODO: Реализовать очистку статистики мертвых существ.
         # alive_ids = {cr.id for cr in self.creatures}
         # dead_ids = set(self.energy_history.keys()) - alive_ids # магиеская магия питона
         

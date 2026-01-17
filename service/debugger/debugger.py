@@ -1,3 +1,6 @@
+#TODO Переделать способ передачи информации о видении и raycast точках
+# через DTO а не через глобальный синглтон.
+# Этот способ передачи информации о видении и raycast точках - кривоватый
 class Debugger:
     _instance = None
     _debug_data = {}
@@ -19,19 +22,3 @@ class Debugger:
 # Глобальный инстанс
 debug = Debugger()
 
-
-
-
-# Использование:
-# ------------------------------------------------------
-# from debugger import debug
-# class ServiceA:
-#     def process(self):
-#         debug.set("last_user", "john")
-#         debug.log("ServiceA started")
-# ------------------------------------------------------
-# from debugger import debug
-# class ServiceB:
-#     def validate(self):
-#         user = debug.get("last_user")
-#         debug.log(f"Validating user: {user}")
