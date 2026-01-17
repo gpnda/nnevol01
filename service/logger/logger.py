@@ -28,6 +28,9 @@ class Logger:
     
     def __init__(self):
         if not hasattr(self, '_initialized'):
+
+            # Словарь для хранения истории энергии по ID существа
+            # Ключ: ID существа, Значение: очередь значений энергии (float)
             self.energy_history: Dict[int, Deque[float]] = defaultdict(
                 lambda: deque(maxlen=self.MAX_HISTORY)
             )
@@ -36,6 +39,7 @@ class Logger:
             # Ключ: ID существа, Значение: список событий (CreatureEvent)
             self.events_log: Dict[int, List[CreatureEvent]] = defaultdict(list)
 
+            # История численности популяции
             self.population_size: array = array('I') # История численности популяции. Индекс будет равняться номеру тика
 
             self._initialized = True
