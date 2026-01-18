@@ -357,6 +357,7 @@ class Renderer:
         # Функциональные клавиши - открытие модальных окон
         if event.key == pygame.K_F1:
             self.set_state('creatures_list')
+            print(logme.get_death_stats_as_ndarray())
             return False
         elif event.key == pygame.K_F9:
             self.set_state('popup_simparams')

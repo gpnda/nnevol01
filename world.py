@@ -231,6 +231,17 @@ class World():
 					cr.age = random.randint(0, 100)
 			return
 		
+		# Здесь надо как-то сохранить статистику по умершим существам
+		# Пока кот так в лоб TODO потом надо както оптимизировтаь этот код
+		for cr in self.creatures:
+			if cr.energy < 0:
+				logme.write_death_stats(
+					id=cr.id,
+					generation=cr.generation,
+					age=cr.age,
+					reprod_ages=cr.birth_ages
+				)
+
 		# Иначе удаляем существ с энергией < 0
 		self.creatures = [creature for creature in self.creatures if creature.energy >= 0]
 	

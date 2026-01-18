@@ -2,6 +2,21 @@
 from collections import deque, defaultdict
 from typing import Dict, Deque, List, Any
 from array import array
+import numpy as np
+
+# Опишем структуру данных для ханения исторической информации о поколениях, смертях, 
+# а также о возрастах размножения каждого существа
+# эти данные позволят опредялять качественные характеристики отбора
+INT32 = np.int32
+FLOAT32 = np.float32
+dtype_population_data = np.dtype([
+    ('id', INT32),
+    ('generation', INT32),
+    ('age', INT32),
+    ('reprod_ages', INT32, (3,))
+])
+
+
 
 class CreatureEvent:
     """Событие в истории существа (поедание, размножение и т.д.)"""
@@ -42,6 +57,9 @@ class Logger:
             # История численности популяции
             self.population_size: array = array('I') # История численности популяции. Индекс будет равняться номеру тика
 
+            self.death_stats: deque = deque() # История смертей за тик
+
+            # Пометка об инициализации
             self._initialized = True
             
 
@@ -55,7 +73,12 @@ class Logger:
     def write_population_size(self, size: int) -> None:
         self.population_size.append(size)
 
-                
+    def write_death_stats(self, id: int, generation: int, age: int, reprod_ages: list) -> None:
+        self.death_stats.append((id, generation, age, reprod_ages))
+    
+    def get_death_stats_as_ndarray(self):
+        data_array = np.array(self.death_stats, dtype=dtype_population_data)
+        return data_array
 
     def _cleanup_dead_creatures_stats(self):
         #TODO: Реализовать очистку статистики мертвых существ.
