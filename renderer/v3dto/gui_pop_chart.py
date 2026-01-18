@@ -41,7 +41,8 @@ class PopulationChart:
     # Параметры графика
     GRAPH_PADDING = 2
     GRAPH_HEIGHT = 57
-    GRAPH_WIDTH = WIDTH - 2 * GRAPH_PADDING - 10
+    CUSTOM_RIGHT_PADDING = 30
+    GRAPH_WIDTH = WIDTH - 2 * GRAPH_PADDING - CUSTOM_RIGHT_PADDING
     MAX_HISTORY_POINTS = 1200  # Показываем последние 1200 тиков
     
     # Цвета
@@ -129,7 +130,7 @@ class PopulationChart:
         pygame.draw.rect(
             self.surface,
             self.COLORS['graph_background'],
-            (graph_x, graph_y, self.GRAPH_WIDTH, self.GRAPH_HEIGHT),
+            (graph_x, graph_y, self.GRAPH_WIDTH + self.CUSTOM_RIGHT_PADDING, self.GRAPH_HEIGHT),
             0
         )
         
@@ -137,7 +138,7 @@ class PopulationChart:
         pygame.draw.rect(
             self.surface,
             self.COLORS['border'],
-            (graph_x, graph_y, self.GRAPH_WIDTH, self.GRAPH_HEIGHT),
+            (graph_x, graph_y, self.GRAPH_WIDTH + self.CUSTOM_RIGHT_PADDING, self.GRAPH_HEIGHT),
             self.BORDER_WIDTH
         )
         
@@ -151,7 +152,7 @@ class PopulationChart:
                 self.surface,
                 self.COLORS['graph_grid'],
                 (graph_x, grid_y),
-                (graph_x + self.GRAPH_WIDTH, grid_y),
+                (graph_x + self.GRAPH_WIDTH + self.CUSTOM_RIGHT_PADDING, grid_y),
                 1
             )
         

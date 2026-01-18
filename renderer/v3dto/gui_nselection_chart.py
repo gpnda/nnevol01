@@ -36,7 +36,7 @@ class NSelectionChart:
     """
     
     # Координаты и размеры (совпадают с PopulationChart, кроме ширины)
-    POSITION_X = 810
+    POSITION_X = 794
     POSITION_Y = 505
     WIDTH = 400
     HEIGHT = 65
@@ -108,8 +108,28 @@ class NSelectionChart:
         
         # Если статистика пуста, выводим сообщение
         if death_data.size == 0:
-            no_data_text = self.small_font.render("No deaths yet", True, self.COLORS['label'])
-            self.surface.blit(no_data_text, (self.PADDING, self.PADDING + self.LINE_HEIGHT))
+            # Рисуем область графика
+            graph_x = self.GRAPH_PADDING
+            graph_y = self.PADDING
+            
+            # Фон графика
+            pygame.draw.rect(
+                self.surface,
+                self.COLORS['graph_background'],
+                (graph_x, graph_y, self.GRAPH_WIDTH, self.GRAPH_HEIGHT),
+                0
+            )
+            
+            # Граница графика
+            pygame.draw.rect(
+                self.surface,
+                self.COLORS['border'],
+                (graph_x, graph_y, self.GRAPH_WIDTH, self.GRAPH_HEIGHT),
+                self.BORDER_WIDTH
+            )
+
+            no_data_text = self.small_font.render("no stats yet", True, self.COLORS['label'])
+            self.surface.blit(no_data_text, (self.PADDING + 5 , self.PADDING + 5))
             screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
             return
         
@@ -123,8 +143,8 @@ class NSelectionChart:
         reprod_ages = death_data['reprod_ages']
         
         if len(ages) == 0:
-            no_data_text = self.small_font.render("No deaths yet", True, self.COLORS['label'])
-            self.surface.blit(no_data_text, (self.PADDING, self.PADDING + self.LINE_HEIGHT))
+            no_data_text = self.small_font.render("no stats yet", True, self.COLORS['label'])
+            self.surface.blit(no_data_text, (self.PADDING + 5 , self.PADDING + 5))
             screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
             return
         
@@ -221,7 +241,7 @@ class NSelectionChart:
                     reprod_height = (hist_reprod[i] / max_count) * self.GRAPH_HEIGHT
                     pygame.draw.rect(
                         self.surface,
-                        (100, 200, 100),  # Зелёный цвет для размножения
+                        (255, 165, 0),  # Оранжевый, такойже как в gui_selected_creature_history
                         (int(bar_x), int(bar_height_y - reprod_height), int(bar_width), int(reprod_height)),
                         0
                     )
@@ -241,7 +261,7 @@ class NSelectionChart:
             self.surface.blit(stat_surface, (stats_x, stats_y + i * 15))
         
         # Заголовок
-        title_text = self.font.render("Death by Age", True, self.COLORS['highlight'])
+        title_text = self.font.render("Death/reprod", True, self.COLORS['highlight'])
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
         
         # Отрисовка финальной поверхности
