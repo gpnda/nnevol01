@@ -41,9 +41,9 @@ class SelectedCreaturePanel:
     """
     
     # Координаты и размеры
-    POSITION_X = 4
-    POSITION_Y = 509
-    WIDTH = 350
+    POSITION_X = 5
+    POSITION_Y = 510
+    WIDTH = 500
     HEIGHT = 60
     
     # Цвета
@@ -224,14 +224,30 @@ class SelectedCreaturePanel:
                     selected_creature_vision_int_list[15:30],
                     selected_creature_vision_int_list[30:45]
                 ))
+
+                # Фон под видение и надпись
+                pygame.draw.rect(
+                    self.surface,
+                    (0, 0, 0),
+                    (225, 2, 215, 56)
+                )
+                # Граница видения
+                pygame.draw.rect(
+                    self.surface,
+                    (50, 50, 50),
+                    (231, 21, 202, 21),
+                    2
+                )
+                vision_label = self.font.render("Vision:", False, self.COLORS['label'])
+                self.surface.blit(vision_label, (233, 9))
                 
                 # Рисование видения в виде 15 цветных квадратов
                 vision_block_y = self.HEIGHT - self.PADDING - 30
-                square_size = (self.WIDTH - 2 * self.PADDING) // 15
+                square_size = 13
                 for i, rgb in enumerate(rgb_tuples):
-                    x = self.PADDING + i * square_size
+                    x = 235 + i * square_size
                     y = vision_block_y
-                    # pygame.draw.rect(self.surface, rgb, (x, y, square_size, square_size))
+                    pygame.draw.rect(self.surface, rgb, (x, y, square_size, square_size))
         
         # =====================================================================
         

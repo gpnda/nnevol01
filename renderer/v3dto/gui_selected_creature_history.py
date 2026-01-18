@@ -37,7 +37,7 @@ class SelectedCreatureHistory:
     """
     
     # Координаты и размеры
-    POSITION_X = 400
+    POSITION_X = 447
     POSITION_Y = 505
     WIDTH = 800
     HEIGHT = 65
