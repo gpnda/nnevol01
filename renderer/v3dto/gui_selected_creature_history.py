@@ -37,16 +37,16 @@ class SelectedCreatureHistory:
     """
     
     # Координаты и размеры
-    POSITION_X = 4
+    POSITION_X = 400
     POSITION_Y = 505
-    WIDTH = 1243
+    WIDTH = 800
     HEIGHT = 65
     
     # Параметры графика
     GRAPH_PADDING = 2
     GRAPH_HEIGHT = 60
     GRAPH_WIDTH = WIDTH - 2 * GRAPH_PADDING
-    MAX_HISTORY_POINTS = 1200  # Показываем последние 1200 тиков
+    MAX_HISTORY_POINTS = 750  # Показываем последние 1200 тиков
     
     # Цвета
     COLORS = {
@@ -55,7 +55,7 @@ class SelectedCreatureHistory:
         'text': (200, 200, 200),
         'label': (100, 150, 200),
         'highlight': (0, 255, 100),
-        'graph_background': (30, 30, 30),
+        'graph_background': (20, 20, 40),
         'graph_line': (0, 200, 100),
         'graph_grid': (60, 60, 60),
     }

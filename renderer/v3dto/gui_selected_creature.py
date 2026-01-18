@@ -41,14 +41,14 @@ class SelectedCreaturePanel:
     """
     
     # Координаты и размеры
-    POSITION_X = 35
-    POSITION_Y = 150
-    WIDTH = 250
-    HEIGHT = 300
+    POSITION_X = 4
+    POSITION_Y = 509
+    WIDTH = 350
+    HEIGHT = 60
     
     # Цвета
     COLORS = {
-        'background': (30, 30, 30),
+        'background': (5, 41, 158),
         'border': (150, 150, 150),
         'text': (200, 200, 200),
         'label': (100, 150, 200),
@@ -57,9 +57,10 @@ class SelectedCreaturePanel:
     
     # Размеры
     BORDER_WIDTH = 2
-    PADDING = 15
-    LINE_HEIGHT = 25
-    FONT_SIZE = 20
+    PADDING = 5
+
+    LINE_HEIGHT = 13
+    FONT_SIZE = 16
     
     def __init__(self):
         """Инициализация панели."""
@@ -90,44 +91,62 @@ class SelectedCreaturePanel:
         
         # Заголовок
         title_text = self.font.render(
-            f"creature: {selected_creature.id}",
-            True,
+            f"id: {selected_creature.id}",
+            False,
             self.COLORS['highlight']
         )
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
+
+
+        # Хочу вывести энергию в виде прогресс-бара
+        pygame.draw.rect(
+                self.surface,
+                self.COLORS['border'],
+                (self.PADDING + 100, self.PADDING, 100, 12),
+                self.BORDER_WIDTH
+            )
+        # Максимум энергии всегда = 1.0
+        pygame.draw.rect(
+            self.surface,
+            self.COLORS['highlight'],
+            (self.PADDING + 100 + self.BORDER_WIDTH,
+             self.PADDING + self.BORDER_WIDTH,
+             int((100 - 2 * self.BORDER_WIDTH) * min(selected_creature.energy, 1.0)),
+             12 - 2 * self.BORDER_WIDTH)
+        )
         
         # Информация о существе
-        y_offset = self.PADDING + self.LINE_HEIGHT + 10
+        y_offset = self.PADDING + self.LINE_HEIGHT
         
         # Возраст
-        age_label = self.font.render("Age:", True, self.COLORS['label'])
+        age_label = self.font.render("Age:", False, self.COLORS['label'])
         self.surface.blit(age_label, (self.PADDING, y_offset))
         
-        age_value = self.font.render(f"{selected_creature.age}", True, self.COLORS['text'])
+        age_value = self.font.render(f"{selected_creature.age}", False, self.COLORS['text'])
         self.surface.blit(age_value, (self.PADDING + 100, y_offset))
         
         y_offset += self.LINE_HEIGHT
         
-        # Энергия
-        energy_label = self.font.render("Energy:", True, self.COLORS['label'])
-        self.surface.blit(energy_label, (self.PADDING, y_offset))
+        # # Энергия
+        # energy_label = self.font.render("Energy:", False, self.COLORS['label'])
+        # self.surface.blit(energy_label, (self.PADDING, y_offset))
         
-        energy_value = self.font.render(
-            f"{selected_creature.energy:.2f}",
-            True,
-            self.COLORS['text']
-        )
-        self.surface.blit(energy_value, (self.PADDING + 100, y_offset))
+        # energy_value = self.font.render(
+        #     f"{selected_creature.energy:.2f}",
+        #     False,
+        #     self.COLORS['text']
+        # )
+        # self.surface.blit(energy_value, (self.PADDING + 100, y_offset))
         
-        y_offset += self.LINE_HEIGHT
+        # y_offset += self.LINE_HEIGHT
         
         # Поколение
-        generation_label = self.font.render("Generation:", True, self.COLORS['label'])
+        generation_label = self.font.render("Generation:", False, self.COLORS['label'])
         self.surface.blit(generation_label, (self.PADDING, y_offset))
         
         generation_value = self.font.render(
             f"{selected_creature.generation}",
-            True,
+            False,
             self.COLORS['text']
         )
         self.surface.blit(generation_value, (self.PADDING + 100, y_offset))
@@ -135,28 +154,47 @@ class SelectedCreaturePanel:
         y_offset += self.LINE_HEIGHT
         
         # Угол поворота
-        angle_label = self.font.render("Angle:", True, self.COLORS['label'])
-        self.surface.blit(angle_label, (self.PADDING, y_offset))
+        # angle_label = self.font.render("Angle:", True, self.COLORS['label'])
+        # self.surface.blit(angle_label, (self.PADDING, y_offset))
         
-        angle_value = self.font.render(
-            f"{selected_creature.angle:.2f}°",
-            True,
-            self.COLORS['text']
-        )
-        self.surface.blit(angle_value, (self.PADDING + 100, y_offset))
+        # angle_value = self.font.render(
+        #     f"{selected_creature.angle:.2f}°",
+        #     True,
+        #     self.COLORS['text']
+        # )
+        # self.surface.blit(angle_value, (self.PADDING + 100, y_offset))
         
-        y_offset += self.LINE_HEIGHT
+        # y_offset += self.LINE_HEIGHT
         
         # Скорость
-        speed_label = self.font.render("Speed:", True, self.COLORS['label'])
-        self.surface.blit(speed_label, (self.PADDING, y_offset))
+        # speed_label = self.font.render("Speed:", True, self.COLORS['label'])
+        # self.surface.blit(speed_label, (self.PADDING, y_offset))
         
-        speed_value = self.font.render(
-            f"{selected_creature.speed:.2f}",
-            True,
-            self.COLORS['text']
-        )
-        self.surface.blit(speed_value, (self.PADDING + 100, y_offset))
+        # speed_value = self.font.render(
+        #     f"{selected_creature.speed:.2f}",
+        #     True,
+        #     self.COLORS['text']
+        # )
+        # self.surface.blit(speed_value, (self.PADDING + 100, y_offset))
+
+        # Количество потомков
+        # Получим количество потомков из render_state CreatureEventDTO
+
+        num_offspring = 0
+        for event in render_state.selected_creature.history.events:
+            if event.event_type == "CREATE_CHILD":
+                num_offspring += event.value
+        offspring_label = self.font.render(f"Offspring:", False, self.COLORS['label'])
+        self.surface.blit(offspring_label, (self.PADDING, y_offset))
+        # Нарисуем потомков справа в виде кружков
+        for i in range(num_offspring):
+            pygame.draw.circle(
+                self.surface,
+                (255, 165, 0),
+                (self.PADDING + 100 + i * 12 + 6, y_offset + 6),
+                4,
+                2
+            )
         
         # =====================================================================
         # Рисование видения (сенсорного ввода) выбранного существа
@@ -193,7 +231,7 @@ class SelectedCreaturePanel:
                 for i, rgb in enumerate(rgb_tuples):
                     x = self.PADDING + i * square_size
                     y = vision_block_y
-                    pygame.draw.rect(self.surface, rgb, (x, y, square_size, square_size))
+                    # pygame.draw.rect(self.surface, rgb, (x, y, square_size, square_size))
         
         # =====================================================================
         

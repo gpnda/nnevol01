@@ -96,7 +96,7 @@ class PopulationChart:
         
         # Если история пуста, выводим сообщение
         if not population_history or len(population_history) == 0:
-            no_data_text = self.small_font.render("No data yet", True, self.COLORS['label'])
+            no_data_text = self.small_font.render("No data yet", False, self.COLORS['label'])
             self.surface.blit(no_data_text, (self.PADDING, self.PADDING + self.LINE_HEIGHT + 20))
             screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
             return
@@ -180,22 +180,27 @@ class PopulationChart:
         stats_x = graph_x + 10
         stats_y = graph_y + 5
         
-        stats_text = [
-            f"Min: {min_pop}",
-            f"Max: {max_pop}",
-            f"Now: {current_pop}",
-        ]
+        # stats_text = [
+        #     f"Min: {min_pop}",
+        #     f"Max: {max_pop}",
+        #     f"Now: {current_pop}",
+        # ]
         
-        for i, text in enumerate(stats_text):
-            stat_surface = self.small_font.render(text, True, self.COLORS['label'])
-            self.surface.blit(stat_surface, (stats_x, stats_y + i * 15))
+        # for i, text in enumerate(stats_text):
+        #     stat_surface = self.small_font.render(text, False, self.COLORS['label'])
+        #     self.surface.blit(stat_surface, (stats_x, stats_y + i * 15))
         
         # Выводим общее количество тиков
         # tick_count = len(population_history)
-        # tick_text = self.small_font.render(f"Ticks: {tick_count}", True, self.COLORS['text'])
+        # tick_text = self.small_font.render(f"Ticks: {tick_count}", False, self.COLORS['text'])
         # self.surface.blit(tick_text, (self.PADDING, self.POSITION_Y + self.HEIGHT - 20))
         # Заголовок
-        title_text = self.font.render("Population Size", True, self.COLORS['highlight'])
-        self.surface.blit(title_text, (self.PADDING, self.PADDING))
+        pygame.draw.rect(
+            self.surface,
+            self.COLORS['background'],
+            (self.PADDING+2, self.PADDING, 100, 11)
+        )
+        title_text = self.font.render("Population Size", False, self.COLORS['highlight'])
+        self.surface.blit(title_text, (self.PADDING+7, self.PADDING))
         # Отрисовка финальной поверхности
         screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))

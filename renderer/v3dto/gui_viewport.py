@@ -364,21 +364,20 @@ class Viewport:
             # Рисуем жёлтый квадрат (заполненный)
             pygame.draw.rect(self.surface, (255, 255, 0), marker_rect)
     
-    def _draw_debug_info(self, surface: pygame.Surface, font: pygame.font.Font, world_dto) -> None:
-        """Отрисовка отладочной информации (камера, видимые клетки)."""
-        min_x, max_x, min_y, max_y = self.get_visible_range(world_dto.width, world_dto.height)
+    # def _draw_debug_info(self, surface: pygame.Surface, font: pygame.font.Font, world_dto) -> None:
+    #     """Отрисовка отладочной информации (камера, видимые клетки)."""
+    #     # min_x, max_x, min_y, max_y = self.get_visible_range(world_dto.width, world_dto.height)
         
-        info_lines = [
-            f"Scale: {self.camera_scale:.2f}",
-            f"Offset: ({self.camera_offset.x:.1f}, {self.camera_offset.y:.1f})",
-            f"Visible: {max_x - min_x}x{max_y - min_y}",
-        ]
+    #     info_lines = [
+    #         f"Scale: {self.camera_scale:.2f}",
+    #         f"Offset: ({self.camera_offset.x:.1f}, {self.camera_offset.y:.1f})"
+    #     ]
         
-        y_offset = 5
-        for line in info_lines:
-            text_surf = font.render(line, True, self.COLORS['text'])
-            surface.blit(text_surf, (self.rect.x + 5, self.rect.y + y_offset))
-            y_offset += 15
+    #     y_offset = 5
+    #     for line in info_lines:
+    #         text_surf = font.render(line, True, self.COLORS['text'])
+    #         surface.blit(text_surf, (self.rect.x + 5, self.rect.y + y_offset))
+    #         y_offset += 15
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO', font: pygame.font.Font = None) -> None:
         """
@@ -407,5 +406,5 @@ class Viewport:
         pygame.draw.rect(screen, self.COLORS['border'], self.rect, 2)
         
         # Отрисовка отладочной информации если передан шрифт
-        if font:
-            self._draw_debug_info(screen, font, render_state.world)
+        # if font:
+        #     self._draw_debug_info(screen, font, render_state.world)

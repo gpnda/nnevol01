@@ -40,6 +40,8 @@ class NSelectionChart:
     POSITION_Y = 505
     WIDTH = 400
     HEIGHT = 65
+
+    LAST_N_DEATHS = 100  # показываем последние N смертей
     
     # Параметры графика
     GRAPH_PADDING = 2
@@ -104,7 +106,7 @@ class NSelectionChart:
         # Получаем статистику смертей из логгера
         from service.logger.logger import logme
         death_data = logme.get_death_stats_as_ndarray()
-        # death_data = death_data[-100:]  # Обрежем данные, нужны только последние 100 смертей, это как бы актуальный график
+        death_data = death_data[-self.LAST_N_DEATHS:]  # Обрежем данные, нужны только последние 100 смертей, это как бы актуальный график
         
         # Если статистика пуста, выводим сообщение
         if death_data.size == 0:
@@ -128,8 +130,13 @@ class NSelectionChart:
                 self.BORDER_WIDTH
             )
 
-            no_data_text = self.small_font.render("no stats yet", True, self.COLORS['label'])
-            self.surface.blit(no_data_text, (self.PADDING + 5 , self.PADDING + 5))
+            pygame.draw.rect(
+                self.surface,
+                self.COLORS['background'],
+                (self.PADDING+2, self.PADDING, 145, 11)
+            )
+            no_data_text = self.font.render("no stats yet", False, self.COLORS['label'])
+            self.surface.blit(no_data_text, (self.PADDING + 7 , self.PADDING))
             screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
             return
         
@@ -143,7 +150,7 @@ class NSelectionChart:
         reprod_ages = death_data['reprod_ages']
         
         if len(ages) == 0:
-            no_data_text = self.small_font.render("no stats yet", True, self.COLORS['label'])
+            no_data_text = self.small_font.render("no stats yet", False, self.COLORS['label'])
             self.surface.blit(no_data_text, (self.PADDING + 5 , self.PADDING + 5))
             screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
             return
@@ -257,12 +264,17 @@ class NSelectionChart:
         ]
         
         for i, text in enumerate(stats_text):
-            stat_surface = self.small_font.render(text, True, self.COLORS['label'])
+            stat_surface = self.small_font.render(text, False, self.COLORS['label'])
             self.surface.blit(stat_surface, (stats_x, stats_y + i * 15))
         
         # Заголовок
-        title_text = self.font.render("Death/reprod", True, self.COLORS['highlight'])
-        self.surface.blit(title_text, (self.PADDING, self.PADDING))
+        pygame.draw.rect(
+            self.surface,
+            self.COLORS['background'],
+            (self.PADDING+2, self.PADDING, 145, 11)
+        )
+        title_text = self.font.render(f"Death/reprod (last {self.LAST_N_DEATHS})", False, self.COLORS['highlight'])
+        self.surface.blit(title_text, (self.PADDING+7, self.PADDING))
         
         # Отрисовка финальной поверхности
         screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
