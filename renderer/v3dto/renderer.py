@@ -24,6 +24,7 @@ from renderer.v3dto.gui_variablespanel import VariablesPanel
 from renderer.v3dto.gui_selected_creature import SelectedCreaturePanel
 from renderer.v3dto.gui_selected_creature_history import SelectedCreatureHistory
 from renderer.v3dto.gui_pop_chart import PopulationChart
+from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
 
 from renderer.v3dto.dto import (
@@ -107,6 +108,7 @@ class Renderer:
         self.selected_creature_panel = SelectedCreaturePanel()
         self.selected_creature_history = SelectedCreatureHistory()
         self.pop_chart = PopulationChart()
+        self.nselection_chart = NSelectionChart()
         self.creatures_list_modal = CreaturesListModal()
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
@@ -538,12 +540,16 @@ class Renderer:
         - SelectedCreaturePanel (информация о выбранном существе)
         - SelectedCreatureHistory (история энергии)
         - PopulationChart (график размера популяции)
+        - NSelectionChart (гистограмма смертей по возрастам)
         """
         # Отрисовка viewport
         self.viewport.draw(self.screen, render_state, self.font)
 
         # Отрисовка графика популяции
         self.pop_chart.draw(self.screen, render_state)
+        
+        # Отрисовка гистограммы смертей по возрастам
+        self.nselection_chart.draw(self.screen, render_state)
         
         # Отрисовка панели выбранного существа
         self.selected_creature_panel.draw(self.screen, render_state)

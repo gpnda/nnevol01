@@ -35,13 +35,13 @@ class PopulationChart:
     # Координаты и размеры (совпадают с SelectedCreatureHistory)
     POSITION_X = 4
     POSITION_Y = 505
-    WIDTH = 1243
+    WIDTH = 790
     HEIGHT = 65
     
     # Параметры графика
     GRAPH_PADDING = 2
     GRAPH_HEIGHT = 57
-    GRAPH_WIDTH = WIDTH - 2 * GRAPH_PADDING - 200
+    GRAPH_WIDTH = WIDTH - 2 * GRAPH_PADDING - 10
     MAX_HISTORY_POINTS = 1200  # Показываем последние 1200 тиков
     
     # Цвета
