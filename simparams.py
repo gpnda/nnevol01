@@ -29,7 +29,7 @@ class SimParams:
         # === Параметры размножения ===
         # Возраст в диапазонах, при котором существо может размножаться (из creature.py birth_ages)
         # Примерно: 90-110, 190-210, 290-310, 490-510
-        self.reproduction_ages = [350, 400, 450]
+        self.reproduction_ages = "[350, 400, 450]" # в виде строки !
         # Количество потомков при одном размножении (из creature.py reprodCreature())
         self.reproduction_offsprings = 2
         

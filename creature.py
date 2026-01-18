@@ -30,9 +30,65 @@ class Creature():
 
 
     @staticmethod
+    def string_to_list(input_string):
+        """
+        Преобразует строку в список целых чисел методом split.
+        Обрабатывает случаи с отсутствующими/частичными скобками.
+
+        Метод нужен, потому что возраста размножения в simparams хранятся в виде строки
+        А хранятся в виде строки они, чтобы не создавтаь отдельный тип данных для списков.
+        
+        """
+        
+        # Убираем пробелы в начале и конце
+        input_string = input_string.strip()
+
+        # Если строка пустая или состоит только из пробелов
+        if not input_string or input_string == "":
+            return []
+        
+        # Убираем квадратные скобки если они есть
+        # Мы удаляем их только если они на соответствующих позициях
+        if input_string.startswith('['):
+            input_string = input_string[1:]
+        if input_string.endswith(']'):
+            input_string = input_string[:-1]
+        
+        # Убираем пробелы после удаления скобок
+        input_string = input_string.strip()
+        
+        # Если после очистки строка пустая
+        if not input_string:
+            return []
+        
+        # Разделяем по запятой
+        parts = input_string.split(',')
+        result = []
+        
+        # Преобразуем каждый элемент в целое число
+        for part in parts:
+            part = part.strip()  # Убираем пробелы вокруг
+            if part:  # Пропускаем пустые строки
+                try:
+                    result.append(int(part))
+                except ValueError:
+                    # Если элемент нельзя преобразовать в целое число
+                    # Можно либо пропустить, либо обработать иначе
+                    # Здесь просто пропускаем некорректные значения
+                    continue
+        
+        return result
+
+
+    @staticmethod
     def diceRandomAges(reproduction_ages):
+        # print(str(reproduction_ages) + " - Тип данных: " + str(type(reproduction_ages)))
+        if type(reproduction_ages) is list:
+            reproduction_ages_list = reproduction_ages
+        else:
+            reproduction_ages_list = Creature.string_to_list(reproduction_ages)
         ages = []
-        for age in reproduction_ages:
+        for age in reproduction_ages_list:
             variation = random.randint(-10, 10)
             ages.append(age + variation)
         return ages

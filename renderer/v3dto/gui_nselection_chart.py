@@ -65,6 +65,18 @@ class NSelectionChart:
     FONT_SIZE = 16
     SMALL_FONT_SIZE = 12
     
+    def filter_post_mortum_reprod_ages(data):
+        # cut off reproduction ages older then death age
+        for i in range(len(data)):
+            death_age = data['age'][i]
+            reprod_ages_list = data['reprod_ages'][i].tolist()
+            filtered_reprod_ages = [age for age in reprod_ages_list if age < death_age]
+            # pad with -1 to keep the shape
+            while len(filtered_reprod_ages) < 3:
+                filtered_reprod_ages.append(-1)
+            data['reprod_ages'][i] = np.array(filtered_reprod_ages, dtype=np.int32)
+        return data
+
     def __init__(self):
         """Инициализация панели."""
         self.surface = pygame.Surface((self.WIDTH, self.HEIGHT))
@@ -92,7 +104,7 @@ class NSelectionChart:
         # Получаем статистику смертей из логгера
         from service.logger.logger import logme
         death_data = logme.get_death_stats_as_ndarray()
-        death_data = death_data[-100:]  # Обрежем данные, нужны только последние 100 смертей, это как бы актуальный график
+        # death_data = death_data[-100:]  # Обрежем данные, нужны только последние 100 смертей, это как бы актуальный график
         
         # Если статистика пуста, выводим сообщение
         if death_data.size == 0:
@@ -103,6 +115,12 @@ class NSelectionChart:
         
         # Извлекаем возрасты из поля 'age' структурированного массива
         ages = death_data['age']
+        
+        # удалим возрасты размножения старше возраста смерти
+        death_data = NSelectionChart.filter_post_mortum_reprod_ages(death_data)
+
+        # извлекаем возрасты размножения
+        reprod_ages = death_data['reprod_ages']
         
         if len(ages) == 0:
             no_data_text = self.small_font.render("No deaths yet", True, self.COLORS['label'])
@@ -123,11 +141,26 @@ class NSelectionChart:
             age_range_start = min_age
             age_range_end = max_age
         
-        # Создаём гистограмму
+        # Создаём гистограмму смертей
         bins = 50 # age_range_end - age_range_start + 1
-        hist, bin_edges = np.histogram(ages, bins=bins, range=(age_range_start, age_range_end + 1))
+        hist_deaths, bin_edges = np.histogram(ages, bins=bins, range=(age_range_start, age_range_end + 1))
         
-        max_count = np.max(hist) if len(hist) > 0 else 1
+        # Распаковываем возрасты размножения в плоский массив (фильтруя -1)
+        reprod_ages_flat = []
+        for reprod_ages_row in reprod_ages:
+            for age in reprod_ages_row:
+                if age >= 0:  # Пропускаем -1 (padding)
+                    reprod_ages_flat.append(age)
+        
+        # Создаём гистограмму размножения с тем же масштабом и bins
+        if len(reprod_ages_flat) > 0:
+            hist_reprod, _ = np.histogram(reprod_ages_flat, bins=bins, range=(age_range_start, age_range_end + 1))
+        else:
+            hist_reprod = np.zeros_like(hist_deaths)
+        
+        # Нормализуем по максимуму из обеих гистограмм
+        max_count = max(np.max(hist_deaths) if len(hist_deaths) > 0 else 1,
+                       np.max(hist_reprod) if len(hist_reprod) > 0 else 1)
         if max_count == 0:
             max_count = 1
         
@@ -166,23 +199,30 @@ class NSelectionChart:
             )
         
         # Рисуем столбцы гистограммы
-        if len(hist) > 0:
-            bar_width = self.GRAPH_WIDTH / len(hist)
-            for i, count in enumerate(hist):
-                if count > 0:
-                    # Нормализуем высоту столбца
-                    normalized_height = (count / max_count) * self.GRAPH_HEIGHT
-                    
-                    # Координаты столбца
-                    bar_x = graph_x + i * bar_width
-                    bar_y = graph_y + self.GRAPH_HEIGHT - normalized_height
-                    bar_height = normalized_height
-                    
-                    # Рисуем столбец
+        if len(hist_deaths) > 0:
+            bar_width = self.GRAPH_WIDTH / len(hist_deaths)
+            for i in range(len(hist_deaths)):
+                # Координаты столбца
+                bar_x = graph_x + i * bar_width
+                bar_height_y = graph_y + self.GRAPH_HEIGHT
+                
+                # Рисуем столбец смертей (красный)
+                if hist_deaths[i] > 0:
+                    death_height = (hist_deaths[i] / max_count) * self.GRAPH_HEIGHT
                     pygame.draw.rect(
                         self.surface,
                         self.COLORS['graph_bar'],
-                        (int(bar_x), int(bar_y), int(bar_width), int(bar_height)),
+                        (int(bar_x), int(bar_height_y - death_height), int(bar_width), int(death_height)),
+                        0
+                    )
+                
+                # Рисуем столбец размножения (зелёный) поверх красного
+                if hist_reprod[i] > 0:
+                    reprod_height = (hist_reprod[i] / max_count) * self.GRAPH_HEIGHT
+                    pygame.draw.rect(
+                        self.surface,
+                        (100, 200, 100),  # Зелёный цвет для размножения
+                        (int(bar_x), int(bar_height_y - reprod_height), int(bar_width), int(reprod_height)),
                         0
                     )
         
