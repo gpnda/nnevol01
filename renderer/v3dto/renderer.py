@@ -165,6 +165,80 @@ class Renderer:
     # ОБРАБОТЧИК ИЗМЕНЕНИЙ ПАРАМЕТРОВ
     # ============================================================================
     
+    def _select_creature_by_tab(self) -> None:
+        """
+        Переключиться на существо со следующим по убыванию ID при нажатии TAB.
+        
+        Логика:
+        - Если ничего не выбрано: выбрать существо с максимальным ID
+        - Если что-то выбрано: выбрать существо с ID, на 1 меньше текущего
+        - Если достигли минимального ID, циклимся на максимальный
+        """
+        if not self.world.creatures:
+            self.selected_creature_id = None
+            return
+        
+        # Получаем все ID существ и сортируем в порядке убывания
+        all_ids = sorted([c.id for c in self.world.creatures], reverse=True)
+        
+        if self.selected_creature_id is None:
+            # Если ничего не выбрано, выбираем существо с максимальным ID
+            self.selected_creature_id = all_ids[0]
+            print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (max)")
+        else:
+            # Найти текущее существо в отсортированном списке
+            if self.selected_creature_id in all_ids:
+                current_index = all_ids.index(self.selected_creature_id)
+                # Переходим на следующее (которое имеет меньший ID)
+                next_index = (current_index + 1) % len(all_ids)
+                self.selected_creature_id = all_ids[next_index]
+                is_cycled = next_index == 0
+                if is_cycled:
+                    print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (min, cycled to max)")
+                else:
+                    print(f"✓ Creature selected (TAB): id={self.selected_creature_id}")
+            else:
+                # Если текущее существо больше не существует, выбираем максимальное
+                self.selected_creature_id = all_ids[0]
+                print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (previous dead, reset to max)")
+    
+    def _select_creature_by_shift_tab(self) -> None:
+        """
+        Переключиться на существо со следующим по возрастанию ID при нажатии Shift+TAB.
+        
+        Логика:
+        - Если ничего не выбрано: выбрать существо с минимальным ID
+        - Если что-то выбрано: выбрать существо с ID, на 1 больше текущего
+        - Если достигли максимального ID, циклимся на минимальный
+        """
+        if not self.world.creatures:
+            self.selected_creature_id = None
+            return
+        
+        # Получаем все ID существ и сортируем в порядке возрастания
+        all_ids = sorted([c.id for c in self.world.creatures])
+        
+        if self.selected_creature_id is None:
+            # Если ничего не выбрано, выбираем существо с минимальным ID
+            self.selected_creature_id = all_ids[0]
+            print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (min)")
+        else:
+            # Найти текущее существо в отсортированном списке
+            if self.selected_creature_id in all_ids:
+                current_index = all_ids.index(self.selected_creature_id)
+                # Переходим на следующее (которое имеет больший ID)
+                next_index = (current_index + 1) % len(all_ids)
+                self.selected_creature_id = all_ids[next_index]
+                is_cycled = next_index == 0
+                if is_cycled:
+                    print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (max, cycled to min)")
+                else:
+                    print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id}")
+            else:
+                # Если текущее существо больше не существует, выбираем минимальное
+                self.selected_creature_id = all_ids[0]
+                print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (previous dead, reset to min)")
+    
     def _on_parameter_change(self, param_name: str, value: any) -> None:
         """
         Callback для обработки изменений параметров из VariablesPanel.
@@ -374,6 +448,16 @@ class Renderer:
             return False
         elif event.key == pygame.K_a:
             self.app.toggle_animate()
+            return False
+        elif event.key == pygame.K_TAB:
+            # Проверяем, нажата ли клавиша Shift
+            mods = pygame.key.get_mods()
+            if mods & pygame.KMOD_SHIFT:
+                # Shift+TAB: переключаться между существами по ID (от min к max)
+                self._select_creature_by_shift_tab()
+            else:
+                # TAB: переключаться между существами по ID (от max к min)
+                self._select_creature_by_tab()
             return False
         
         return False
