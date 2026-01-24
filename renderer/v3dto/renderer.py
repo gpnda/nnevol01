@@ -239,6 +239,18 @@ class Renderer:
                 self.selected_creature_id = all_ids[0]
                 print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (previous dead, reset to min)")
     
+    def _select_creature_reset(self) -> None:
+        """
+        Сбросить выбор существа (нажата ESCAPE).
+        """
+        if self.selected_creature_id is not None:
+            print(f"✓ Creature selection reset (ESCAPE)")
+            self.selected_creature_id = None
+        return
+
+    
+    
+    
     def _on_parameter_change(self, param_name: str, value: any) -> None:
         """
         Callback для обработки изменений параметров из VariablesPanel.
@@ -460,6 +472,8 @@ class Renderer:
                 # TAB: переключаться между существами по ID (от max к min)
                 self._select_creature_by_tab()
             return False
+        elif event.key == pygame.K_ESCAPE:
+            self._select_creature_reset()
         
         return False
     
