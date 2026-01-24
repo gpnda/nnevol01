@@ -184,14 +184,14 @@ class SelectedCreaturePanel:
         for event in render_state.selected_creature.history.events:
             if event.event_type == "CREATE_CHILD":
                 num_offspring += event.value
-        offspring_label = self.font.render(f"Offspring:", False, self.COLORS['label'])
+        offspring_label = self.font.render(f"Offsprings:", False, self.COLORS['label'])
         self.surface.blit(offspring_label, (self.PADDING, y_offset))
-        # Нарисуем потомков справа в виде кружков
+        # Нарисуем потомков справа в виде кружков, по 10 штук в ряд
         for i in range(num_offspring):
             pygame.draw.circle(
                 self.surface,
                 (255, 165, 0),
-                (self.PADDING + 100 + i * 12 + 6, y_offset + 6),
+                (self.PADDING + 100 + (i % 10) * 11 + 6, y_offset + 6 + (i // 10) * 5),
                 4,
                 2
             )
