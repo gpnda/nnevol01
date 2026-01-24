@@ -200,7 +200,9 @@ class PopulationChart:
             self.COLORS['background'],
             (self.PADDING+2, self.PADDING, 100, 11)
         )
-        title_text = self.font.render("Population Size", False, self.COLORS['highlight'])
+        # Получить значение размер популяции
+        current_population = population_history[-1] if population_history else 0
+        title_text = self.font.render(f"Population Size: {current_population}", False, self.COLORS['highlight'])
         self.surface.blit(title_text, (self.PADDING+7, self.PADDING))
         # Отрисовка финальной поверхности
         screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
