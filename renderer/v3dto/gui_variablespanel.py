@@ -93,6 +93,7 @@ class VariablesPanel:
         self.add_variable("energy_gain_from_bite_cr",    float, min_val=0.0,     max_val=1.0)
         self.add_variable("energy_loss_bitten",          float, min_val=0.0,     max_val=1.0)
         self.add_variable("energy_loss_collision",       float, min_val=0.0,     max_val=1.0)
+        self.add_variable("allow_mutations",               int,  min_val=0,      max_val=1)
     
     def add_variable(self, name: str, var_type: type = int,
                      min_val: Optional[float] = None, 
@@ -139,6 +140,7 @@ class VariablesPanel:
         self.variables['energy_gain_from_bite_cr']['value'] = params_dto.energy_gain_from_bite_cr
         self.variables['energy_loss_bitten']['value'] = params_dto.energy_loss_bitten
         self.variables['energy_loss_collision']['value'] = params_dto.energy_loss_collision
+        self.variables['allow_mutations']['value'] = params_dto.allow_mutations
     
     def get_variable(self, name: str) -> Any:
         """Получить значение переменной."""

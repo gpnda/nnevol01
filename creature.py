@@ -110,7 +110,9 @@ class Creature():
             c.generation = self.generation + 1
             print ("Рождение существа поколения №" + str(c.generation))
             c.nn = NeuralNetwork.copy(self.nn)
-            c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
+            if sp.allow_mutations == 1:
+                c.nn.mutate(sp.mutation_probability, sp.mutation_strength)
+                print("##################  c.nn.mutate  ##################")
             # c.isSelected = False
             # print ("Процесс рождения существа. 6")
             cr_babies.append(c)

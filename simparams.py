@@ -53,6 +53,9 @@ class SimParams:
         # Энергия, теряемая при столкновении (из world.py update())
         self.energy_loss_collision = 0.001
 
+        # === Мутации Вкл/Выкл ===
+        self.allow_mutations = 1  # 1 - Вкл, 0 - Выкл
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)

@@ -252,7 +252,7 @@ class Renderer:
         # Устанавливаем значение в SimParams
         if hasattr(sp, param_name):
             setattr(sp, param_name, value)
-            print(f"✓ Parameter updated: {param_name} = {value}")
+            print(f"✓ Parameter updated: {param_name} = {getattr(sp, param_name)}")
             
             # Обработка побочных эффектов
             if param_name == "food_amount":
@@ -347,6 +347,7 @@ class Renderer:
             is_running=self.app.is_running,
             is_animating=self.app.animate_flag,
             is_logging=self.app.is_logging,
+            allow_mutations=sp.allow_mutations,
         )
     
     def _prepare_creature_history_dto(self, creature_id: int) -> Optional[CreatureHistoryDTO]:

@@ -204,6 +204,9 @@ class SimulationParamsDTO:
     is_running: bool
     is_animating: bool
     is_logging: bool
+    
+    # Мутации
+    allow_mutations: int
 
 
 # ============================================================================

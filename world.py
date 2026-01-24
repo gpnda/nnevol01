@@ -197,6 +197,12 @@ class World():
 
 	def control_population(self):
 
+		# Включить/Выключить мутации
+		if len(self.creatures) <= 50 or len(self.creatures) >= 950:
+			sp.allow_mutations = 0
+		else:
+			sp.allow_mutations = 1
+
 		# if len(self.creatures)>=20:  #TODO не стал разбираться, но с этим условием - появляются существа с отрицательной энергией.
 		self.death()
 		
