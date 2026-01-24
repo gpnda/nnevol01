@@ -55,6 +55,7 @@ class PopulationChart:
         'graph_background': (30, 30, 30),
         'graph_line': (100, 150, 255),
         'graph_grid': (60, 60, 60),
+        'graph_bar': (255, 100, 100),
     }
     
     # Размеры
@@ -198,11 +199,28 @@ class PopulationChart:
         pygame.draw.rect(
             self.surface,
             self.COLORS['background'],
-            (self.PADDING+2, self.PADDING, 100, 11)
+            (self.PADDING+2, self.PADDING, 57, 11)
         )
+        if render_state.params.allow_mutations == 1:
+            pygame.draw.rect(
+                self.surface,
+                self.COLORS['background'],
+                (self.PADDING+62, self.PADDING, 45, 11)
+            )
+            title_text = self.font.render(f"mut:On", False, self.COLORS['highlight'])
+            self.surface.blit(title_text, (self.PADDING+64, self.PADDING))
+        else:
+            pygame.draw.rect(
+                self.surface,
+                (255,164,0),
+                (self.PADDING+62, self.PADDING, 45, 11)
+            )
+            title_text = self.font.render(f"mut:Off", False, (255,255,255))
+            self.surface.blit(title_text, (self.PADDING+64, self.PADDING))
+            
         # Получить значение размер популяции
         current_population = population_history[-1] if population_history else 0
-        title_text = self.font.render(f"Population Size: {current_population}", False, self.COLORS['highlight'])
+        title_text = self.font.render(f"Pop: {current_population}", False, self.COLORS['highlight'])
         self.surface.blit(title_text, (self.PADDING+7, self.PADDING))
         # Отрисовка финальной поверхности
         screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
