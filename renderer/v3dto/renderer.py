@@ -26,6 +26,7 @@ from renderer.v3dto.gui_selected_creature_history import SelectedCreatureHistory
 from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
+from renderer.v3dto.gui_experiment import ExperimentModal
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
@@ -110,6 +111,7 @@ class Renderer:
         self.pop_chart = PopulationChart()
         self.nselection_chart = NSelectionChart()
         self.creatures_list_modal = CreaturesListModal()
+        self.experiment_modal = ExperimentModal()
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
@@ -160,6 +162,9 @@ class Renderer:
         if state_name == 'creatures_list':
             # Сбрасываем навигацию при открытии списка существ
             self.creatures_list_modal.reset()
+        elif state_name == 'experiment':
+            # Сбрасываем состояние при открытии окна экспериментов
+            self.experiment_modal.reset()
     
     # ============================================================================
     # ОБРАБОТЧИК ИЗМЕНЕНИЙ ПАРАМЕТРОВ
@@ -448,6 +453,9 @@ class Renderer:
             self.set_state('creatures_list')
             print(logme.get_death_stats_as_ndarray())
             return False
+        elif event.key == pygame.K_F2:
+            self.set_state('experiment')
+            return False
         elif event.key == pygame.K_F9:
             self.set_state('popup_simparams')
             return False
@@ -538,7 +546,7 @@ class Renderer:
         if event.type != pygame.KEYDOWN:
             return False
         
-        if event.key == pygame.K_ESCAPE:
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
             self.set_state('main')
             return True
         
@@ -677,8 +685,7 @@ class Renderer:
     
     def _draw_experiment(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна эксперимента."""
-        # TODO: self.experiment_modal.draw(self.screen, render_state)
-        self._draw_debug_info(render_state)
+        self.experiment_modal.draw(self.screen, render_state)
     
     def _draw_debug_info(self, render_state: RenderStateDTO) -> None:
         """Вспомогательный метод для отрисовки отладочной информации."""
