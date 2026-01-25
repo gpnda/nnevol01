@@ -25,7 +25,7 @@ class Application():
             height=50,
             wall_count=350, 
             food_count=sp.food_amount,
-            creatures_count=30
+            creatures_count=500
         )
 		self.renderer = Renderer(self.world, self)
 		

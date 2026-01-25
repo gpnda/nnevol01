@@ -122,6 +122,7 @@ class NeuralNetwork:  # класс нейронной сети
 
     
     @staticmethod
+    @jit(nopython=True, fastmath=True)
     def fast_calc_all_outs(all_inputs: np.ndarray,
                         all_w1: np.ndarray, all_b1: np.ndarray,
                         all_w2: np.ndarray, all_b2: np.ndarray,
@@ -151,7 +152,7 @@ class NeuralNetwork:  # класс нейронной сети
                 sum_val = np.float32(0.0)
                 for k in range(INPUT_SIZE):
                     sum_val += w1[k, j] * x[k]
-                z1[j] = NeuralNetwork.fast_tanh(sum_val + b1[j])
+                z1[j] = fast_tanh(sum_val + b1[j])
             
             # Второй слой
             z2 = np.zeros(HIDDEN2_SIZE, dtype=np.float32)
@@ -159,7 +160,7 @@ class NeuralNetwork:  # класс нейронной сети
                 sum_val = np.float32(0.0)
                 for k in range(HIDDEN1_SIZE):
                     sum_val += w2[k, j] * z1[k]
-                z2[j] = NeuralNetwork.fast_tanh(sum_val + b2[j])
+                z2[j] = fast_tanh(sum_val + b2[j])
             
             # Третий слой
             for j in range(OUTPUT_SIZE):
@@ -173,9 +174,8 @@ class NeuralNetwork:  # класс нейронной сети
 
 
 
-    @staticmethod
-    @jit(nopython=True, fastmath=True, cache=True)
-    def fast_tanh(x: np.float32) -> np.float32:
-        """Быстрая аппроксимация tanh"""
-        x2 = x * x
-        return x * (27.0 + x2) / (27.0 + 9.0 * x2)
+@jit(nopython=True, fastmath=True, cache=True)
+def fast_tanh(x: np.float32) -> np.float32:
+    """Быстрая аппроксимация tanh"""
+    x2 = x * x
+    return x * (27.0 + x2) / (27.0 + 9.0 * x2)
