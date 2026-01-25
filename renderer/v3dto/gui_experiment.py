@@ -27,7 +27,7 @@ class ExperimentModal:
     
     Архитектура DTO:
     - Получает RenderStateDTO в методе draw()
-    - Извлекает информацию о выбранном существе из render_state.selected_creature
+    - Получает selected_creature_id из reset(selected_creature_id)
     - Полностью изолирована от сингльтонов
     """
     
@@ -66,13 +66,15 @@ class ExperimentModal:
             self.font_small = pygame.font.Font(None, self.FONT_SIZE - 2)
         
         # Позиция и размер окна (будут вычислены при первом draw)
+        self.selected_creature_id = None
         self.x = 0
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
     
-    def reset(self) -> None:
+    def reset(self, selected_creature_id: int) -> None:
         """Сбросить состояние (вызывается при открытии модала)."""
-        pass  # Пока не требуется
+        self.selected_creature_id = selected_creature_id
+        return
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
         """
@@ -109,21 +111,15 @@ class ExperimentModal:
         content_y = self.y + self.TITLE_HEIGHT + self.CONTENT_PADDING
         content_x = self.x + self.CONTENT_PADDING
         
-        # Получаем информацию о выбранном существе
-        selected_creature_dto = render_state.selected_creature
-        
-        if selected_creature_dto is None:
+        if self.selected_creature_id is None:
             # Нет выбранного существа
             msg = self.font.render("No creature selected", True, self.COLORS['text'])
             screen.blit(msg, (content_x, content_y))
         else:
-            # Выбранное существо есть
-            creature = selected_creature_dto.creature
-            
             # Отрисовка информации о выбранном существе
             lines = [
                 f"Selected Creature ID:",
-                f"  {creature.id}",
+                f"  {self.selected_creature_id}",
                 f"",
                 f"More features coming soon...",
             ]

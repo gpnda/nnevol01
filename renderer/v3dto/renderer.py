@@ -164,7 +164,7 @@ class Renderer:
             self.creatures_list_modal.reset()
         elif state_name == 'experiment':
             # Сбрасываем состояние при открытии окна экспериментов
-            self.experiment_modal.reset()
+            self.experiment_modal.reset(self.selected_creature_id)
     
     # ============================================================================
     # ОБРАБОТЧИК ИЗМЕНЕНИЙ ПАРАМЕТРОВ
