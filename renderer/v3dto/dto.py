@@ -96,6 +96,17 @@ class WorldStateDTO:
         return None
 
 
+@dataclass
+class ExperimentStateDTO:
+    """Data Transfer Object для состояния эксперимента.
+    
+    Содержит информацию об активном эксперименте.
+    """
+    tick_count: int
+    creatures_count: int
+    foods_count: int
+    world_map: np.ndarray  # numpy array [height, width] с состоянием мира
+
 # ============================================================================
 # DTO для истории существа
 # ============================================================================
