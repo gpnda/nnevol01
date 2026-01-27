@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Service для управления экспериментами."""
+"""Experiments service package."""
 
-from .experiment_starter import ExperimentStarter
+from .experiment_manager import ExperimentManager
 
-__all__ = ['ExperimentStarter']
+__all__ = ['ExperimentManager']

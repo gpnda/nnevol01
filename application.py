@@ -8,7 +8,7 @@ from renderer.v3dto.renderer import Renderer
 from simparams import sp
 from service.logger.logger import logme
 from service.performance_monitor.performance_monitor import PerformanceMonitor
-from service.experiments.experiment_starter import ExperimentStarter
+from service.experiments.experiment_manager import ExperimentManager
 
 
 class Application():
@@ -31,7 +31,7 @@ class Application():
         )
 		self.renderer = Renderer(self.world, self)
 
-		self.experiment_starter = ExperimentStarter()
+		self.experiment_manager = ExperimentManager()
 
 		
 		
@@ -48,7 +48,7 @@ class Application():
 					logme.write_stats(self.world.creatures)
 					logme.write_population_size(len(self.world.creatures))
 			elif self.experiment_mode:
-				self.experiment_starter.update()
+				self.experiment_manager.update()
 			
 			if self.animate_flag:
 				self.renderer.draw()
@@ -69,7 +69,7 @@ class Application():
 	def experiment_start(self):
 		self.experiment_mode = True
 		self.is_running = False
-		self.experiment_starter.start_experiment(self.world)
+		self.experiment_manager.start_experiment(self.world)
 		print("Experiment started.")
 		
 	
