@@ -111,7 +111,10 @@ class Renderer:
         self.pop_chart = PopulationChart()
         self.nselection_chart = NSelectionChart()
         self.creatures_list_modal = CreaturesListModal()
-        self.experiment_modal = ExperimentModal()
+        self.experiment_modal = ExperimentModal(
+            on_start_experiment=self._on_start_experiment,
+            on_stop_experiment=self._on_stop_experiment
+        )
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
@@ -254,8 +257,6 @@ class Renderer:
         return
 
     
-    
-    
     def _on_parameter_change(self, param_name: str, value: any) -> None:
         """
         Callback для обработки изменений параметров из VariablesPanel.
@@ -286,6 +287,30 @@ class Renderer:
                 print(f"✓ All creatures reproduction ages updated")
         else:
             print(f"✗ Unknown parameter: {param_name}")
+    
+    def _on_start_experiment(self, duration_ticks: int) -> None:
+        """
+        Callback из ExperimentModal для запуска эксперимента.
+        
+        Args:
+            duration_ticks: Количество тиков для эксперимента
+        """
+        if self.app.experiment_manager.start_experiment(self.world, duration_ticks):
+            print(f"✓ Experiment started: {duration_ticks} ticks")
+            # ВАЖНО: Application должна переключиться в experiment_mode
+            # Это произойдет через метод Application.experiment_start()
+            # который вызывается из keyboard handler
+        else:
+            print("✗ Failed to start experiment")
+    
+    def _on_stop_experiment(self) -> None:
+        """Callback из ExperimentModal для остановки эксперимента."""
+        result = self.app.experiment_manager.stop_experiment()
+        if result:
+            print(f"✓ Experiment stopped")
+            self.set_state('main')
+        else:
+            print("✗ No active experiment to stop")
 
     # ============================================================================
     # DTO FACTORY МЕТОДЫ
@@ -414,11 +439,17 @@ class Renderer:
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
         
+        # Получить текущий результат эксперимента если он активен
+        experiment_result = None
+        if self.app.experiment_manager.is_active():
+            experiment_result = self.app.experiment_manager.get_current_result()
+        
         return RenderStateDTO(
             world=world_dto,
             params=params_dto,
             debug=debug_dto,
             selected_creature=selected_creature_dto,
+            experiment_result=experiment_result,
             current_state=self.current_state,
             tick=self.world.tick,
             fps=self.fps,
@@ -547,7 +578,15 @@ class Renderer:
         if event.type != pygame.KEYDOWN:
             return False
         
+        # Передать событие на обработку в модальное окно
+        if self.experiment_modal.handle_keydown(event):
+            return True
+        
         if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
+            # Закрыть окно эксперимента
+            if self.app.experiment_manager.is_active():
+                # Если эксперимент еще запущен, остановить его
+                self._on_stop_experiment()
             self.set_state('main')
             return True
         

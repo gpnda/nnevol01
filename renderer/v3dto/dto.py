@@ -262,6 +262,9 @@ class RenderStateDTO:
     # Текущее выбранное существо и его история
     selected_creature: Optional[SelectedCreaturePanelDTO] = None
     
+    # Состояние эксперимента (если эксперимент активен)
+    experiment_result: Optional[Any] = None  # ExperimentResultDTO из service/experiments/experiment_manager.py
+    
     # Текущее состояние рендеринга
     current_state: str = 'main'  # 'main', 'popup_simparams', 'creatures_list', и т.д.
     tick: int = 0

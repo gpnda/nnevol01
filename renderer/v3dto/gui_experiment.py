@@ -13,7 +13,7 @@ ExperimentModal - v3dto версия.
 """
 
 import pygame
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable, Optional, Any
 
 if TYPE_CHECKING:
     from renderer.v3dto.dto import RenderStateDTO
@@ -28,7 +28,12 @@ class ExperimentModal:
     Архитектура DTO:
     - Получает RenderStateDTO в методе draw()
     - Получает selected_creature_id из reset(selected_creature_id)
-    - Полностью изолирована от сингльтонов
+    - Полностью изолирована от синглтонов
+    - Использует callback паттерн для управления экспериментами (как VariablesPanel)
+    
+    Callbacks:
+    - on_start_experiment(duration): Запустить эксперимент
+    - on_stop_experiment(): Остановить эксперимент
     """
     
     # Геометрия окна (центрировано на экране)
@@ -53,8 +58,20 @@ class ExperimentModal:
         'value': (0, 255, 100),       # Зелёный для значений
     }
     
-    def __init__(self):
-        """Инициализация модального окна экспериментов."""
+    def __init__(self, 
+                 on_start_experiment: Optional[Callable[[int], None]] = None,
+                 on_stop_experiment: Optional[Callable[[], None]] = None):
+        """
+        Инициализация модального окна экспериментов.
+        
+        Args:
+            on_start_experiment: Callback для запуска эксперимента (duration_ticks)
+            on_stop_experiment: Callback для остановки эксперимента
+        """
+        # Callbacks для управления экспериментом
+        self.on_start_experiment = on_start_experiment or (lambda x: None)
+        self.on_stop_experiment = on_stop_experiment or (lambda: None)
+        
         # Инициализация шрифтов
         try:
             self.font_title = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE + 2)
@@ -70,11 +87,59 @@ class ExperimentModal:
         self.x = 0
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
+        
+        # Состояние эксперимента (для отображения)
+        self.experiment_running = False
+        self.default_duration = 500
     
     def reset(self, selected_creature_id: int) -> None:
         """Сбросить состояние (вызывается при открытии модала)."""
         self.selected_creature_id = selected_creature_id
+        self.experiment_running = False
         return
+    
+    def start_experiment(self, duration: int = 500) -> None:
+        """
+        Запустить эксперимент через callback.
+        
+        Args:
+            duration: Количество тиков для эксперимента
+        """
+        self.on_start_experiment(duration)
+        self.experiment_running = True
+    
+    def stop_experiment(self) -> None:
+        """Остановить эксперимент через callback."""
+        self.on_stop_experiment()
+        self.experiment_running = False
+    
+    def handle_keydown(self, event: pygame.event.Event) -> bool:
+        """
+        Обработка клавиш в окне эксперимента.
+        
+        Args:
+            event: Pygame event KEYDOWN
+        
+        Returns:
+            True если событие обработано, False иначе
+        """
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        # S - Start experiment
+        if event.key == pygame.K_s:
+            self.start_experiment(self.default_duration)
+            print(f"[ExperimentModal] Эксперимент запущен на {self.default_duration} тиков")
+            return True
+        
+        # X - Stop experiment
+        elif event.key == pygame.K_x:
+            if self.experiment_running:
+                self.stop_experiment()
+                print("[ExperimentModal] Эксперимент остановлен")
+            return True
+        
+        return False
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
         """
@@ -121,13 +186,34 @@ class ExperimentModal:
                 f"Selected Creature ID:",
                 f"  {self.selected_creature_id}",
                 f"",
-                f"More features coming soon...",
+                f"Experiment Status: {'RUNNING' if self.experiment_running else 'IDLE'}",
             ]
+            
+            # Добавить информацию о тиках если эксперимент активен
+            if render_state.experiment_result is not None:
+                exp = render_state.experiment_result
+                lines.extend([
+                    f"Progress: {exp.current_tick} / {exp.total_ticks} ticks ({exp.progress_percent:.1f}%)",
+                    f"Energy: {exp.current_energy:.2f}",
+                ])
+            else:
+                lines.append(f"Duration: {self.default_duration} ticks")
+            
+            lines.extend([
+                f"",
+                f"Controls:",
+                f"  S - Start experiment",
+                f"  X - Stop experiment",
+            ])
             
             for line in lines:
                 if line.startswith("  "):
                     # Значение - зелёный цвет
                     text_surface = self.font.render(line, True, self.COLORS['value'])
+                elif line.startswith("Experiment Status"):
+                    # Статус - разные цвета в зависимости от состояния
+                    color = self.COLORS['value'] if self.experiment_running else self.COLORS['text']
+                    text_surface = self.font.render(line, True, color)
                 else:
                     # Метка - белый цвет
                     text_surface = self.font.render(line, True, self.COLORS['label'])
