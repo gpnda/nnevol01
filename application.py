@@ -49,12 +49,10 @@ class Application():
 				self.experiment.update()
 			
 			else:
-				pass  # Пауза	
-			
-
+				pass	
 			
 			if self.animate_flag:
-								self.renderer.draw()		
+				self.renderer.draw()		
 
 			
 			
