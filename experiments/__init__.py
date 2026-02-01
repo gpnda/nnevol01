@@ -23,7 +23,7 @@ EXPERIMENTS = {
         'experiment_class': DummyExperiment,
         'widget_class': DummyExperimentWidget,
         'name': 'Dummy Experiment',
-        'description': 'Наблюдение за одним существом',
+        'description': 'Dummy for all future experiments',
     },
     # Добавляйте новые эксперименты сюда:
     # 'advanced': {

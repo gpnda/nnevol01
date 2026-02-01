@@ -281,15 +281,224 @@ Keyboard shortcuts:
 4. **Camera math**: Camera offset + scale system expects world cells, not pixels; use constants for layout changes
 5. **Creature stuck**: Check `world.update()` in creature loop - may need world bounds checks
 
+## 5. **Experiments Architecture** (`experiments/`)
+
+### Overview
+The experiment system provides a pluggable framework for running isolated observation/analysis tasks on creatures during simulation. Each experiment has two components:
+1. **Logic** (inherits from `ExperimentBase`): simulation logic, data collection, state tracking
+2. **Widget**: v3dto-based UI visualization (fully isolated, receives `RenderStateDTO`)
+
+### Directory Structure
+```
+experiments/
+├── __init__.py           # Registry: EXPERIMENTS dict
+├── base/
+│   ├── __init__.py
+│   └── experiment_base.py  # Abstract interface
+├── dummy/
+│   ├── __init__.py
+│   ├── experiment.py     # DummyExperiment logic
+│   └── widget.py         # DummyExperimentWidget UI
+```
+
+### Registry System (Central Management)
+File: `experiments/__init__.py`
+```python
+EXPERIMENTS = {
+    'dummy': {
+        'experiment_class': DummyExperiment,
+        'widget_class': DummyExperimentWidget,
+        'name': 'Dummy Experiment',
+        'description': 'Basic observation experiment',
+    },
+    # Add new experiments here (no code changes needed elsewhere!)
+}
+```
+
+### ExperimentBase Interface
+File: `experiments/base/experiment_base.py` - Abstract methods:
+- `start()`: Called when experiment activates → initialize state, display message
+- `stop()`: Called when experiment closes → finalize data, print results
+- `update()`: Called every frame if experiment is active → collect data, run logic
+
+### Lifecycle & Integration
+
+#### 1. **Experiment Selection** (User chooses experiment)
+```
+User clicks "E" → Renderer.set_state('experiments_list')
+  → ExperimentsListModal displays EXPERIMENTS registry
+  → User selects experiment + creature_id
+  → ExperimentsListModal.on_experiment_choose() callback fires
+```
+
+#### 2. **Experiment Initialization** (Renderer → Application)
+```
+Renderer._on_experiment_choose(creature_id, experiment_id):
+  1. Look up experiment from EXPERIMENTS registry
+  2. Call app.init_experiment(experiment_type, creature_id)
+  3. Create experiment_widget from widget_class
+  4. renderer.set_state('experiment') → pauses simulation + renders widget
+```
+
+#### 3. **Experiment Running** (Active)
+```
+application.run():
+  if experiment_mode:
+    experiment.update()  # Called every frame for data collection
+  
+  if animate_flag:
+    renderer.draw():
+      → renderer.draw_state_experiment()
+      → experiment_widget.draw(screen, render_state)
+```
+
+#### 4. **Experiment Exit** (ESC/F2)
+```
+Renderer.control_run() detects ESC
+  → experiment.stop()  # Clean up, print stats
+  → renderer.set_state('main')  # Resume simulation
+  → experiment_widget = None
+```
+
+### Key Integration Points
+
+| Component | File | Role |
+|-----------|------|------|
+| **Registry** | `experiments/__init__.py` | Centralized EXPERIMENTS dict |
+| **Application** | `application.py` | `init_experiment()`, `experiment.update()` call |
+| **Renderer** | `renderer/v3dto/renderer.py` | State transitions, widget drawing, callbacks |
+| **Modal** | `renderer/v3dto/gui_experiments_list.py` | List UI + `on_experiment_choose()` |
+| **Widget** | `experiments/[type]/widget.py` | v3dto-based visualization (fully isolated) |
+
+### How to Add a New Experiment
+
+#### Step 1: Create Experiment Module
+Create folder: `experiments/myexp/`
+```
+experiments/myexp/
+├── __init__.py
+├── experiment.py     # Inherit ExperimentBase, implement 3 methods
+└── widget.py         # Inherit nothing, implement draw(screen, render_state)
+```
+
+#### Step 2: Implement Experiment Logic
+File: `experiments/myexp/experiment.py`
+```python
+from experiments.base import ExperimentBase
+
+class MyExperiment(ExperimentBase):
+    def __init__(self, experiment_type: str, target_creature_id: int):
+        self.creature_id = target_creature_id
+        self.data = []
+    
+    def start(self) -> None:
+        print(f"[EXPERIMENT] Starting MyExperiment on creature {self.creature_id}")
+    
+    def stop(self) -> None:
+        print(f"[EXPERIMENT] Results: {len(self.data)} samples collected")
+    
+    def update(self) -> None:
+        # Called every frame - collect data, update stats
+        # Access creature via renderer/application if needed
+        pass
+```
+
+#### Step 3: Implement Widget (v3dto pattern)
+File: `experiments/myexp/widget.py`
+```python
+import pygame
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from renderer.v3dto.dto import RenderStateDTO
+
+class MyExperimentWidget:
+    POPUP_WIDTH = 600
+    POPUP_HEIGHT = 400
+    # ... (follow v3dto widget pattern from DummyExperimentWidget)
+    
+    def __init__(self):
+        # Initialize surfaces, fonts, geometry
+        pass
+    
+    def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
+        # Use render_state data ONLY (never touch world/logger/debugger)
+        # render_state has: world, selected_creature, debug, params
+        pass
+    
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        # Optional: handle internal widget events (ESC/F2 handled by Renderer)
+        return False
+```
+
+#### Step 4: Register in EXPERIMENTS
+File: `experiments/__init__.py`
+```python
+from experiments.myexp import MyExperiment, MyExperimentWidget
+
+EXPERIMENTS = {
+    'dummy': { ... },  # existing
+    'myexp': {
+        'experiment_class': MyExperiment,
+        'widget_class': MyExperimentWidget,
+        'name': 'My Experiment',
+        'description': 'Detailed description',
+    },
+}
+```
+
+#### Step 5: Done! No other files need changes
+- Renderer automatically detects new experiment via `EXPERIMENTS` registry
+- ExperimentsListModal displays it immediately
+- All lifecycle hooks work automatically
+
+### Critical Implementation Rules
+
+1. **ExperimentBase methods**:
+   - `start()`: Initialize state, print to console
+   - `update()`: Collect per-frame data (called every frame from `application.run()`)
+   - `stop()`: Finalize results, print summary
+
+2. **Widget (v3dto)**:
+   - MUST NOT import: `world`, `logger`, `debugger`, `simparams`, `application`
+   - MUST receive: `RenderStateDTO` in `draw()`
+   - MUST use only: `render_state` parameter for all data
+   - Follow class constants pattern: `WIDGET_X/Y`, `WIDTH`, `HEIGHT`, `FONT_SIZE`, `COLORS`
+
+3. **Registry entry requires**:
+   - `experiment_class`: Class inheriting `ExperimentBase`
+   - `widget_class`: Class with `draw(screen, render_state)` method
+   - `name`: Display name in ExperimentsListModal
+   - `description`: Help text
+
+### Accessing Experiment Data from Widget
+
+The widget receives `render_state: RenderStateDTO` which contains:
+- `render_state.selected_creature`: `CreatureDTO` if selected
+- `render_state.world`: `WorldStateDTO` with creatures[], foods[], map
+- `render_state.debug`: `DebugDataDTO` 
+- `render_state.params`: `SimulationParamsDTO`
+
+Example:
+```python
+def draw(self, screen, render_state):
+    if render_state.selected_creature:
+        creature_dto = render_state.selected_creature
+        energy = creature_dto.energy
+        age = creature_dto.age
+        # Render this data...
+```
+
 ## Future Refactoring Notes
 
 - [x] Extract GUI panels (`Viewport`, `SelectedCreaturePanel`, `SelectedCreatureHistory`, `VariablesPanel`) - **DONE** (v3dto)
 - [x] Implement DTO isolation system - **DONE**
 - [x] Implement state machine for modal windows - **DONE**
 - [x] Implement callback pattern for parameter changes - **DONE**
-- [ ] Extract modal windows (`CreaturesListModal`, `LogsWindow`, `ExperimentModal`) with same DTO pattern
+- [x] Implement experiments system with registry pattern - **DONE**
+- [ ] Extract modal windows (`CreaturesListModal`, `LogsWindow`) with same DTO pattern
+- [ ] Add more built-in experiments (e.g., nutrition analysis, neural activity profiler)
 - [ ] Add configuration file for world parameters (width, height, creature count, mutation rates)
-- [ ] Consider making modal windows full components with their own state management
 - [ ] Performance: optimize `_draw_cells()` with spatial indexing (grid sectors) if scaling to large maps
 - [ ] Add more visualization layers (selection box, creature rays, energy heatmap)
 
