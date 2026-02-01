@@ -74,57 +74,35 @@ class Application():
 			experimental_creature_id: ID существа для тестирования
 		
 		Процесс:
-		1. Получить существо из основного мира по ID
-		2. Создать CreatureDTO из существа
-		3. Передать DTO в конструктор эксперимента
-		4. Запустить эксперимент
+		1. Инициализировать эксперимент, передав тип, ID и список существ
+		2. Конструктор эксперимента разбирает массив и создает CreatureDTO
+		3. Запустить эксперимент
 		"""
 		print(f"Initializing experiment: {experiment_type} on creature ID {experimental_creature_id}")
 		from experiments import EXPERIMENTS
-		from renderer.v3dto.dto import CreatureDTO
 		
 		if experiment_type not in EXPERIMENTS:
 			print(f"Unknown experiment type: {experiment_type}")
 			self.experiment_mode = False
 			return
 		
-		# Получить целевое существо из основного мира
-		target_creature = None
-		for creature in self.world.creatures:
-			if creature.id == experimental_creature_id:
-				target_creature = creature
-				break
-		
-		if target_creature is None:
-			print(f"ERROR: Creature with ID {experimental_creature_id} not found in main world")
-			self.experiment_mode = False
-			return
-		
-		# Преобразовать Creature в CreatureDTO
-		target_creature_dto = CreatureDTO(
-			id=target_creature.id,
-			x=target_creature.x,
-			y=target_creature.y,
-			angle=target_creature.angle,
-			energy=target_creature.energy,
-			age=target_creature.age,
-			speed=target_creature.speed,
-			generation=target_creature.generation,
-			bite_effort=target_creature.bite_effort,
-			vision_distance=target_creature.vision_distance,
-			bite_range=target_creature.bite_range,
-		)
-		
-		# Инициализировать эксперимент с DTO
+		# Инициализировать эксперимент с типом, ID и списком существ
 		experiment_registry = EXPERIMENTS[experiment_type]
 		experiment_class = experiment_registry['experiment_class']
-		self.experiment = experiment_class(experiment_type, target_creature_dto)
-		self.experiment_mode = True
-		self.is_running = False  # Остановить основную симуляцию
 		
-		# Запускаем эксперимент
-		self.experiment.start()
-		print(f"Experiment initialized and started")
+		try:
+			self.experiment = experiment_class(experiment_type, experimental_creature_id, self.world.creatures)
+			self.experiment_mode = True
+			self.is_running = False  # Остановить основную симуляцию
+			
+			# Запускаем эксперимент
+			self.experiment.start()
+			print(f"Experiment initialized and started")
+		
+		except Exception as e:
+			print(f"ERROR: Failed to initialize experiment: {e}")
+			self.experiment_mode = False
+			self.experiment = None
 
 	def start_experiment(self):
 		if self.experiment_mode and self.experiment is not None:

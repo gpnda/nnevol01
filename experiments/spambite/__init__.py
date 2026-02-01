@@ -10,8 +10,10 @@ SpambiteExperiment - эксперимент на пищу (Spambite).
 
 from experiments.spambite.experiment import SpambiteExperiment
 from experiments.spambite.widget import SpambiteExperimentWidget
+from experiments.spambite.dto import SpambiteExperimentDTO
 
 __all__ = [
     'SpambiteExperiment',
     'SpambiteExperimentWidget',
+    'SpambiteExperimentDTO',
 ]

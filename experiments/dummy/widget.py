@@ -4,17 +4,13 @@ Dummy Experiment Widget - v3dto версия.
 
 Визуальный интерфейс для dummy эксперимента.
 Архитектура v3dto:
-- НЕ имеет зависимостей от world, experiment, debugger
-- Получает данные только через RenderStateDTO
+- НЕ имеет зависимостей от world, experiment, debugger, RenderStateDTO
+- Получает данные только через DummyExperimentDTO
 - Полностью изолирована от singleton'ов
 - Может быть открыто и закрыто через state machine Renderer'а
 """
 
 import pygame
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from renderer.v3dto.dto import RenderStateDTO
 
 
 class DummyExperimentWidget:
@@ -22,8 +18,8 @@ class DummyExperimentWidget:
     Виджет для визуализации dummy эксперимента.
     
     Архитектура DTO:
-    - Получает RenderStateDTO в методе draw()
-    - Получает selected_creature_id из RenderStateDTO
+    - Получает DummyExperimentDTO в методе draw()
+    - Не имеет доступа к RenderStateDTO
     - Полностью изолирована от singleton'ов
     """
     
@@ -86,14 +82,18 @@ class DummyExperimentWidget:
         # Пока ничего не обрабатываем
         return False
     
-    def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
+    def draw(self, screen: pygame.Surface, experiment_dto) -> None:
         """
         Отрисовка виджета dummy эксперимента.
         
         Args:
             screen: Pygame surface для отрисовки
-            render_state: RenderStateDTO с данными о симуляции
+            experiment_dto: DummyExperimentDTO с данными эксперимента
         """
+        # Проверить валидность DTO
+        if experiment_dto is None:
+            return
+        
         # Вычисляем позицию окна (центр экрана)
         screen_width, screen_height = screen.get_size()
         self.x = (screen_width - self.POPUP_WIDTH) // 2
@@ -121,38 +121,34 @@ class DummyExperimentWidget:
         content_y = self.y + self.TITLE_HEIGHT + self.CONTENT_PADDING
         content_x = self.x + self.CONTENT_PADDING
         
-        # Отрисовка информации об эксперименте
-        if render_state.selected_creature is not None:
-            creature_id = render_state.selected_creature.creature.id
+        # Отрисовка информации об эксперименте из experiment_dto
+        creature_id = experiment_dto.creature_id if hasattr(experiment_dto, 'creature_id') else 'unknown'
+        
+        lines = [
+            f"Experiment Type:",
+            f"  DUMMY",
+            f"",
+            f"Target Creature:",
+            f"  ID: {creature_id}",
+            f"",
+            f"Status:",
+            f"  RUNNING",
+        ]
+        
+        for line in lines:
+            if line.startswith("  "):
+                # Значение - зелёный цвет
+                text_surface = self.font.render(line, True, self.COLORS['value'])
+            elif line == "":
+                # Пустая строка - пропускаем
+                text_surface = None
+            else:
+                # Метка - белый цвет
+                text_surface = self.font.render(line, True, self.COLORS['label'])
             
-            lines = [
-                f"Experiment Type:",
-                f"  DUMMY",
-                f"",
-                f"Target Creature:",
-                f"  ID: {creature_id}",
-                f"",
-                f"Status:",
-                f"  RUNNING",
-            ]
-            
-            for line in lines:
-                if line.startswith("  "):
-                    # Значение - зелёный цвет
-                    text_surface = self.font.render(line, True, self.COLORS['value'])
-                elif line == "":
-                    # Пустая строка - пропускаем
-                    text_surface = None
-                else:
-                    # Метка - белый цвет
-                    text_surface = self.font.render(line, True, self.COLORS['label'])
-                
-                if text_surface is not None:
-                    screen.blit(text_surface, (content_x, content_y))
-                content_y += self.LINE_HEIGHT
-        else:
-            msg = self.font.render("No creature selected", True, self.COLORS['text'])
-            screen.blit(msg, (content_x, content_y))
+            if text_surface is not None:
+                screen.blit(text_surface, (content_x, content_y))
+            content_y += self.LINE_HEIGHT
         
         # Отрисовка подсказки внизу
         help_text = "ESC or F2: close experiment"

@@ -5,16 +5,12 @@ SpambiteExperiment Widget - v3dto версия.
 Визуальный интерфейс для SpambiteExperiment.
 Архитектура v3dto:
 - НЕ имеет зависимостей от world, experiment, debugger
-- Получает данные только через RenderStateDTO
-- Полностью изолирована от singleton'ов
+- Получает данные только через SpambiteExperimentDTO
+- Полностью изолирована от singleton'ов и RenderStateDTO
 - Может быть открыто и закрыто через state machine Renderer'а
 """
 
 import pygame
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from renderer.v3dto.dto import RenderStateDTO
 
 
 class SpambiteExperimentWidget:
@@ -22,8 +18,8 @@ class SpambiteExperimentWidget:
     Виджет для визуализации SpambiteExperiment.
     
     Архитектура DTO:
-    - Получает RenderStateDTO в методе draw()
-    - Извлекает SpambiteExperimentDTO из render_state.experiment_dto
+    - Получает SpambiteExperimentDTO в методе draw()
+    - Не имеет доступа к RenderStateDTO
     - Рисует карту мира 50x50, существо, пищу и статистику
     - Полностью изолирована от singleton'ов
     """
@@ -85,26 +81,25 @@ class SpambiteExperimentWidget:
     # Методы рисования
     # ============================================================================
     
-    def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
+    def draw(self, screen: pygame.Surface, experiment_dto) -> None:
         """
         Основной метод рисования виджета.
         
         Args:
             screen: pygame.Surface для рисования
-            render_state: RenderStateDTO с данными эксперимента
+            experiment_dto: SpambiteExperimentDTO с данными эксперимента
         """
         # Центрировать на экране
         self._center_on_screen(screen.get_width(), screen.get_height())
         
-        # Получить данные из render_state
-        exp_dto = render_state.experiment_dto
-        if exp_dto is None:
+        # Проверить валидность DTO
+        if experiment_dto is None:
             return
         
         # Рисовать окно
         self._draw_background(screen)
         self._draw_title(screen)
-        self._draw_content(screen, exp_dto)
+        self._draw_content(screen, experiment_dto)
         self._draw_border(screen)
     
     def _draw_background(self, screen: pygame.Surface) -> None:

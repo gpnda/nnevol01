@@ -451,24 +451,20 @@ class Renderer:
         """Собрать ПОЛНЫЙ снимок состояния для всех виджетов в RenderStateDTO.
         
         Это главный метод, который собирает все DTO для передачи в виджеты.
+        
+        ВАЖНО: experiment_dto не включается сюда!
+        Экспериментальные данные передаются отдельно в _draw_experiment().
         """
         world_dto = self._prepare_world_dto()
         params_dto = self._prepare_simulation_params_dto()
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
         
-        # Получаем experiment_dto если эксперимент активен
-        experiment_dto = None
-        if hasattr(self.app, 'experiment') and self.app.experiment is not None:
-            if hasattr(self.app.experiment, 'get_dto'):
-                experiment_dto = self.app.experiment.get_dto()
-        
         return RenderStateDTO(
             world=world_dto,
             params=params_dto,
             debug=debug_dto,
             selected_creature=selected_creature_dto,
-            experiment_dto=experiment_dto,
             current_state=self.current_state,
             tick=self.world.tick,
             fps=self.fps,
@@ -710,7 +706,13 @@ class Renderer:
         elif self.current_state == 'experiments_list':
             self._draw_experiments_list(render_state)
         elif self.current_state == 'experiment':
-            self._draw_experiment(render_state)
+            # Для эксперимента получаем его DTO отдельно
+            experiment_dto = None
+            if hasattr(self.app, 'experiment') and self.app.experiment is not None:
+                if hasattr(self.app.experiment, 'get_dto'):
+                    experiment_dto = self.app.experiment.get_dto()
+            
+            self._draw_experiment(experiment_dto)
         
         # Обновление дисплея
         pygame.display.flip()
@@ -771,10 +773,14 @@ class Renderer:
         """Отрисовка окна списка экспериментов."""
         self.experiments_list_modal.draw(self.screen, render_state)
     
-    def _draw_experiment(self, render_state: RenderStateDTO) -> None:
-        """Отрисовка окна активного эксперимента."""
+    def _draw_experiment(self, experiment_dto) -> None:
+        """Отрисовка окна активного эксперимента.
+        
+        Args:
+            experiment_dto: DTO эксперимента (SpambiteExperimentDTO, DummyExperimentDTO, и т.д.)
+        """
         if self.experiment_widget is not None and hasattr(self.experiment_widget, 'draw'):
-            self.experiment_widget.draw(self.screen, render_state)
+            self.experiment_widget.draw(self.screen, experiment_dto)
     
     def _draw_debug_info(self, render_state: RenderStateDTO) -> None:
         """Вспомогательный метод для отрисовки отладочной информации."""

@@ -60,16 +60,22 @@ class SpambiteExperiment(ExperimentBase):
     # Инициализация
     # ============================================================================
     
-    def __init__(self, experiment_type: str, target_creature_dto: CreatureDTO):
+    def __init__(self, experiment_type: str, target_creature_id: int, creatures_list: list):
         """
         Инициализация SpambiteExperiment.
         
         Args:
             experiment_type: Тип эксперимента (должен быть "spambite")
-            target_creature_dto: DTO целевого существа (данные, не сам объект)
+            target_creature_id: ID целевого существа
+            creatures_list: Список всех существ из основного мира
+        
+        Raises:
+            ValueError: Если существо с заданным ID не найдено
         """
         self.experiment_type = experiment_type
-        self.target_creature_dto = target_creature_dto
+        
+        # Создать CreatureDTO из target_creature_id через фабричный метод
+        self.target_creature_dto = CreatureDTO.from_creature_id(target_creature_id, creatures_list)
         
         # Состояние эксперимента
         self.is_running = False
@@ -87,7 +93,7 @@ class SpambiteExperiment(ExperimentBase):
         
         print(f"[EXPERIMENT] SpambiteExperiment initialized")
         print(f"  Type: {experiment_type}")
-        print(f"  Target creature ID: {target_creature_dto.id}")
+        print(f"  Target creature ID: {target_creature_id}")
         print(f"  Max iterations: {self.MAX_ITERATIONS}")
     
     # ============================================================================
@@ -414,3 +420,65 @@ class SpambiteExperiment(ExperimentBase):
         print(f"-" * 60)
         print(f"  Interpretation:         {interpretation}")
         print(f"{'='*60}\n")
+    
+    def get_dto(self) -> SpambiteExperimentDTO:
+        """
+        Получить DTO эксперимента для передачи в виджет.
+        
+        Returns:
+            SpambiteExperimentDTO: Данные для визуализации в widget
+        """
+        # Подготовить список позиций пищи
+        food_positions = []
+        if self.current_food is not None:
+            food_positions.append((self.current_food.x, self.current_food.y))
+        
+        # Подготовить DTO мира если мир активен
+        world_dto = None
+        if self.temp_world is not None:
+            from renderer.v3dto.dto import WorldStateDTO, FoodDTO
+            creatures_dto = []
+            if self.creature is not None:
+                creatures_dto.append(
+                    self._prepare_creature_dto(self.creature)
+                )
+            
+            foods_dto = [FoodDTO(x=self.current_food.x, y=self.current_food.y, energy=self.current_food.nutrition)]
+            
+            world_dto = WorldStateDTO(
+                map=self.temp_world.map,
+                width=self.temp_world.width,
+                height=self.temp_world.height,
+                creatures=creatures_dto,
+                foods=foods_dto,
+                tick=self.temp_world.tick,
+            )
+        
+        return SpambiteExperimentDTO(
+            world_state=world_dto,
+            creature_dto=self.target_creature_dto,
+            food_positions=food_positions,
+            current_iteration=self.current_iteration,
+            total_iterations=self.MAX_ITERATIONS,
+            successes=self.successes,
+            failures=self.failures,
+            frames_in_iteration=self.frames_in_iteration,
+            debug_message=f"Iteration {self.current_iteration}/{self.MAX_ITERATIONS}",
+        )
+    
+    def _prepare_creature_dto(self, creature):
+        """Вспомогательный метод для преобразования Creature в CreatureDTO."""
+        from renderer.v3dto.dto import CreatureDTO
+        return CreatureDTO(
+            id=creature.id,
+            x=creature.x,
+            y=creature.y,
+            angle=creature.angle,
+            energy=creature.energy,
+            age=creature.age,
+            speed=creature.speed,
+            generation=creature.generation,
+            bite_effort=creature.bite_effort,
+            vision_distance=creature.vision_distance,
+            bite_range=creature.bite_range,
+        )

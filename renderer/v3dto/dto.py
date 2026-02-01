@@ -33,6 +33,46 @@ class CreatureDTO:
     vision_distance: float
     bite_range: float
     
+    @classmethod
+    def from_creature_id(cls, creature_id: int, creatures_list: list) -> 'CreatureDTO':
+        """
+        Фабрика для создания CreatureDTO из creature_id.
+        
+        Ищет существо в списке по ID и преобразует его в DTO.
+        
+        Args:
+            creature_id: ID существа для поиска
+            creatures_list: Список существ для поиска
+        
+        Returns:
+            CreatureDTO: DTO найденного существа
+        
+        Raises:
+            ValueError: Если существо с заданным ID не найдено
+        """
+        target_creature = None
+        for creature in creatures_list:
+            if creature.id == creature_id:
+                target_creature = creature
+                break
+        
+        if target_creature is None:
+            raise ValueError(f"Creature with ID {creature_id} not found in creatures list")
+        
+        return cls(
+            id=target_creature.id,
+            x=target_creature.x,
+            y=target_creature.y,
+            angle=target_creature.angle,
+            energy=target_creature.energy,
+            age=target_creature.age,
+            speed=target_creature.speed,
+            generation=target_creature.generation,
+            bite_effort=target_creature.bite_effort,
+            vision_distance=target_creature.vision_distance,
+            bite_range=target_creature.bite_range,
+        )
+    
     # Дополнительные вычисленные поля для UI
     @property
     def energy_percentage(self) -> float:
@@ -238,6 +278,9 @@ class RenderStateDTO:
     
     Используется для передачи полного снимка состояния всем виджетам
     в методе Renderer.draw().
+    
+    ВАЖНО: experiment_dto НЕ находится здесь!
+    Экспериментальные данные передаются отдельно в _draw_experiment().
     """
     # Основное состояние мира
     world: WorldStateDTO
@@ -250,11 +293,6 @@ class RenderStateDTO:
     
     # Текущее выбранное существо и его история
     selected_creature: Optional[SelectedCreaturePanelDTO] = None
-    
-    # Текущий эксперимент (если запущен)
-    # Каждый эксперимент определяет свой собственный DTO (SpambiteExperimentDTO, и т.д.)
-    # Это поле остается None если эксперимент не запущен
-    experiment_dto: Optional[object] = None
     
     # Текущее состояние рендеринга
     current_state: str = 'main'  # 'main', 'popup_simparams', 'creatures_list', и т.д.

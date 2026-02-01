@@ -9,6 +9,8 @@ Dummy Experiment - простой базовый эксперимент для �
 """
 
 from experiments.base import ExperimentBase
+from experiments.dummy.dto import DummyExperimentDTO
+from renderer.v3dto.dto import CreatureDTO
 
 
 class DummyExperiment(ExperimentBase):
@@ -22,16 +24,24 @@ class DummyExperiment(ExperimentBase):
     - Во время эксперимента симуляция работает в обычном режиме
     """
     
-    def __init__(self, experiment_type: str, experimental_creature_id: int):
+    def __init__(self, experiment_type: str, target_creature_id: int, creatures_list: list):
         """
         Инициализация dummy эксперимента.
         
         Args:
             experiment_type: Тип эксперимента (должен быть "dummy")
-            experimental_creature_id: ID существа для наблюдения
+            target_creature_id: ID существа для наблюдения
+            creatures_list: Список всех существ из основного мира
+        
+        Raises:
+            ValueError: Если существо с заданным ID не найдено
         """
         self.experiment_type = experiment_type
-        self.creature_id = experimental_creature_id
+        self.creature_id = target_creature_id
+        
+        # Создать CreatureDTO из target_creature_id через фабричный метод
+        self.target_creature_dto = CreatureDTO.from_creature_id(target_creature_id, creatures_list)
+        
         self.is_running = False
         self.tick_counter = 0
         self.start_energy = None
@@ -40,7 +50,7 @@ class DummyExperiment(ExperimentBase):
         
         print(f"[EXPERIMENT] Dummy experiment initialized")
         print(f"  Type: {experiment_type}")
-        print(f"  Target creature: {experimental_creature_id}")
+        print(f"  Target creature: {target_creature_id}")
     
     def start(self) -> None:
         """Запустить эксперимент."""
@@ -76,3 +86,20 @@ class DummyExperiment(ExperimentBase):
         print(f"  Total ticks: {self.tick_counter}")
         print(f"  Target creature: {self.creature_id}")
         print(f"  Status: {'COMPLETED' if self.tick_counter > 0 else 'NOT STARTED'}")
+    
+    def get_dto(self) -> DummyExperimentDTO:
+        """
+        Получить DTO эксперимента для передачи в виджет.
+        
+        Returns:
+            DummyExperimentDTO: Данные для визуализации в widget
+        """
+        return DummyExperimentDTO(
+            creature_id=self.creature_id,
+            experiment_type=self.experiment_type,
+            is_running=self.is_running,
+            tick_counter=self.tick_counter,
+            start_energy=self.start_energy,
+            max_energy=self.max_energy,
+            min_energy=self.min_energy,
+        )
