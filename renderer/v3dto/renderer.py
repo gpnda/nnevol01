@@ -27,6 +27,7 @@ from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
 from renderer.v3dto.gui_experiments_list import ExperimentsListModal
+from renderer.v3dto.gui_experiment_dummy import DummyExperimentWidget
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
@@ -98,6 +99,7 @@ class Renderer:
             'creatures_list': 'Список существ (модальное)',
             'logs': 'Логи в полный экран (модальное)',
             'experiments_list': 'Окно со списком доступных экспериментов (модальное)',
+            'experiment': 'Окно активного эксперимента (модальное)',
         }
         
         # Часы для управления FPS
@@ -111,7 +113,10 @@ class Renderer:
         self.pop_chart = PopulationChart()
         self.nselection_chart = NSelectionChart()
         self.creatures_list_modal = CreaturesListModal()
-        self.experiments_list_modal = ExperimentsListModal()
+        self.experiments_list_modal = ExperimentsListModal(on_experiment_choose=self._on_experiment_choose)
+        
+        # ЭКСПЕРИМЕНТ ВИДЖЕТ (инициализируется при выборе эксперимента)
+        self.experiment_widget = None
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
@@ -286,6 +291,50 @@ class Renderer:
                 print(f"✓ All creatures reproduction ages updated")
         else:
             print(f"✗ Unknown parameter: {param_name}")
+    
+    def _on_experiment_choose(self, creature_id: int, experiment_id: int) -> None:
+        """
+        Callback для обработки выбора эксперимента из ExperimentsListModal.
+        
+        Создаёт соответствующий виджет эксперимента и переводит renderer в состояние 'experiment'.
+        
+        Args:
+            creature_id: ID выбранного существа
+            experiment_id: ID выбранного эксперимента (0-10)
+        """
+        # Преобразуем experiment_id в experiment_type
+        experiment_types = [
+            "dummy",
+            "spam_biting",
+            "no_spam_bite",
+            "funnel",
+            "slot_4",
+            "slot_5",
+            "slot_6",
+            "slot_7",
+            "slot_8",
+            "slot_9",
+            "slot_10",
+        ]
+        
+        if 0 <= experiment_id < len(experiment_types):
+            experiment_type = experiment_types[experiment_id]
+            print(f"✓ Experiment selected: {experiment_type} on creature {creature_id}")
+            
+            # Инициализируем эксперимент в application
+            self.app.init_experiment(experiment_type, creature_id)
+            
+            # Создаём соответствующий виджет эксперимента
+            if experiment_type == "dummy":
+                self.experiment_widget = DummyExperimentWidget()
+            else:
+                print(f"✗ No widget for experiment: {experiment_type}")
+                return
+            
+            # Переходим в состояние эксперимента (автоматически ставит паузу)
+            self.set_state('experiment')
+        else:
+            print(f"✗ Unknown experiment ID: {experiment_id}")
 
     # ============================================================================
     # DTO FACTORY МЕТОДЫ
@@ -440,6 +489,8 @@ class Renderer:
             return self._handle_keyboard_logs(event)
         elif self.current_state == 'experiments_list':
             return self._handle_keyboard_experiments_list(event)
+        elif self.current_state == 'experiment':
+            return self._handle_keyboard_experiment(event)
         
         return False
     
@@ -551,6 +602,35 @@ class Renderer:
             self.set_state('main')
             return True
         
+        # Делегируем обработку выбора эксперимента модалу
+        # Окно остаётся открытым после выбора - можно запустить несколько экспериментов
+        if self.experiments_list_modal.handle_event(event):
+            return True
+        
+        return False
+    
+    def _handle_keyboard_experiment(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в окне активного эксперимента."""
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
+            # Останавливаем эксперимент при закрытии окна
+            if self.app.experiment_mode and self.app.experiment is not None:
+                self.app.stop_experiment()
+                self.app.experiment_mode = False
+            
+            # Очищаем виджет эксперимента
+            self.experiment_widget = None
+            
+            self.set_state('main')
+            return True
+        
+        # Делегируем обработку событий виджету эксперимента
+        if self.experiment_widget is not None and hasattr(self.experiment_widget, 'handle_event'):
+            if self.experiment_widget.handle_event(event):
+                return True
+        
         return False
 
     def _handle_mouse(self, event: pygame.event.Event, world_dto: WorldStateDTO) -> None:
@@ -628,6 +708,8 @@ class Renderer:
             self._draw_logs(render_state)
         elif self.current_state == 'experiments_list':
             self._draw_experiments_list(render_state)
+        elif self.current_state == 'experiment':
+            self._draw_experiment(render_state)
         
         # Обновление дисплея
         pygame.display.flip()
@@ -687,6 +769,11 @@ class Renderer:
     def _draw_experiments_list(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна списка экспериментов."""
         self.experiments_list_modal.draw(self.screen, render_state)
+    
+    def _draw_experiment(self, render_state: RenderStateDTO) -> None:
+        """Отрисовка окна активного эксперимента."""
+        if self.experiment_widget is not None and hasattr(self.experiment_widget, 'draw'):
+            self.experiment_widget.draw(self.screen, render_state)
     
     def _draw_debug_info(self, render_state: RenderStateDTO) -> None:
         """Вспомогательный метод для отрисовки отладочной информации."""

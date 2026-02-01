@@ -71,6 +71,7 @@ class Application():
 		if experiment_type == "dummy":
 			from service.experiments.dummy import Experiment
 			self.experiment = Experiment(experiment_type, experimental_creature_id)
+			self.experiment.start()  # Запускаем эксперимент сразу после инициализации
 		else:
 			print(f"Unknown experiment type: {experiment_type}")
 			self.experiment_mode = False

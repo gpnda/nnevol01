@@ -1,46 +1,42 @@
 # -*- coding: utf-8 -*-
 """
-ExperimentsListModal - v3dto версия.
+Dummy Experiment Widget - v3dto версия.
 
-Модальное окно экспериментов.
-Начальная версия: отображает информацию о выбранном существе.
-
-АРХИТЕКТУРА v3dto:
-- НЕ имеет зависимостей от world, logger, debugger
+Визуальный интерфейс для dummy эксперимента.
+Архитектура v3dto:
+- НЕ имеет зависимостей от world, experiment, debugger
 - Получает данные только через RenderStateDTO
 - Полностью изолирована от singleton'ов
 - Может быть открыто и закрыто через state machine Renderer'а
 """
 
 import pygame
-from typing import TYPE_CHECKING, Callable, Any, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from renderer.v3dto.dto import RenderStateDTO
 
 
-class ExperimentsListModal:
+class DummyExperimentWidget:
     """
-    Модальное окно для экспериментов.
-    
-    Начальная версия отображает информацию о выбранном существе (ID).
+    Виджет для визуализации dummy эксперимента.
     
     Архитектура DTO:
     - Получает RenderStateDTO в методе draw()
-    - Получает selected_creature_id из reset(selected_creature_id)
-    - Полностью изолирована от сингльтонов
+    - Получает selected_creature_id из RenderStateDTO
+    - Полностью изолирована от singleton'ов
     """
     
     # Геометрия окна (центрировано на экране)
-    POPUP_WIDTH = 500
-    POPUP_HEIGHT = 300
+    POPUP_WIDTH = 600
+    POPUP_HEIGHT = 400
     
     # Параметры отображения
-    FONT_SIZE = 14
+    FONT_SIZE = 16
     FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
-    TITLE_HEIGHT = 30
+    TITLE_HEIGHT = 40
     CONTENT_PADDING = 20
-    LINE_HEIGHT = 25
+    LINE_HEIGHT = 30
     
     # Цвета в стиле BIOS
     COLORS = {
@@ -53,82 +49,50 @@ class ExperimentsListModal:
         'value': (0, 255, 100),       # Зелёный для значений
     }
     
-    def __init__(self, on_experiment_choose: Optional[Callable[[int, int], None]] = None):
-        """Инициализация модального окна экспериментов.
-        
-        Args:
-            on_experiment_choose: Callback при выборе эксперимента
-                                Сигнатура: on_experiment_choose(creature_id: int, experiment_id: int)
-        """
-        # Callback функция
-        self.on_experiment_choose = on_experiment_choose
-        
+    def __init__(self):
+        """Инициализация виджета dummy эксперимента."""
         # Инициализация шрифтов
         try:
-            self.font_title = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE + 2)
+            self.font_title = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE + 4)
             self.font = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE)
             self.font_small = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE - 2)
         except (FileNotFoundError, pygame.error):
-            self.font_title = pygame.font.Font(None, self.FONT_SIZE + 2)
+            self.font_title = pygame.font.Font(None, self.FONT_SIZE + 4)
             self.font = pygame.font.Font(None, self.FONT_SIZE)
             self.font_small = pygame.font.Font(None, self.FONT_SIZE - 2)
         
         # Позиция и размер окна (будут вычислены при первом draw)
-        self.selected_creature_id = None
         self.x = 0
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
-
-        self.experiments_list = [
-            "Experiment 0: Dummy",
-            "Experiment 1: Spam biting",
-            "Experiment 2: Dont stupidly spam bite",
-            "Experiment 3: Funnel",
-            "Experiment 4: slot",
-            "Experiment 5: slot",
-            "Experiment 6: slot",
-            "Experiment 7: slot",
-            "Experiment 8: slot",
-            "Experiment 9: slot",
-            "Experiment 10: slot",            
-        ]
-    
-    def reset(self, selected_creature_id: int) -> None:
-        """Сбросить состояние (вызывается при открытии модала)."""
-        self.selected_creature_id = selected_creature_id
-        return
     
     def handle_event(self, event: pygame.event.Event) -> bool:
-        """Обработка событий клавиатуры (выбор эксперимента по цифрам 0-9).
+        """
+        Обработка событий клавиатуры.
         
         Args:
             event: pygame.event.Event клавиатурного события
             
         Returns:
-            True если событие обработано
+            True если событие обработано, False иначе
+            
+        Замечание: Закрытие окна (ESC/F2) обрабатывается в Renderer,
+                  этот метод для внутренних событий виджета.
         """
         if event.type != pygame.KEYDOWN:
             return False
         
-        # Обработка цифр 0-9 для выбора эксперимента
-        if pygame.K_0 <= event.key <= pygame.K_9:
-            experiment_id = event.key - pygame.K_0
-            
-            # Проверяем что такой эксперимент существует
-            if experiment_id < len(self.experiments_list):
-                if self.on_experiment_choose and self.selected_creature_id is not None:
-                    self.on_experiment_choose(self.selected_creature_id, experiment_id)
-                    return True
-        
+        # Здесь можно добавить внутренние команды эксперимента
+        # Пока ничего не обрабатываем
         return False
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
         """
-        Отрисовка модального окна экспериментов.
+        Отрисовка виджета dummy эксперимента.
         
         Args:
             screen: Pygame surface для отрисовки
-            render_state: RenderStateDTO с данными о выбранном существе
+            render_state: RenderStateDTO с данными о симуляции
         """
         # Вычисляем позицию окна (центр экрана)
         screen_width, screen_height = screen.get_size()
@@ -145,7 +109,7 @@ class ExperimentsListModal:
         pygame.draw.rect(screen, self.COLORS['title_bg'], title_rect)
         
         title_text = self.font_title.render(
-            "Choose experiment", 
+            "Dummy Experiment", 
             True, 
             self.COLORS['title_text']
         )
@@ -157,14 +121,41 @@ class ExperimentsListModal:
         content_y = self.y + self.TITLE_HEIGHT + self.CONTENT_PADDING
         content_x = self.x + self.CONTENT_PADDING
         
-        # Отрисовка списка экспериментов
-        for experiment in self.experiments_list:
-            text_surface = self.font.render(experiment, True, self.COLORS['label'])
-            screen.blit(text_surface, (content_x, content_y))
-            content_y += self.LINE_HEIGHT
+        # Отрисовка информации об эксперименте
+        if render_state.selected_creature is not None:
+            creature_id = render_state.selected_creature.creature.id
+            
+            lines = [
+                f"Experiment Type:",
+                f"  DUMMY",
+                f"",
+                f"Target Creature:",
+                f"  ID: {creature_id}",
+                f"",
+                f"Status:",
+                f"  RUNNING",
+            ]
+            
+            for line in lines:
+                if line.startswith("  "):
+                    # Значение - зелёный цвет
+                    text_surface = self.font.render(line, True, self.COLORS['value'])
+                elif line == "":
+                    # Пустая строка - пропускаем
+                    text_surface = None
+                else:
+                    # Метка - белый цвет
+                    text_surface = self.font.render(line, True, self.COLORS['label'])
+                
+                if text_surface is not None:
+                    screen.blit(text_surface, (content_x, content_y))
+                content_y += self.LINE_HEIGHT
+        else:
+            msg = self.font.render("No creature selected", True, self.COLORS['text'])
+            screen.blit(msg, (content_x, content_y))
         
         # Отрисовка подсказки внизу
-        help_text = "F2 or ESC: close"
+        help_text = "ESC or F2: close experiment"
         help_surface = self.font_small.render(help_text, True, self.COLORS['text'])
         help_x = self.x + (self.POPUP_WIDTH - help_surface.get_width()) // 2
         help_y = self.y + self.POPUP_HEIGHT - self.CONTENT_PADDING - help_surface.get_height()
