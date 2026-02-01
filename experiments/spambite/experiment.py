@@ -220,92 +220,7 @@ class SpambiteExperiment(ExperimentBase):
                 self.stop()  # Конец эксперимента
             return
     
-    def get_dto(self) -> SpambiteExperimentDTO:
-        """
-        Получить DTO для передачи данных в виджет.
-        
-        Преобразует текущее состояние эксперимента в DTO для отрисовки.
-        
-        Returns:
-            SpambiteExperimentDTO с данными текущего состояния
-        """
-        if self.temp_world is None or self.creature is None:
-            # Если мир не инициализирован, вернуть пустой DTO
-            return SpambiteExperimentDTO(
-                world_state=None,
-                creature_dto=None,
-                food_positions=[],
-                current_iteration=self.current_iteration,
-                total_iterations=self.MAX_ITERATIONS,
-                successes=self.successes,
-                failures=self.failures,
-                frames_in_iteration=self.frames_in_iteration,
-            )
-        
-        # Преобразовать temp_world в WorldStateDTO
-        from renderer.v3dto.dto import CreatureDTO, FoodDTO, WorldStateDTO
-        
-        # Создать WorldStateDTO из temp_world
-        creatures_dto = []
-        for c in self.temp_world.creatures:
-            creature_dto = CreatureDTO(
-                id=c.id,
-                x=c.x,
-                y=c.y,
-                angle=c.angle,
-                energy=c.energy,
-                age=c.age,
-                speed=c.speed,
-                generation=c.generation,
-                bite_effort=c.bite_effort,
-                vision_distance=c.vision_distance,
-                bite_range=c.bite_range,
-            )
-            creatures_dto.append(creature_dto)
-        
-        foods_dto = []
-        for f in self.temp_world.foods:
-            food_dto = FoodDTO(
-                x=f.x,
-                y=f.y,
-                energy=f.nutrition,
-            )
-            foods_dto.append(food_dto)
-        
-        world_state_dto = WorldStateDTO(
-            map=self.temp_world.map.copy(),
-            width=self.temp_world.width,
-            height=self.temp_world.height,
-            creatures=creatures_dto,
-            foods=foods_dto,
-            tick=0,  # TODO: если нужно отслеживать тики эксперимента
-        )
-        
-        # Создать CreatureDTO для целевого существа
-        creature_dto = CreatureDTO(
-            id=self.creature.id,
-            x=self.creature.x,
-            y=self.creature.y,
-            angle=self.creature.angle,
-            energy=self.creature.energy,
-            age=self.creature.age,
-            speed=self.creature.speed,
-            generation=self.creature.generation,
-            bite_effort=self.creature.bite_effort,
-            vision_distance=self.creature.vision_distance,
-            bite_range=self.creature.bite_range,
-        )
-        
-        return SpambiteExperimentDTO(
-            world_state=world_state_dto,
-            creature_dto=creature_dto,
-            food_positions=[(f.x, f.y) for f in self.temp_world.foods],
-            current_iteration=self.current_iteration,
-            total_iterations=self.MAX_ITERATIONS,
-            successes=self.successes,
-            failures=self.failures,
-            frames_in_iteration=self.frames_in_iteration,
-        )
+
     
     # ============================================================================
     # Внутренние методы
@@ -465,6 +380,93 @@ class SpambiteExperiment(ExperimentBase):
             frames_in_iteration=self.frames_in_iteration,
             debug_message=f"Iteration {self.current_iteration}/{self.MAX_ITERATIONS}",
         )
+    
+    # def get_dto(self) -> SpambiteExperimentDTO:
+    #     """
+    #     Получить DTO для передачи данных в виджет.
+        
+    #     Преобразует текущее состояние эксперимента в DTO для отрисовки.
+        
+    #     Returns:
+    #         SpambiteExperimentDTO с данными текущего состояния
+    #     """
+    #     if self.temp_world is None or self.creature is None:
+    #         # Если мир не инициализирован, вернуть пустой DTO
+    #         return SpambiteExperimentDTO(
+    #             world_state=None,
+    #             creature_dto=None,
+    #             food_positions=[],
+    #             current_iteration=self.current_iteration,
+    #             total_iterations=self.MAX_ITERATIONS,
+    #             successes=self.successes,
+    #             failures=self.failures,
+    #             frames_in_iteration=self.frames_in_iteration,
+    #         )
+        
+    #     # Преобразовать temp_world в WorldStateDTO
+    #     from renderer.v3dto.dto import CreatureDTO, FoodDTO, WorldStateDTO
+        
+    #     # Создать WorldStateDTO из temp_world
+    #     creatures_dto = []
+    #     for c in self.temp_world.creatures:
+    #         creature_dto = CreatureDTO(
+    #             id=c.id,
+    #             x=c.x,
+    #             y=c.y,
+    #             angle=c.angle,
+    #             energy=c.energy,
+    #             age=c.age,
+    #             speed=c.speed,
+    #             generation=c.generation,
+    #             bite_effort=c.bite_effort,
+    #             vision_distance=c.vision_distance,
+    #             bite_range=c.bite_range,
+    #         )
+    #         creatures_dto.append(creature_dto)
+        
+    #     foods_dto = []
+    #     for f in self.temp_world.foods:
+    #         food_dto = FoodDTO(
+    #             x=f.x,
+    #             y=f.y,
+    #             energy=f.nutrition,
+    #         )
+    #         foods_dto.append(food_dto)
+        
+    #     world_state_dto = WorldStateDTO(
+    #         map=self.temp_world.map.copy(),
+    #         width=self.temp_world.width,
+    #         height=self.temp_world.height,
+    #         creatures=creatures_dto,
+    #         foods=foods_dto,
+    #         tick=0,  # TODO: если нужно отслеживать тики эксперимента
+    #     )
+        
+    #     # Создать CreatureDTO для целевого существа
+    #     creature_dto = CreatureDTO(
+    #         id=self.creature.id,
+    #         x=self.creature.x,
+    #         y=self.creature.y,
+    #         angle=self.creature.angle,
+    #         energy=self.creature.energy,
+    #         age=self.creature.age,
+    #         speed=self.creature.speed,
+    #         generation=self.creature.generation,
+    #         bite_effort=self.creature.bite_effort,
+    #         vision_distance=self.creature.vision_distance,
+    #         bite_range=self.creature.bite_range,
+    #     )
+        
+    #     return SpambiteExperimentDTO(
+    #         world_state=world_state_dto,
+    #         creature_dto=creature_dto,
+    #         food_positions=[(f.x, f.y) for f in self.temp_world.foods],
+    #         current_iteration=self.current_iteration,
+    #         total_iterations=self.MAX_ITERATIONS,
+    #         successes=self.successes,
+    #         failures=self.failures,
+    #         frames_in_iteration=self.frames_in_iteration,
+    #     )
     
     def _prepare_creature_dto(self, creature):
         """Вспомогательный метод для преобразования Creature в CreatureDTO."""
