@@ -67,10 +67,13 @@ class Application():
 
 	def init_experiment(self, experiment_type: str, experimental_creature_id: int = None):
 		print(f"Initializing experiment: {experiment_type} on creature ID {experimental_creature_id}")
-		self.experiment_mode = True
-		if experiment_type == "dummy":
-			from service.experiments.dummy import Experiment
-			self.experiment = Experiment(experiment_type, experimental_creature_id)
+		from experiments import EXPERIMENTS
+		
+		if experiment_type in EXPERIMENTS:
+			experiment_registry = EXPERIMENTS[experiment_type]
+			experiment_class = experiment_registry['experiment_class']
+			self.experiment = experiment_class(experiment_type, experimental_creature_id)
+			self.experiment_mode = True
 			self.experiment.start()  # Запускаем эксперимент сразу после инициализации
 		else:
 			print(f"Unknown experiment type: {experiment_type}")

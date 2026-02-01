@@ -27,7 +27,7 @@ from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
 from renderer.v3dto.gui_experiments_list import ExperimentsListModal
-from renderer.v3dto.gui_experiment_dummy import DummyExperimentWidget
+from experiments.dummy import DummyExperimentWidget
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
