@@ -43,3 +43,16 @@ class ExperimentBase(ABC):
         Здесь должна быть логика сбора статистики и мониторинга.
         """
         pass
+    
+    @abstractmethod
+    def get_dto(self) -> object:
+        """
+        Получить собственный DTO этого эксперимента.
+        
+        Каждый эксперимент определяет свой собственный DTO для передачи данных в widget.
+        Например, SpambiteExperiment возвращает SpambiteExperimentDTO.
+        
+        Returns:
+            object: Собственный DTO эксперимента (SpambiteExperimentDTO, и т.д.)
+        """
+        pass

@@ -251,6 +251,11 @@ class RenderStateDTO:
     # Текущее выбранное существо и его история
     selected_creature: Optional[SelectedCreaturePanelDTO] = None
     
+    # Текущий эксперимент (если запущен)
+    # Каждый эксперимент определяет свой собственный DTO (SpambiteExperimentDTO, и т.д.)
+    # Это поле остается None если эксперимент не запущен
+    experiment_dto: Optional[object] = None
+    
     # Текущее состояние рендеринга
     current_state: str = 'main'  # 'main', 'popup_simparams', 'creatures_list', и т.д.
     tick: int = 0

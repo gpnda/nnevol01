@@ -457,11 +457,18 @@ class Renderer:
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
         
+        # Получаем experiment_dto если эксперимент активен
+        experiment_dto = None
+        if hasattr(self.app, 'experiment') and self.app.experiment is not None:
+            if hasattr(self.app.experiment, 'get_dto'):
+                experiment_dto = self.app.experiment.get_dto()
+        
         return RenderStateDTO(
             world=world_dto,
             params=params_dto,
             debug=debug_dto,
             selected_creature=selected_creature_dto,
+            experiment_dto=experiment_dto,
             current_state=self.current_state,
             tick=self.world.tick,
             fps=self.fps,

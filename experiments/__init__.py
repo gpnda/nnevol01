@@ -15,6 +15,7 @@ Registry:
 
 from experiments.base import ExperimentBase
 from experiments.dummy import DummyExperiment, DummyExperimentWidget
+from experiments.spambite import SpambiteExperiment, SpambiteExperimentWidget
 
 # Registry экспериментов
 # При добавлении нового эксперимента просто добавьте запись в этот словарь
@@ -24,6 +25,12 @@ EXPERIMENTS = {
         'widget_class': DummyExperimentWidget,
         'name': 'Dummy Experiment',
         'description': 'Dummy for all future experiments',
+    },
+    'spambite': {
+        'experiment_class': SpambiteExperiment,
+        'widget_class': SpambiteExperimentWidget,
+        'name': 'SpambiteExperiment',
+        'description': 'Test creature behavior on finding food with success/failure tracking',
     },
     # Добавляйте новые эксперименты сюда:
     # 'advanced': {
@@ -38,5 +45,7 @@ __all__ = [
     'ExperimentBase',
     'DummyExperiment',
     'DummyExperimentWidget',
+    'SpambiteExperiment',
+    'SpambiteExperimentWidget',
     'EXPERIMENTS',
 ]
