@@ -27,7 +27,6 @@ from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
 from renderer.v3dto.gui_experiments_list import ExperimentsListModal
-from experiments.dummy import DummyExperimentWidget
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
@@ -298,37 +297,32 @@ class Renderer:
         
         Создаёт соответствующий виджет эксперимента и переводит renderer в состояние 'experiment'.
         
+        Использует реестр EXPERIMENTS для централизованного управления экспериментами.
+        
         Args:
             creature_id: ID выбранного существа
-            experiment_id: ID выбранного эксперимента (0-10)
+            experiment_id: ID выбранного эксперимента (индекс в реестре)
         """
-        # Преобразуем experiment_id в experiment_type
-        experiment_types = [
-            "dummy",
-            "spam_biting",
-            "no_spam_bite",
-            "funnel",
-            "slot_4",
-            "slot_5",
-            "slot_6",
-            "slot_7",
-            "slot_8",
-            "slot_9",
-            "slot_10",
-        ]
+        from experiments import EXPERIMENTS
+        
+        # Получаем список экспериментов из реестра
+        experiment_types = list(EXPERIMENTS.keys())
         
         if 0 <= experiment_id < len(experiment_types):
             experiment_type = experiment_types[experiment_id]
+            experiment_registry = EXPERIMENTS[experiment_type]
+            
             print(f"✓ Experiment selected: {experiment_type} on creature {creature_id}")
             
             # Инициализируем эксперимент в application
             self.app.init_experiment(experiment_type, creature_id)
             
-            # Создаём соответствующий виджет эксперимента
-            if experiment_type == "dummy":
-                self.experiment_widget = DummyExperimentWidget()
+            # Создаём виджет из реестра
+            widget_class = experiment_registry.get('widget_class')
+            if widget_class:
+                self.experiment_widget = widget_class()
             else:
-                print(f"✗ No widget for experiment: {experiment_type}")
+                print(f"✗ No widget class for experiment: {experiment_type}")
                 return
             
             # Переходим в состояние эксперимента (автоматически ставит паузу)

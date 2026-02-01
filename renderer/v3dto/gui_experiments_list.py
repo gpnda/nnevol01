@@ -79,23 +79,31 @@ class ExperimentsListModal:
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
 
-        self.experiments_list = [
-            "Experiment 0: Dummy",
-            "Experiment 1: Spam biting",
-            "Experiment 2: Dont stupidly spam bite",
-            "Experiment 3: Funnel",
-            "Experiment 4: slot",
-            "Experiment 5: slot",
-            "Experiment 6: slot",
-            "Experiment 7: slot",
-            "Experiment 8: slot",
-            "Experiment 9: slot",
-            "Experiment 10: slot",            
-        ]
+        # Загружаем список экспериментов из реестра
+        self._load_experiments_from_registry()
+    
+    def _load_experiments_from_registry(self) -> None:
+        """Загрузить список экспериментов из реестра EXPERIMENTS."""
+        from experiments import EXPERIMENTS
+        
+        self.experiments_list = []
+        for exp_id, (exp_type, exp_registry) in enumerate(EXPERIMENTS.items()):
+            exp_name = exp_registry.get('name', exp_type)
+            exp_desc = exp_registry.get('description', '')
+            
+            # Формируем строку для отображения
+            if exp_desc:
+                display_text = f"Experiment {exp_id}: {exp_name} - {exp_desc}"
+            else:
+                display_text = f"Experiment {exp_id}: {exp_name}"
+            
+            self.experiments_list.append(display_text)
     
     def reset(self, selected_creature_id: int) -> None:
         """Сбросить состояние (вызывается при открытии модала)."""
         self.selected_creature_id = selected_creature_id
+        # Перезагружаем список экспериментов при каждом открытии (на случай динамической регистрации)
+        self._load_experiments_from_registry()
         return
     
     def handle_event(self, event: pygame.event.Event) -> bool:
