@@ -15,6 +15,8 @@ class Application():
 	def __init__(self):
 		self.quit_flag = False
 		self.is_running = True
+		self.experiment_mode = False
+		self.experiment = None
 		self.animate_flag = True
 		self.is_logging = True
 		self.performance_monitor = PerformanceMonitor()
@@ -42,9 +44,14 @@ class Application():
 				if self.is_logging:
 					logme.write_stats(self.world.creatures)
 					logme.write_population_size(len(self.world.creatures))
+				if self.animate_flag:
+					self.renderer.draw()
+
+			elif self.experiment_mode:
+				self.experiment.update()
+				if self.animate_flag:
+					self.renderer.draw()
 			
-			if self.animate_flag:
-				self.renderer.draw()
 
 			
 			
@@ -55,6 +62,31 @@ class Application():
 			self.performance_monitor.tick(self.world.tick)
 
 		print("/ Terminated. /")
+
+	def init_experiment(self, experiment_type: str):
+		print(f"Initializing experiment: {experiment_type}")
+		self.experiment_mode = True
+		if experiment_type == "dummy":
+			from service.experiments.dummy import Experiment
+			self.experiment = Experiment()
+		else:
+			print(f"Unknown experiment type: {experiment_type}")
+			self.experiment_mode = False
+
+	def start_experiment(self):
+		if self.experiment_mode and self.experiment is not None:
+			print("Starting experiment...")
+			self.experiment.start()
+		else:
+			print("Experiment mode is not initialized.")
+	
+	def stop_experiment(self):
+		if self.experiment_mode and self.experiment is not None:
+			print("Stopping experiment...")
+			self.experiment.stop()
+		else:
+			print("Experiment mode is not initialized.")
+
 
 	def terminate(self):
 		self.quit_flag = True
