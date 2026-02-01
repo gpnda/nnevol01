@@ -26,7 +26,7 @@ from renderer.v3dto.gui_selected_creature_history import SelectedCreatureHistory
 from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
-from renderer.v3dto.gui_experiment import ExperimentModal
+from renderer.v3dto.gui_experiments_list import ExperimentsListModal
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
@@ -97,7 +97,7 @@ class Renderer:
             'popup_simparams': 'Popup окно параметров симуляции (модальное)',
             'creatures_list': 'Список существ (модальное)',
             'logs': 'Логи в полный экран (модальное)',
-            'experiment': 'Окно эксперимента (модальное)',
+            'experiments_list': 'Окно со списком доступных экспериментов (модальное)',
         }
         
         # Часы для управления FPS
@@ -111,7 +111,7 @@ class Renderer:
         self.pop_chart = PopulationChart()
         self.nselection_chart = NSelectionChart()
         self.creatures_list_modal = CreaturesListModal()
-        self.experiment_modal = ExperimentModal()
+        self.experiments_list_modal = ExperimentsListModal()
         
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
@@ -162,9 +162,9 @@ class Renderer:
         if state_name == 'creatures_list':
             # Сбрасываем навигацию при открытии списка существ
             self.creatures_list_modal.reset()
-        elif state_name == 'experiment':
+        elif state_name == 'experiments_list':
             # Сбрасываем состояние при открытии окна экспериментов
-            self.experiment_modal.reset(self.selected_creature_id)
+            self.experiments_list_modal.reset(self.selected_creature_id)
     
     # ============================================================================
     # ОБРАБОТЧИК ИЗМЕНЕНИЙ ПАРАМЕТРОВ
@@ -438,8 +438,8 @@ class Renderer:
             return self._handle_keyboard_creatures_list(event)
         elif self.current_state == 'logs':
             return self._handle_keyboard_logs(event)
-        elif self.current_state == 'experiment':
-            return self._handle_keyboard_experiment(event)
+        elif self.current_state == 'experiments_list':
+            return self._handle_keyboard_experiments_list(event)
         
         return False
     
@@ -455,7 +455,7 @@ class Renderer:
             #print("SELECTED CREATURE ID:", self.selected_creature_id)
             return False
         elif event.key == pygame.K_F2:
-            self.set_state('experiment')
+            self.set_state('experiments_list')
             return False
         elif event.key == pygame.K_F9:
             self.set_state('popup_simparams')
@@ -542,8 +542,8 @@ class Renderer:
         
         return False
     
-    def _handle_keyboard_experiment(self, event: pygame.event.Event) -> bool:
-        """Обработка событий в окне эксперимента."""
+    def _handle_keyboard_experiments_list(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в окне списка экспериментов."""
         if event.type != pygame.KEYDOWN:
             return False
         
@@ -626,8 +626,8 @@ class Renderer:
             self._draw_creatures_list(render_state)
         elif self.current_state == 'logs':
             self._draw_logs(render_state)
-        elif self.current_state == 'experiment':
-            self._draw_experiment(render_state)
+        elif self.current_state == 'experiments_list':
+            self._draw_experiments_list(render_state)
         
         # Обновление дисплея
         pygame.display.flip()
@@ -684,9 +684,9 @@ class Renderer:
         # TODO: self.logs_popup.draw(self.screen, render_state)
         self._draw_debug_info(render_state)
     
-    def _draw_experiment(self, render_state: RenderStateDTO) -> None:
-        """Отрисовка окна эксперимента."""
-        self.experiment_modal.draw(self.screen, render_state)
+    def _draw_experiments_list(self, render_state: RenderStateDTO) -> None:
+        """Отрисовка окна списка экспериментов."""
+        self.experiments_list_modal.draw(self.screen, render_state)
     
     def _draw_debug_info(self, render_state: RenderStateDTO) -> None:
         """Вспомогательный метод для отрисовки отладочной информации."""

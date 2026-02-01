@@ -44,14 +44,16 @@ class Application():
 				if self.is_logging:
 					logme.write_stats(self.world.creatures)
 					logme.write_population_size(len(self.world.creatures))
-				if self.animate_flag:
-					self.renderer.draw()
 
 			elif self.experiment_mode:
 				self.experiment.update()
-				if self.animate_flag:
-					self.renderer.draw()
 			
+			else:
+				pass
+
+			
+			if self.animate_flag:
+					self.renderer.draw()		
 
 			
 			
@@ -63,12 +65,12 @@ class Application():
 
 		print("/ Terminated. /")
 
-	def init_experiment(self, experiment_type: str):
-		print(f"Initializing experiment: {experiment_type}")
+	def init_experiment(self, experiment_type: str, experimental_creature_id: int = None):
+		print(f"Initializing experiment: {experiment_type} on creature ID {experimental_creature_id}")
 		self.experiment_mode = True
 		if experiment_type == "dummy":
 			from service.experiments.dummy import Experiment
-			self.experiment = Experiment()
+			self.experiment = Experiment(experiment_type, experimental_creature_id)
 		else:
 			print(f"Unknown experiment type: {experiment_type}")
 			self.experiment_mode = False

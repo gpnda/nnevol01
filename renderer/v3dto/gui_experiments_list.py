@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-ExperimentModal - v3dto версия.
+ExperimentsListModal - v3dto версия.
 
 Модальное окно экспериментов.
 Начальная версия: отображает информацию о выбранном существе.
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from renderer.v3dto.dto import RenderStateDTO
 
 
-class ExperimentModal:
+class ExperimentsListModal:
     """
     Модальное окно для экспериментов.
     
@@ -99,7 +99,7 @@ class ExperimentModal:
         pygame.draw.rect(screen, self.COLORS['title_bg'], title_rect)
         
         title_text = self.font_title.render(
-            "Experiment Window", 
+            "Choose experiment", 
             True, 
             self.COLORS['title_text']
         )
