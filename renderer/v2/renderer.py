@@ -6,7 +6,6 @@ Renderer с системой состояний для управления не
 - 'main': Основное окно с картой (работает основной цикл)
 - 'creatures_list': Список существ (пауза основного цикла)
 - 'logs': Логи в полный экран (пауза основного цикла)
-- 'experiment': Окно эксперимента (пауза основного цикла)
 - Другие модальные окна...
 
 Каждое состояние показывает только свои элементы и обрабатывает свои события.
@@ -79,7 +78,6 @@ class Renderer:
             'popup_simparams': 'Popup окно параметров симуляции (модальное)',
             'creatures_list': 'Список существ (модальное)',
             'logs': 'Логи в полный экран (модальное)',
-            'experiment': 'Окно эксперимента (модальное)',
         }
         
         # Часы для управления FPS
@@ -155,11 +153,6 @@ class Renderer:
         Args:
             state_name: Название нового состояния
         """
-        # Примеры для будущего использования:
-        # if state_name == 'creatures_list':
-        #     self.creatures_popup.refresh_data()
-        # elif state_name == 'experiment':
-        #     self.experiment_modal.initialize()
         pass
     
     # ============================================================================
@@ -194,9 +187,6 @@ class Renderer:
         elif self.current_state == 'logs':
             return self._handle_keyboard_logs(event)
         
-        # ЭКСПЕРИМЕНТ
-        elif self.current_state == 'experiment':
-            return self._handle_keyboard_experiment(event)
         
         return False
     
@@ -321,25 +311,6 @@ class Renderer:
         
         return False
     
-    def _handle_keyboard_experiment(self, event: pygame.event.Event) -> bool:
-        """
-        Обработка событий в окне эксперимента.
-        
-        TODO: Будет реализовано при добавлении виджета ExperimentModal
-        """
-        if event.type != pygame.KEYDOWN:
-            return False
-        
-        # Закрытие по Escape
-        if event.key == pygame.K_ESCAPE:
-            self.set_state('main')
-            return True
-        
-        # TODO: Добавить обработку событий для ExperimentModal
-        # if self.experiment_modal.handle_event(event):
-        #     return True
-        
-        return False
 
     def _handle_mouse(self, event: pygame.event.Event) -> None:
         """
@@ -414,8 +385,7 @@ class Renderer:
             self._draw_creatures_list()
         elif self.current_state == 'logs':
             self._draw_logs()
-        elif self.current_state == 'experiment':
-            self._draw_experiment()
+
         
         # Обновление дисплея
         pygame.display.flip()
@@ -478,11 +448,3 @@ class Renderer:
         """
         # TODO: self.logs_popup.draw(self.screen)
     
-    def _draw_experiment(self) -> None:
-        """
-        Отрисовка окна эксперимента.
-        
-        Элементы:
-        - ExperimentModal (модальное окно с экспериментом)
-        """
-        # TODO: self.experiment_modal.draw(self.screen)

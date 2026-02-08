@@ -53,7 +53,7 @@ This is a **neural network-based evolutionary simulation** written in Python wit
 - **Role**: Pygame manager + DTO factory + state machine
 - **Responsibilities**:
   - Initialize pygame window and clock
-  - Manage state machine (main, popup_simparams, creatures_list, logs, experiment)
+  - Manage state machine (main, popup_simparams, creatures_list, logs)
   - Handle keyboard/mouse events and state transitions
   - Transform domain objects → DTOs (world→WorldStateDTO, logger→HistoryDTO)
   - Coordinate all widget drawing via RenderStateDTO
@@ -205,7 +205,6 @@ Renderer
   - `popup_simparams`: modal parameter window (pauses simulation)
   - `creatures_list`: modal creatures list (pauses simulation)
   - `logs`: modal logs window (pauses simulation)
-  - `experiment`: modal experiment window (pauses simulation)
 - **Event Flow**:
   - `Renderer.control_run()`: pygame event dispatcher + state transitions
   - `Viewport.handle_mouse_drag/wheel()`: camera pan/zoom (reads events internally)
@@ -287,7 +286,7 @@ Keyboard shortcuts:
 - [x] Implement DTO isolation system - **DONE**
 - [x] Implement state machine for modal windows - **DONE**
 - [x] Implement callback pattern for parameter changes - **DONE**
-- [ ] Extract modal windows (`CreaturesListModal`, `LogsWindow`, `ExperimentModal`) with same DTO pattern
+ pattern
 - [ ] Add configuration file for world parameters (width, height, creature count, mutation rates)
 - [ ] Consider making modal windows full components with their own state management
 - [ ] Performance: optimize `_draw_cells()` with spatial indexing (grid sectors) if scaling to large maps
