@@ -99,6 +99,7 @@ class Renderer:
             'creatures_list': 'Список существ (модальное)',
             'logs': 'Логи в полный экран (модальное)',
             'exper_list': 'Окно список экспер. (модальное)',
+            'experiment': 'Окно активного эксперимента (модальное)',
         }
         
         # Часы для управления FPS
@@ -114,6 +115,9 @@ class Renderer:
         self.creatures_list_modal = CreaturesListModal()
         self.exper_list_modal = ExperListModal(on_experiment_choose=self._on_experiment_choose)
         
+        # ЭКСПЕРИМЕНТ ВИДЖЕТ (инициализируется при выборе эксперимента)
+        self.experiment_widget = None
+
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
         
@@ -297,33 +301,39 @@ class Renderer:
         Args:
             experiment_id: ID выбранного эксперимента (индекс в реестре)
         """
-        print (f"✓ ✓ ✓ ✓ ✓ Experiment selected: experiment_id={experiment_id}")
-        # from experiments import EXPERIMENTS
         
-        # # Получаем список экспериментов из реестра
-        # experiment_types = list(EXPERIMENTS.keys())
+        # Проверить, что эксперимент с таким ID существует в реестре EXPERIMENTS
+        from experiments import EXPERIMENTS
+
+        experiment_types = list(EXPERIMENTS.keys())
         
-        # if 0 <= experiment_id < len(experiment_types):
-        #     experiment_type = experiment_types[experiment_id]
-        #     experiment_registry = EXPERIMENTS[experiment_type]
+        if 0 <= experiment_id < len(experiment_types):
+            experiment_type = experiment_types[experiment_id]
+            print (f"Experiment id: {experiment_id}")
+            print (f"Experiment type: {experiment_type}")
+            # Проверить, что выбранное существо существует
+            if self.selected_creature_id is not None:
+                print(f"Creature selected for experiment: id={self.selected_creature_id}")
+            else:
+                print(f"✗ No creature selected for experiment")
+                return
+
+            # Инициализируем эксперимент в application
+            self.app.init_experiment(experiment_type, self.selected_creature_id)
+
+            # Создаём виджет из реестра EXPERIMENTS
+            widget_class = EXPERIMENTS[experiment_type].get('widget_class')
+            if widget_class:
+                self.experiment_widget = widget_class()
+            else:
+                print(f"✗ No widget class for experiment: {experiment_type}")
+                return
             
-        #     print(f"✓ Experiment selected: {experiment_type}")
+            # Переходим в состояние эксперимента (автоматически ставит паузу)
+            self.set_state('experiment')
+        else:
+            print(f"✗ Unknown experiment ID: {experiment_id}")
             
-        #     # Инициализируем эксперимент в application
-        #     self.app.init_experiment(experiment_type, creature_id)
-            
-        #     # Создаём виджет из реестра
-        #     widget_class = experiment_registry.get('widget_class')
-        #     if widget_class:
-        #         self.experiment_widget = widget_class()
-        #     else:
-        #         print(f"✗ No widget class for experiment: {experiment_type}")
-        #         return
-            
-        #     # Переходим в состояние эксперимента (автоматически ставит паузу)
-        #     self.set_state('experiment')
-        # else:
-        #     print(f"✗ Unknown experiment ID: {experiment_id}")
 
     # ============================================================================
     # DTO FACTORY МЕТОДЫ
@@ -485,6 +495,8 @@ class Renderer:
             return self._handle_keyboard_logs(event)
         elif self.current_state == 'exper_list':
             return self._handle_keyboard_exper_list(event)
+        elif self.current_state == 'experiment':
+            return self._handle_keyboard_experiment(event)
 
         
         return False
@@ -604,6 +616,31 @@ class Renderer:
             return True
         
         return False
+
+
+    def _handle_keyboard_experiment(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в окне активного эксперимента."""
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
+            # Останавливаем эксперимент при закрытии окна
+            if self.app.experiment_mode and self.app.experiment is not None:
+                self.app.stop_experiment()
+                self.app.experiment_mode = False
+            
+            # Очищаем виджет эксперимента
+            self.experiment_widget = None
+            
+            self.set_state('main')
+            return True
+        
+        # Делегируем обработку событий виджету эксперимента
+        if self.experiment_widget is not None and hasattr(self.experiment_widget, 'handle_event'):
+            if self.experiment_widget.handle_event(event):
+                return True
+        
+        return False
     
 
     def _handle_mouse(self, event: pygame.event.Event, world_dto: WorldStateDTO) -> None:
@@ -681,6 +718,10 @@ class Renderer:
             self._draw_logs(render_state)
         elif self.current_state == 'exper_list':
             self._draw_exper_list(render_state)
+        elif self.current_state == 'experiment':
+            # получить DTO эксперимента из application и передать в виджет
+            # Это позволяет сделать виджет эксперимента чистым, полностью независимым от логики эксперимента и мира
+            self._draw_experiment(experiment_dto=self.app.experiment.get_experiment_dto())
 
         
         # Обновление дисплея
@@ -741,6 +782,13 @@ class Renderer:
     def _draw_exper_list(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна списка экспер.."""
         self.exper_list_modal.draw(self.screen, render_state)
+    
+    def _draw_experiment(self, experiment_dto: object) -> None:
+        """Отрисовка окна активного эксперимента.
+        Args:
+            experiment_dto: DTO эксперимента (SpambiteExperimentDTO, DummyExperimentDTO, и т.д.)
+        """
+        self.experiment_widget.draw(self.screen, experiment_dto)
     
     
     def _draw_debug_info(self, render_state: RenderStateDTO) -> None:

@@ -18,6 +18,8 @@ class Application():
 		self.animate_flag = True
 		self.is_logging = True
 		self.performance_monitor = PerformanceMonitor()
+		self.experiment_mode = False
+		self.experiment = None
 
 		# Генерация мира
 		self.world = WorldGenerator.generate_world(
@@ -42,6 +44,10 @@ class Application():
 				if self.is_logging:
 					logme.write_stats(self.world.creatures)
 					logme.write_population_size(len(self.world.creatures))
+			elif self.experiment_mode:
+				self.experiment.update()
+			else:
+				pass
 			
 			if self.animate_flag:
 				self.renderer.draw()
@@ -56,6 +62,40 @@ class Application():
 
 		print("/ Terminated. /")
 
+	def init_experiment(self, experiment_type: str, experimental_creature_id: int = None):
+		"""
+		Инициализировать эксперимент.
+		
+		Args:
+			experiment_type: Тип эксперимента ('spambite', 'dummy', и т.д.)
+			experimental_creature_id: ID существа для тестирования
+		
+		Процесс:
+		1. Инициализировать эксперимент, передав тип, ID и объет world для доступа к данным мира
+		3. Запустить эксперимент
+		"""
+		print(f"APPLICATION LEVEL: Initializing experiment: {experiment_type} on creature ID {experimental_creature_id}")
+		from experiments import EXPERIMENTS
+		
+		# Инициализировать эксперимент с типом, ID и списком существ
+		experiment_registry = EXPERIMENTS[experiment_type]
+		experiment_class = experiment_registry['experiment_class']
+		
+		self.experiment = experiment_class(experimental_creature_id, self.world)
+		self.experiment_mode = True
+		self.is_running = False  # Остановить основную симуляцию
+		
+		# Запускаем эксперимент
+		self.experiment.start()
+		print(f"Experiment initialized and started")
+		
+
+	def start_experiment(self):
+		pass
+	
+	def stop_experiment(self):
+		pass
+	
 	def terminate(self):
 		self.quit_flag = True
 		

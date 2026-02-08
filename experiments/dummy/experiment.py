@@ -52,8 +52,8 @@ class DummyExperiment(ExperimentBase):
         # рядом расположенной пищи, список последних действий существ и так далее
         
         self.creature_id = target_creature_id
-        self.exapmle_creature_x = world.creatures[target_creature_id].x
-        self.exapmle_creature_y = world.creatures[target_creature_id].y
+        self.exapmle_creature_x = world.get_creature_by_id(target_creature_id).x
+        self.exapmle_creature_y = world.get_creature_by_id(target_creature_id).y
 
         # Тут аттрибуты эксперимента, каждый эксперимент может иметь свои аттрибуты для хранения данных, 
         # которые ему нужны для логики эксперимента. В данном случае это просто счетчик тиков и статус 
