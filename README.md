@@ -78,5 +78,5 @@ F9 Edit simulation parameters
 1. overhead analysis and optimization for fast run
 2. ovehead analysis and optimization for slow logging and rendering run
 3. experiment runs and feedback
-4. new widgets development for renderer UI
+4. new widgets development for renderer UI.
 
