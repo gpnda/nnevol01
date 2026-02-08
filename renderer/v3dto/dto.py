@@ -255,6 +255,9 @@ class RenderStateDTO:
     current_state: str = 'main'  # 'main', 'popup_simparams', 'creatures_list', и т.д.
     tick: int = 0
     fps: int = 0
+
+    # Список экспериментов из реестра
+    exper_list: Dict[str, Any] = None  
     
     @property
     def population_count(self) -> int:

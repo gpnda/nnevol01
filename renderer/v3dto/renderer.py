@@ -403,6 +403,11 @@ class Renderer:
             history=history_dto,
         )
     
+    def _prepare_exper_list_dto(self) -> dict:
+        """Загрузить список экспериментов из реестра экспериментов."""
+        from experiments import EXPERIMENTS
+        return EXPERIMENTS
+
     def _prepare_render_state_dto(self) -> RenderStateDTO:
         """Собрать ПОЛНЫЙ снимок состояния для всех виджетов в RenderStateDTO.
         
@@ -412,6 +417,7 @@ class Renderer:
         params_dto = self._prepare_simulation_params_dto()
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
+        exper_list_dto = self._prepare_exper_list_dto()
         
         return RenderStateDTO(
             world=world_dto,
@@ -421,6 +427,7 @@ class Renderer:
             current_state=self.current_state,
             tick=self.world.tick,
             fps=self.fps,
+            exper_list=exper_list_dto,
         )
 
     # ============================================================================

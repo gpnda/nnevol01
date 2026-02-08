@@ -71,16 +71,6 @@ class ExperListModal:
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
 
-        # Загружаем список экспер.. из реестра
-        self._load_exper_list_from_registry()
-    
-    def _load_exper_list_from_registry(self) -> None:
-        # Пока какбы нет реестра экспер1ментов, когда будет - будем его тут загружать
-        # и формировать строки для отображения в окне
-        self.exper_list = []
-        self.exper_list.append("Exp 1: First - some description")
-        self.exper_list.append("Exp 2: Second - some description")
-        self.exper_list.append("Exp 3: Third - some description")
 
         
     
@@ -141,11 +131,16 @@ class ExperListModal:
         content_y = self.y + self.TITLE_HEIGHT + self.CONTENT_PADDING
         content_x = self.x + self.CONTENT_PADDING
         
-        # Отрисовка списка экспер..
-        for exper in self.exper_list:
-            text_surface = self.font.render(exper, True, self.COLORS['label'])
+        # Получаем список экспер.. из RenderStateDTO
+        exper_list = render_state.exper_list
+
+        # Отрисовка списка экспериментов
+        for id, (exper_key, exper_info) in enumerate(exper_list.items()):
+            exper_text = f"{id}: {exper_info['name']} - {exper_info['description']}"
+            text_surface = self.font.render(exper_text, True, self.COLORS['label'])
             screen.blit(text_surface, (content_x, content_y))
             content_y += self.LINE_HEIGHT
+        
         
         # Отрисовка подсказки внизу
         help_text = "F2 or ESC: close"
