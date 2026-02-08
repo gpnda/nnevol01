@@ -50,18 +50,18 @@ class ExperListModal:
         'value': (0, 255, 100),       # Зелёный для значений
     }
     
-    def __init__(self, on_experiment_choose: Optional[Callable[[int, int], None]] = None):
+    def __init__(self, on_experiment_choose: Optional[Callable[[int], None]] = None):
         """Инициализация модального окна экспер..
             - Загружает список экспер.. из реестра
 
             Args:
             on_experiment_choose: Callback при выборе эксперимента
-                                Сигнатура: on_experiment_choose(creature_id: int, experiment_id: int)
+                                Сигнатура: on_experiment_choose(experiment_id: int)
         """
 
         # Callback функция
         self.on_experiment_choose = on_experiment_choose
-        self.exper_list = dict  # Список экспер.. будет загружен из RenderStateDTO в draw()
+
         
         # Инициализация шрифтов
         try:
@@ -74,7 +74,6 @@ class ExperListModal:
             self.font_small = pygame.font.Font(None, self.FONT_SIZE - 2)
         
         # Позиция и размер окна (будут вычислены при первом draw)
-        self.selected_creature_id = None
         self.x = 0
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
@@ -103,16 +102,8 @@ class ExperListModal:
         # Обработка цифр 0-9 для выбора эксперимента
         if pygame.K_0 <= event.key <= pygame.K_9:
             experiment_id = event.key - pygame.K_0
-            
-            # Проверим, что эксперимент с таким ID существует в списке (по индексу)
-            if experiment_id >= len(self.exper_list):
-                print(f"Нет такого эксперимента {experiment_id} is out of range (0-{len(self.exper_list)-1})")
-                return False
-            
-            # Вызвать callback с выбранным существом и экспериментом
-            if self.on_experiment_choose and self.selected_creature_id is not None:
-                self.on_experiment_choose(self.selected_creature_id, experiment_id)
-                return True
+            self.on_experiment_choose(experiment_id)
+            return True
             
         
         return False
@@ -154,13 +145,13 @@ class ExperListModal:
         content_x = self.x + self.CONTENT_PADDING
         
         # Получаем список экспер.. из RenderStateDTO
-        self.exper_list = render_state.exper_list
+        exper_list = render_state.exper_list
 
         # Получить id выбранного существа для отображения
         self.selected_creature_id = render_state.selected_creature.creature.id if render_state.selected_creature else None
 
         # Отрисовка списка экспериментов
-        for id, (exper_key, exper_info) in enumerate(self.exper_list.items()):
+        for id, (exper_key, exper_info) in enumerate(exper_list.items()):
             exper_text = f"{id}: {exper_info['name']} - {exper_info['description']}"
             text_surface = self.font.render(exper_text, True, self.COLORS['label'])
             screen.blit(text_surface, (content_x, content_y))

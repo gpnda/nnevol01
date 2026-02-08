@@ -286,7 +286,7 @@ class Renderer:
         else:
             print(f"✗ Unknown parameter: {param_name}")
 
-    def _on_experiment_choose(self, creature_id: int, experiment_id: int) -> None:
+    def _on_experiment_choose(self, experiment_id: int) -> None:
         """
         Callback для обработки выбора эксперимента из ExperimentsListModal.
         
@@ -295,10 +295,9 @@ class Renderer:
         Использует реестр EXPERIMENTS для централизованного управления экспериментами.
         
         Args:
-            creature_id: ID выбранного существа
             experiment_id: ID выбранного эксперимента (индекс в реестре)
         """
-        print (f"✓ ✓ ✓ ✓ ✓ Experiment selected: experiment_id={experiment_id} on creature_id={creature_id}")
+        print (f"✓ ✓ ✓ ✓ ✓ Experiment selected: experiment_id={experiment_id}")
         # from experiments import EXPERIMENTS
         
         # # Получаем список экспериментов из реестра
@@ -308,7 +307,7 @@ class Renderer:
         #     experiment_type = experiment_types[experiment_id]
         #     experiment_registry = EXPERIMENTS[experiment_type]
             
-        #     print(f"✓ Experiment selected: {experiment_type} on creature {creature_id}")
+        #     print(f"✓ Experiment selected: {experiment_type}")
             
         #     # Инициализируем эксперимент в application
         #     self.app.init_experiment(experiment_type, creature_id)
