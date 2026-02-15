@@ -14,6 +14,8 @@ Registry:
 """
 
 from experiments.base import ExperimentBase
+from experiments.bite.experiment import BiteExperiment
+from experiments.bite.widget import BiteExperimentWidget
 from experiments.dummy import DummyExperiment, DummyExperimentWidget
 # from experiments.spambite import SpambiteExperiment, SpambiteExperimentWidget
 
@@ -25,6 +27,12 @@ EXPERIMENTS = {
         'widget_class': DummyExperimentWidget,
         'name': 'Dummy Experiment',
         'description': 'Dummy for all future experiments',
+    },
+    'bite': {
+        'experiment_class': BiteExperiment,
+        'widget_class': BiteExperimentWidget,
+        'name': 'BiteExperiment',
+        'description': 'Test creature behavior on finding food with success/failure tracking',
     },
     # 'spambite': {
     #     'experiment_class': SpambiteExperiment,
@@ -48,4 +56,6 @@ __all__ = [
     # 'SpambiteExperiment',
     # 'SpambiteExperimentWidget',
     'EXPERIMENTS',
+    'BiteExperiment',
+    'BiteExperimentWidget',
 ]
