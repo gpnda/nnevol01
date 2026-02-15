@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 """Виджет для BiteExperiment - отображение прогресса и результатов эксперимента по кусанию."""
 
+import numpy as np
 import pygame
+
+
 
 class BiteExperimentWidget:
     POPUP_WIDTH = 700
@@ -77,41 +80,6 @@ class BiteExperimentWidget:
             print (f"[WIDGET] Drawing stats for stage {experiment_dto.current_stage}: "
                    f"Total={total_count}, Success={success_count}, Rate={success_rate*100:.1f}%")
 
-            # Рисуем карту эксперимента
-            experiment_map = experiment_dto.world
-            
-            # Параметры рисования матрицы
-            MATRIX_START_X = 100
-            MATRIX_START_Y = 100
-            CELL_SIZE = 10
-            
-            # Рисуем матрицу карты
-            map_data = experiment_map.map
-            for row in range(map_data.shape[0]):
-                for col in range(map_data.shape[1]):
-                    cell_x = MATRIX_START_X + col * CELL_SIZE
-                    cell_y = MATRIX_START_Y + row * CELL_SIZE
-                    cell_rect = pygame.Rect(cell_x, cell_y, CELL_SIZE, CELL_SIZE)
-                    
-                    # Определяем цвет ячейки на основе значения
-                    cell_value = map_data[row, col]
-                    if cell_value == 0:  # Пусто
-                        cell_color = (40, 40, 40)
-                    elif cell_value == 1:  # Стена
-                        cell_color = (100, 100, 100)
-                    elif cell_value == 2:  # Еда
-                        cell_color = (0, 200, 0)
-                    elif cell_value == 3:  # Существо
-                        cell_color = (255, 100, 0)
-                    else:
-                        cell_color = (50, 50, 50)
-                    
-                    # Рисуем заполненный прямоугольник и границу
-                    pygame.draw.rect(screen, cell_color, cell_rect)
-                    pygame.draw.rect(screen, (80, 80, 80), cell_rect, 1)
-
-            
-            
             for line in stats_lines:
                 color = self.COLORS['success'] if 'Success:' in line and success_count > total_count // 2 else self.COLORS['text']
                 if 'rate' in line and success_rate > 0.5:
@@ -119,6 +87,72 @@ class BiteExperimentWidget:
                 text_surface = self.font.render(line, True, color)
                 screen.blit(text_surface, (x + 20, content_y))
                 content_y += 25
+
+
+        # Рисуем карту эксперимента
+        experiment_map = experiment_dto.world
+        
+        # Параметры рисования матрицы
+        MATRIX_START_X = 100
+        MATRIX_START_Y = 100
+        CELL_SIZE = 10
+        
+        # Рисуем матрицу карты
+        map_data = experiment_map.map
+        for row in range(map_data.shape[0]):
+            for col in range(map_data.shape[1]):
+                cell_x = MATRIX_START_X + col * CELL_SIZE
+                cell_y = MATRIX_START_Y + row * CELL_SIZE
+                cell_rect = pygame.Rect(cell_x, cell_y, CELL_SIZE, CELL_SIZE)
+                
+                # Определяем цвет ячейки на основе значения
+                cell_value = map_data[row, col]
+                if cell_value == 0:  # Пусто
+                    cell_color = (40, 40, 40)
+                elif cell_value == 1:  # Стена
+                    cell_color = (100, 100, 100)
+                elif cell_value == 2:  # Еда
+                    cell_color = (0, 200, 0)
+                elif cell_value == 3:  # Существо
+                    cell_color = (255, 100, 0)
+                else:
+                    cell_color = (50, 50, 50)
+                
+                # Рисуем заполненный прямоугольник и границу
+                pygame.draw.rect(screen, cell_color, cell_rect)
+                pygame.draw.rect(screen, (80, 80, 80), cell_rect, 1)
+
+        # нарисуем точки Raycast
+        if experiment_dto.raycast_dots is not None:
+            for dot in experiment_dto.raycast_dots:
+                dot_x = MATRIX_START_X + dot[0] * CELL_SIZE
+                dot_y = MATRIX_START_Y + dot[1] * CELL_SIZE
+                pygame.draw.circle(screen, (255, 255, 0), (dot_x + CELL_SIZE//2, dot_y + CELL_SIZE//2), 2)
+
+        # Рисуем текущий vision input (15 лучей)
+        # Преобразование в uint8 диапазон [0, 255]
+        if experiment_dto.vision_input is not None:
+            vision_int = (experiment_dto.vision_input * 255).astype(np.uint8)
+            vision_int_list = vision_int.tolist()
+        # Преобразование в RGB кортежи
+            rgb_tuples = list(zip(
+                vision_int_list[0:15],
+                vision_int_list[15:30],
+                vision_int_list[30:45]
+            ))
+            
+            # Рисуем видение в виде 15 цветных квадратов
+            for i, color in enumerate(rgb_tuples):
+                square_rect = pygame.Rect(x + 400, y + 60 + i * 25, 20, 20)
+                pygame.draw.rect(screen, color, square_rect)
+                pygame.draw.rect(screen, (80, 80, 80), square_rect, 1)
+        # Видение состоит из 3 каналов по 15 сенсоров каждый
+
+        # Рисование видения в виде 15 цветных квадратов
+
+            
+            
+            
         
         # Реализуем небольшую паузу между кадрами
         pygame.time.delay(500)

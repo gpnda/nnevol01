@@ -94,17 +94,17 @@ class VisionSimulator:
     """Симулятор зрения для быстрого тестирования."""
     
     @staticmethod
-    def get_creature_vision(world: World, creature: Creature) -> np.ndarray:
+    def get_creature_vision(world: World, creature: Creature) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Получить vision массив для одного существа.
+        Получить vision массив и raycast_dots для одного существа.
         
         Returns:
-            np.ndarray: vision array [45] (15 RGB каналов)
+            Tuple[np.ndarray, np.ndarray]: (vision array [45], raycast_dots для визуализации)
         """
         world.update_map()  # обновить карту перед raycast
         creatures_pos = np.array([[creature.x, creature.y, creature.angle, creature.vision_distance]], dtype='float')
-        all_visions, _ = World.fast_get_all_visions(world.map, creatures_pos)
-        return all_visions[0]  # возвращаем vision первого (единственного) существа
+        all_visions, raycast_dots = World.fast_get_all_visions(world.map, creatures_pos)
+        return all_visions[0], raycast_dots  # возвращаем vision и raycast_dots первого существа
     
     @staticmethod
     def simulate_nn_output(creature: Creature, vision: np.ndarray) -> Tuple[float, float, float]:
