@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
+from typing import Optional, Dict, Any
+
+from experiments.base.dto import ExperimentWorldStateDTO
+
 
 @dataclass
 class BiteExperimentDTO:
@@ -7,5 +11,6 @@ class BiteExperimentDTO:
     is_running: bool
     current_stage: int
     stage_run_counter: int
-    # summary: dict  # результаты stats.get_summary()
-    random_value: float  # для демонстрации изменения состояния в каждой стадии
+    num_runs_this_stage: int
+    world: ExperimentWorldStateDTO
+    summary: Optional[Dict[str, Any]] = None  # результаты stats.get_summary()

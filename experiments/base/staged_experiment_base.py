@@ -40,8 +40,9 @@ class StagedExperimentBase(ExperimentBase, ABC):
         
         # State machine
         self.current_stage = 0
+        self.num_runs_this_stage = 0  # для контроля количества прогонов в каждой стадии
         self.stage_run_counter = 0  # счетчик прогонов внутри стадии
-        self.runs_per_stage = 20    # количество прогонов на стадию
+
         
         self.is_running = False
     
@@ -83,21 +84,28 @@ class StagedExperimentBase(ExperimentBase, ABC):
         
         # выполнить логику стадии
         stage_method()
+
+        # увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит
+        self.stage_run_counter_increment()
         
-        # Считаем прогоны, 
-        # если прогоны завершены, то переходим к следующей стадии,
-        # если все стадии завершены, то завершаем весь эксперимент
-        self.stage_run_counter += 1
-        if self.stage_run_counter >= self.runs_per_stage:
-            self.stage_run_counter = 0
-            self.current_stage += 1
-            
-            if self.current_stage >= self._get_total_stages():
-                # Все стадии завершены
-                self.stop()
     
+    def stage_run_counter_increment(self):
+        """Увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит."""
+        self.stage_run_counter += 1
+        
+        if self.stage_run_counter >= self.num_runs_this_stage:
+            # Переход к следующей стадии
+            self.stage_run_counter = 0   # сбросить счетчик для следующей стадии
+            self.current_stage += 1      # перейти к следующей стадии
+        
+            # Если все стадии завершены, то
+            if self.current_stage >= self._get_total_stages():
+                self.stop()
+
     def _print_summary(self):
         """Вывести резюме результатов."""
         print(f"[STAGED EXPERIMENT] Summary for creature {self.target_creature.id}")
         # Здесь можно вывести какие-то общие результаты, например, финальную энергию, 
         # количество съеденной пищи, количество укусов и так далее, в зависимости от логики эксперимента
+
+    
