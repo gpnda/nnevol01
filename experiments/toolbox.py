@@ -85,9 +85,21 @@ class ScenarioBuilder:
     @staticmethod
     def clear_world(world: World):
         """Очистить мир (удалить всех существ и еду)."""
+        print(f"Before clear: creatures={len(world.creatures)}, foods={len(world.foods)}")
+        print(f"Before clear: map unique values={np.unique(world.map)}")
+        
         world.creatures.clear()
         world.foods.clear()
-        world.map = world.walls_map.copy()
+        
+        print(f"After lists clear: creatures={len(world.creatures)}, foods={len(world.foods)}")
+        
+        world.map.fill(0)
+        print(f"After map.fill(0): map unique values={np.unique(world.map)}")
+        
+        # world.update_map()
+        # print(f"After update_map: map unique values={np.unique(world.map)}")
+        # print(f"walls_map unique values={np.unique(world.walls_map)}")
+        # print("---")
 
 
 class VisionSimulator:

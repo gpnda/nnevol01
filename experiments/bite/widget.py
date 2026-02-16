@@ -90,13 +90,14 @@ class BiteExperimentWidget:
 
 
         # Рисуем карту эксперимента
-        experiment_map = experiment_dto.world
         
         # Параметры рисования матрицы
         MATRIX_START_X = 100
         MATRIX_START_Y = 100
         CELL_SIZE = 10
         
+        experiment_map = experiment_dto.world
+
         # Рисуем матрицу карты
         map_data = experiment_map.map
         for row in range(map_data.shape[0]):
