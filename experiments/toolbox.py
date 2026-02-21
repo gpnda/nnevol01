@@ -80,21 +80,22 @@ class ScenarioBuilder:
     def place_wall(world: World, x: int, y: int):
         """Разместить стену."""
         world.set_cell(x, y, 1)
-        world.walls_map[y, x] = 1
+        world.walls_map[y, x] = 1 #TODO Это сомнительная история... Хорошо бы от этого избавиться.
     
-    @staticmethod
-    def clear_world(world: World):
-        """Очистить мир (удалить всех существ и еду)."""
-        print(f"Before clear: creatures={len(world.creatures)}, foods={len(world.foods)}")
-        print(f"Before clear: map unique values={np.unique(world.map)}")
+    # @staticmethod
+    # def clear_world(world: World):
+    #     """Очистить мир (удалить всех существ и еду)."""
+    #     print(f"Before clear: creatures={len(world.creatures)}, foods={len(world.foods)}")
+    #     print(f"Before clear: map unique values={np.unique(world.map)}")
         
-        world.creatures.clear()
-        world.foods.clear()
+    #     world.creatures.clear()
+    #     world.foods.clear()
         
-        print(f"After lists clear: creatures={len(world.creatures)}, foods={len(world.foods)}")
+    #     print(f"After lists clear: creatures={len(world.creatures)}, foods={len(world.foods)}")
         
-        world.map.fill(0)
-        print(f"After map.fill(0): map unique values={np.unique(world.map)}")
+    #     world.map.fill(0)
+    #     world.update_map()
+    #     print(f"After map.fill(0): map unique values={np.unique(world.map)}")
         
         # world.update_map()
         # print(f"After update_map: map unique values={np.unique(world.map)}")

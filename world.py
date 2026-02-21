@@ -368,7 +368,8 @@ class World():
 		dots_in_ray = int(distance_of_view/step)
 		n_creatures = creatures_pos.shape[0] # Выясним сколько существ в массиве creatures_pos
 		
-		raycast_dots = np.zeros((n_creatures*resolution*dots_in_ray, 2), dtype='float') # тут хранятся просто точки, и двойка тут означает просто X,Y
+		max_raycast_dots = n_creatures * resolution * dots_in_ray + 1000  # 1000 - это запас на случай переполнения
+		raycast_dots = np.zeros((max_raycast_dots, 2), dtype='float') # тут хранятся просто точки, и двойка тут означает просто X,Y
 		raycast_dots_idx=0
 		all_visions = np.zeros((n_creatures, resolution*3), dtype='int') # ВСЕГДА ОДИНАКОВЫЙ РАЗМЕР. 15 пикселов для 5 существ
 		
@@ -459,6 +460,10 @@ class World():
 		# print("Длина массива all_visions: " + str(len(all_visions)))
 		# for index,v in enumerate(all_visions):
 		#   print("Длина " + str(index) + " массива vision: " + str(len(v)))
+		# Обрезаем массив до реального размера (удаляем неиспользованные нули в конце)
+		raycast_dots = raycast_dots[:raycast_dots_idx]
+		# 18 000 против 166 000. Конечно надо обрезку делать
+		# print("raycast_dots_idx: " + str(raycast_dots_idx) + "   | raycast_dots len: " + str(len(raycast_dots)))
 		return all_visions / 255.0, raycast_dots
 
 

@@ -65,7 +65,8 @@ class BiteExperiment(StagedExperimentBase):
 
         
         # Очистить мир для прогона
-        ScenarioBuilder.clear_world(self.test_world)
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
         
 
         # Генерировать случайное смещение Y: ±0.3
@@ -129,8 +130,8 @@ class BiteExperiment(StagedExperimentBase):
 
         
         # Очистить мир для прогона
-        ScenarioBuilder.clear_world(self.test_world)
-        # ScenarioBuilder.create_test_world(width=50, height=50)
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
         
         # Разместить существо
         creature = ScenarioBuilder.place_creature(
