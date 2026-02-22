@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from dataclasses import dataclass
-from typing import Optional, Dict, Any, Tuple
+from typing import Optional, Dict, Any
 import numpy as np
 
-from experiments.base.dto import ExperimentWorldStateDTO
+from experiments.base.dto import ExperimentWorldStateDTO, ExperimentCreatureStateDTO
 
 
 @dataclass
@@ -12,9 +12,7 @@ class BiteExperimentDTO:
     
     Содержит все необходимые данные для отрисовки эксперимента:
     - world: тестовый мир (карта)
-    - vision_input: входной вектор зрения (45 элементов)
-    - nn_outputs: выходы нейросетки (3 значения: angle, speed, bite)
-    - raycast_dots: координаты точек raycast для отрисовки лучей
+    - creature_state: состояние существа (vision_input, nn_outputs, raycast_dots, позиция, угол)
     
     Виджет остается полностью изолирован и не имеет доступа к основной логике.
     """
@@ -25,9 +23,7 @@ class BiteExperimentDTO:
     num_runs_this_stage: int
     world: ExperimentWorldStateDTO
     
-    # Новые поля для визуализации - все через DTO для изоляции
-    vision_input: Optional[np.ndarray] = None  # [45] входной вектор зрения
-    nn_outputs: Optional[Tuple[float, float, float]] = None  # (angle_delta, speed_delta, bite_output)
-    raycast_dots: Optional[np.ndarray] = None  # [(x, y), ...] координаты raycast точек
+    # Состояние существа для визуализации - через DTO для полной изоляции
+    creature_state: Optional[ExperimentCreatureStateDTO] = None
     
     summary: Optional[Dict[str, Any]] = None  # результаты stats.get_summary()

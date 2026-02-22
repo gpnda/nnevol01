@@ -110,8 +110,8 @@ class BiteExperimentWidget:
                 #pygame.draw.rect(screen, (80, 80, 80), cell_rect, 1)
 
         # нарисуем точки Raycast
-        if experiment_dto.raycast_dots is not None:
-            for dot in experiment_dto.raycast_dots:
+        if experiment_dto.creature_state is not None and experiment_dto.creature_state.raycast_dots is not None:
+            for dot in experiment_dto.creature_state.raycast_dots:
                 dot_x = MATRIX_START_X + dot[0] * CELL_SIZE
                 dot_y = MATRIX_START_Y + dot[1] * CELL_SIZE
                 pygame.draw.circle(screen, (255, 255, 0), (dot_x + CELL_SIZE//2, dot_y + CELL_SIZE//2), 1)
@@ -131,8 +131,8 @@ class BiteExperimentWidget:
         # ##########################################################################
 
         # Преобразование в uint8 диапазон [0, 255]
-        if experiment_dto.vision_input is not None:
-            vision_int = (experiment_dto.vision_input * 255).astype(np.uint8)
+        if experiment_dto.creature_state is not None and experiment_dto.creature_state.vision_input is not None:
+            vision_int = (experiment_dto.creature_state.vision_input * 255).astype(np.uint8)
             vision_int_list = vision_int.tolist()
         # Преобразование в RGB кортежи
             rgb_tuples = list(zip(

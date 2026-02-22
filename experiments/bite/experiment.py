@@ -20,7 +20,7 @@ from experiments.base.staged_experiment_base import StagedExperimentBase
 from experiments.bite.dto import BiteExperimentDTO
 from experiments.toolbox import ScenarioBuilder, VisionSimulator, StatsCollector
 from world import World
-from experiments.base.dto import ExperimentWorldStateDTO
+from experiments.base.dto import ExperimentWorldStateDTO, ExperimentCreatureStateDTO
 
 class BiteExperiment(StagedExperimentBase):
     """Эксперимент проверки кусания."""
@@ -34,10 +34,8 @@ class BiteExperiment(StagedExperimentBase):
         # Инициализация сборщика статистики
         self.stats = StatsCollector()
         
-        # Переменные для хранения текущего состояния (для передачи в DTO)
-        self.current_vision_input = None  # vision array [45]
-        self.current_nn_outputs = None  # (angle_delta, speed_delta, bite_output)
-        self.current_raycast_dots = None  # координаты raycast точек
+        # Переменные для хранения текущего состояния существа (для передачи в DTO)
+        self.current_creature_state = None  # ExperimentCreatureStateDTO
         
         # Переменная для отладки (удалить позже)
         self.random_value = 0.0
@@ -89,10 +87,15 @@ class BiteExperiment(StagedExperimentBase):
         # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
         angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(creature, vision)
         
-        # Сохранить текущее состояние для DTO (для визуализации в виджете)
-        self.current_vision_input = vision
-        self.current_nn_outputs = (float(angle_delta), float(speed_delta), float(bite_output))
-        self.current_raycast_dots = raycast_dots
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=creature.x,
+            y=creature.y,
+            angle=creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
         
         # Проверить, кусает ли существо (bite > 0.5)
         success = bite_output > 0.5
@@ -160,10 +163,15 @@ class BiteExperiment(StagedExperimentBase):
         # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
         angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(creature, vision)
         
-        # Сохранить текущее состояние для DTO (для визуализации в виджете)
-        self.current_vision_input = vision
-        self.current_nn_outputs = (float(angle_delta), float(speed_delta), float(bite_output))
-        self.current_raycast_dots = raycast_dots
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=creature.x,
+            y=creature.y,
+            angle=creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
         
         # Проверить, кусает ли существо (bite > 0.5)
         success = bite_output > 0.5
@@ -250,9 +258,7 @@ class BiteExperiment(StagedExperimentBase):
                     width=self.test_world.width,
                     height=self.test_world.height
                 ),
-            vision_input=self.current_vision_input,
-            nn_outputs=self.current_nn_outputs,
-            raycast_dots=self.current_raycast_dots,
+            creature_state=self.current_creature_state,
             summary=summary
         )
     
