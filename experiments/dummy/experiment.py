@@ -87,7 +87,6 @@ class DummyExperiment(ExperimentBase):
             return
         
         self.tick_counter += 1
-        
     
     def _print_stats(self) -> None:
         """Вывести статистику эксперимента."""
