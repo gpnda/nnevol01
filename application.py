@@ -82,6 +82,7 @@ class Application():
 		experiment_class = experiment_registry['experiment_class']
 		
 		self.experiment = experiment_class(experimental_creature_id, self.world)
+		self.world.get_creature_by_id(experimental_creature_id).nn.print_nn_parameters() # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
 		self.experiment_mode = True
 		self.is_running = False  # Остановить основную симуляцию
 		

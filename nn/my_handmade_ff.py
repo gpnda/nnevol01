@@ -28,6 +28,16 @@ class NeuralNetwork:  # класс нейронной сети
         limit3 = np.sqrt(6.0 / (HIDDEN2_SIZE + OUTPUT_SIZE))
         self.w3 = np.random.uniform(-limit3, limit3, (HIDDEN2_SIZE, OUTPUT_SIZE)).astype(np.float32)
         self.b3 = np.zeros(OUTPUT_SIZE, dtype=np.float32)
+    
+
+    def print_nn_parameters(self):
+        print("w1:", self.w1)
+        print("b1:", self.b1)
+        print("w2:", self.w2)
+        print("b2:", self.b2)
+        print("w3:", self.w3)
+        print("b3:", self.b3)
+
 
 
 
@@ -179,3 +189,5 @@ def fast_tanh(x: np.float32) -> np.float32:
     """Быстрая аппроксимация tanh"""
     x2 = x * x
     return x * (27.0 + x2) / (27.0 + 9.0 * x2)
+
+

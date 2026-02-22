@@ -144,6 +144,8 @@ class BiteExperiment(StagedExperimentBase):
         self.inspecting_creature.y = 25.5 + y_offset
         self.inspecting_creature.angle = 0.0
 
+        self.inspecting_creature.nn.print_nn_parameters()   # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+
         
         
         # Разместить 20 стен в случных местах карты, но не других стенах и не на инспектируемом существе
