@@ -41,7 +41,6 @@ class BiteExperiment(StagedExperimentBase):
         
         # Переменная для отладки (удалить позже)
         self.random_value = 0.0
-
     
     def _get_total_stages(self) -> int:
         return 7  # 6 тестовых стадий + 1 финальная
@@ -108,9 +107,6 @@ class BiteExperiment(StagedExperimentBase):
             speed_delta=float(speed_delta)
         )
 
-        
-    
-        
     def _stage_1(self):
         """Стадия 1: Пища не видна (не должен кусать)
 
