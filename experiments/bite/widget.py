@@ -211,20 +211,12 @@ class BiteExperimentWidget:
 
             
         # Выводим блоки информации по каждой стадии эксперимента
-        # for stage in range(1, 7):
-        #     stage_y = y + 60 + (6 + stage) * 25
-        #     stage_text = f"Stage {stage}: "
-        #     if experiment_dto.summary and stage in experiment_dto.summary:
-        #         stage_stats = experiment_dto.summary[stage]
-        #         success_count = stage_stats.get('success', 0)
-        #         total_count = stage_stats.get('total', 0)
-        #         success_rate = stage_stats.get('success_rate', 0.0)
-        #         stage_text += f"Success {success_count}/{total_count} ({success_rate*100:.1f}%)"
-        #     else:
-        #         stage_text += "No data"
-            
-        #     text_surface = self.font.render(stage_text, True, self.COLORS['text'])
-        #     screen.blit(text_surface, (x + 20, stage_y))
+        if experiment_dto.summary:
+            for stage, stats in experiment_dto.summary.items():
+                stage_line = f"Stage {stage}: Success={stats.get('success', 0)}, Fail={stats.get('fail', 0)}, Total={stats.get('total', 0)}, Rate={stats.get('success_rate', 0.0)*100:.1f}%"
+                text_surface = self.font.render(stage_line, True, self.COLORS['text'])
+                screen.blit(text_surface, (x + 620, content_y))
+                content_y += 25
 
             
         

@@ -191,11 +191,16 @@ class BiteExperiment(StagedExperimentBase):
         # Инициализация количества прогонов для этой стадии.
         # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
         # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 1
+        self.num_runs_this_stage = 10
         
         # Заглушка для проверки успеха
         self.random_value = random.random()  # для демонстрации изменения состояния
         success = self.random_value > 0.1
+        # Записать результат в статистику
+        self.stats.add_run(
+            stage=0,
+            success=success
+        )
     
     def _stage_3(self):
         """Стадия 3: Пища близко, но вне досягаемости (не должен кусать)"""
@@ -208,6 +213,11 @@ class BiteExperiment(StagedExperimentBase):
         # Заглушка для проверки успеха
         self.random_value = random.random()  # для демонстрации изменения состояния
         success = self.random_value > 0.1
+        # Записать результат в статистику
+        self.stats.add_run(
+            stage=0,
+            success=success
+        )
     
     def _stage_4(self):
         """Стадия 4: Пища чуть правее (не должен кусать)"""
@@ -215,12 +225,17 @@ class BiteExperiment(StagedExperimentBase):
         # Инициализация количества прогонов для этой стадии.
         # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
         # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 100
+        self.num_runs_this_stage = 7
         
         
         # Заглушка для проверки успеха
         self.random_value = random.random()  # для демонстрации изменения состояния
         success = self.random_value > 0.1
+        # Записать результат в статистику
+        self.stats.add_run(
+            stage=0,
+            success=success
+        )
     
     def _stage_5(self):
         """Стадия 5: Пища чуть правее (не должен кусать)"""
@@ -233,13 +248,18 @@ class BiteExperiment(StagedExperimentBase):
         
         # Заглушка для проверки успеха
         success = random.random() > 0.1
+        # Записать результат в статистику
+        self.stats.add_run(
+            stage=0,
+            success=success
+        )
     
     def _stage_6(self):
         """Стадия 6: Резюме (финальная стадия)."""
         # Инициализация количества прогонов для этой стадии.
         # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
         # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 1
+        self.num_runs_this_stage = 10
 
         # Выводим резюме результатов
         self._print_summary()
