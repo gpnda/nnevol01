@@ -30,7 +30,6 @@ class PerformanceMonitor:
         elapsed = current_time - self.last_print_time
         
         if elapsed >= self.interval:
-            print(f"Tick: {tick_number}")
             self.last_print_time = current_time
             self.last60sec.append(tick_number)
-            print(f"Ticks in last 60 sec: {self.last60sec[-1] - self.last60sec[0] if len(self.last60sec) > 1 else 0}")
+            print(f"Tick: {tick_number}. ticks in last 60 sec: {self.last60sec[-1] - self.last60sec[0] if len(self.last60sec) > 1 else 0}")

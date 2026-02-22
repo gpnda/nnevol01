@@ -136,7 +136,7 @@ class Renderer:
             return False
         
         if self.current_state != state_name:
-            print(f"State transition: {self.current_state} → {state_name}")
+            # print(f"State transition: {self.current_state} → {state_name}")
             self.current_state = state_name
             
             # Управление паузой: модальные окна ставят симуляцию на паузу
@@ -192,7 +192,7 @@ class Renderer:
         if self.selected_creature_id is None:
             # Если ничего не выбрано, выбираем существо с максимальным ID
             self.selected_creature_id = all_ids[0]
-            print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (max)")
+            # print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (max)")
         else:
             # Найти текущее существо в отсортированном списке
             if self.selected_creature_id in all_ids:
@@ -202,13 +202,15 @@ class Renderer:
                 self.selected_creature_id = all_ids[next_index]
                 is_cycled = next_index == 0
                 if is_cycled:
-                    print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (min, cycled to max)")
+                    # print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (min, cycled to max)")
+                    pass
                 else:
-                    print(f"✓ Creature selected (TAB): id={self.selected_creature_id}")
+                    # print(f"✓ Creature selected (TAB): id={self.selected_creature_id}")
+                    pass
             else:
                 # Если текущее существо больше не существует, выбираем максимальное
                 self.selected_creature_id = all_ids[0]
-                print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (previous dead, reset to max)")
+                # print(f"✓ Creature selected (TAB): id={self.selected_creature_id} (previous dead, reset to max)")
     
     def _select_creature_by_shift_tab(self) -> None:
         """
@@ -229,7 +231,7 @@ class Renderer:
         if self.selected_creature_id is None:
             # Если ничего не выбрано, выбираем существо с минимальным ID
             self.selected_creature_id = all_ids[0]
-            print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (min)")
+            # print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (min)")
         else:
             # Найти текущее существо в отсортированном списке
             if self.selected_creature_id in all_ids:
@@ -239,20 +241,22 @@ class Renderer:
                 self.selected_creature_id = all_ids[next_index]
                 is_cycled = next_index == 0
                 if is_cycled:
-                    print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (max, cycled to min)")
+                    # print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (max, cycled to min)")
+                    pass
                 else:
-                    print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id}")
+                    # print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id}")
+                    pass
             else:
                 # Если текущее существо больше не существует, выбираем минимальное
                 self.selected_creature_id = all_ids[0]
-                print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (previous dead, reset to min)")
+                # print(f"✓ Creature selected (Shift+TAB): id={self.selected_creature_id} (previous dead, reset to min)")
     
     def _select_creature_reset(self) -> None:
         """
         Сбросить выбор существа (нажата ESCAPE).
         """
         if self.selected_creature_id is not None:
-            print(f"✓ Creature selection reset (ESCAPE)")
+            # print(f"✓ Creature selection reset (ESCAPE)")
             self.selected_creature_id = None
         return
 

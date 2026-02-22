@@ -259,7 +259,7 @@ class World():
 		for i in filter(lambda c:c.age in c.birth_ages, self.creatures):
 			i_children = i.reprodCreature()
 			baby_creatures += i_children
-			print("Существо с ID " + str(i.id) + " родило " + str(len(i_children)) + " детей.")
+			# print("Существо с ID " + str(i.id) + " родило " + str(len(i_children)) + " детей.")
 			logme.log_event(creature_id=i.id, tick=self.tick, event_type="CREATE_CHILD", value=len(i_children))
 		self.creatures += baby_creatures
 		

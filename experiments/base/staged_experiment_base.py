@@ -61,12 +61,12 @@ class StagedExperimentBase(ExperimentBase, ABC):
         self.is_running = True
         self.current_stage = 0
         self.stage_run_counter = 0
-        print(f"[STAGED EXPERIMENT] Started")
+        # print(f"[STAGED EXPERIMENT] Started")
     
     def stop(self):
         """Остановить эксперимент."""
         self.is_running = False
-        print(f"[STAGED EXPERIMENT] Stopped")
+        # print(f"[STAGED EXPERIMENT] Stopped")
         self._print_summary()
     
     def update(self):
