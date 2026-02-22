@@ -174,7 +174,7 @@ class BiteExperiment(StagedExperimentBase):
         
         # Записать результат в статистику
         self.stats.add_run(
-            stage=0,
+            stage=1,
             success=success,
             bite_output=float(bite_output),
             vision_sum=float(np.sum(vision)),
@@ -249,13 +249,21 @@ class BiteExperiment(StagedExperimentBase):
             current_stage=self.current_stage,
             stage_run_counter=self.stage_run_counter,
             num_runs_this_stage=self.num_runs_this_stage,
-            world=self._prepare_widget_state_dto(),
+            world=self._prepare_world_state_dto(),
             vision_input=self.current_vision_input,
             nn_outputs=self.current_nn_outputs,
             raycast_dots=self.current_raycast_dots,
             summary=summary
         )
     
+    def _prepare_world_state_dto(self):
+        """Подготовить DTO для виджета. Возвращает тестового мира."""
+        return ExperimentWorldStateDTO(
+            map=self.test_world.map,
+            width=self.test_world.width,
+            height=self.test_world.height
+        )
+
     def _print_summary(self):
         """Вывести резюме результатов эксперимента в консоль."""
         summary = self.stats.get_summary()
@@ -275,12 +283,3 @@ class BiteExperiment(StagedExperimentBase):
                   f"Total={overall['total_runs']}, "
                   f"Success={overall['total_success']}, "
                   f"Rate={overall['overall_success_rate']*100:.1f}%")
-
-
-    def _prepare_widget_state_dto(self):
-        """Подготовить DTO для виджета. Возвращает тестового мира."""
-        return ExperimentWorldStateDTO(
-            map=self.test_world.map,
-            width=self.test_world.width,
-            height=self.test_world.height
-        )
