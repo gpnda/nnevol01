@@ -30,6 +30,12 @@ class BiteExperiment(StagedExperimentBase):
 
         # Создаём пустой тестовый мир 50x50 для экспериментов
         self.test_world = ScenarioBuilder.create_test_world(50, 50)
+
+        # Создаем экспериментальное существо с нейронной сеткой, скопированной из target_creature
+        self.inspecting_creature = ScenarioBuilder.copy_creature(
+            world.get_creature_by_id(target_creature_id)
+        )
+
         
         # Инициализация сборщика статистики
         self.stats = StatsCollector()
@@ -70,13 +76,12 @@ class BiteExperiment(StagedExperimentBase):
         y_offset = random.uniform(-0.3, 0.3)
         creature_y = 25.5 + y_offset
         
-        # Разместить существо перед едой
-        creature = ScenarioBuilder.place_creature(
-            self.test_world, 
-            x=5.7, 
-            y=creature_y, 
-            angle=0.0
-        )
+        # Разместить существо в мире
+        # ScenarioBuilder.place_creature(
+        #     self.test_world, 
+        #     inspecting_creature=self.inspecting_creature,
+        # )
+        creature=self.inspecting_creature
         
         # Разместить еду прямо перед существом (смотрящим вправо)
         ScenarioBuilder.place_food(self.test_world, x=6, y=25)
@@ -132,42 +137,35 @@ class BiteExperiment(StagedExperimentBase):
         # Создаём пустой тестовый мир 50x50 для экспериментов
         self.test_world = ScenarioBuilder.create_test_world(50, 50)
         
-        # Разместить существо
-        creature = ScenarioBuilder.place_creature(
-            self.test_world, 
-            x=5.7, 
-            y=25.5, 
-            angle=0.0
-        )
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
+        # Генерировать случайное смещение Y: ±0.3
+        y_offset = random.uniform(-0.3, 0.3)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
+
         
-        # Разместить 20 стен в случных местах карты, но не других стенах и не на существе
+        
+        # Разместить 20 стен в случных местах карты, но не других стенах и не на инспектируемом существе
         for _ in range(20):
             while True:
                 wall_x = random.randint(0, self.test_world.width - 1)
                 wall_y = random.randint(0, self.test_world.height - 1)
-                if self.test_world.map[wall_y, wall_x] == 0 and not (creature.x - 1 <= wall_x <= creature.x + 1 and creature.y - 1 <= wall_y <= creature.y + 1):
+                if self.test_world.map[wall_y, wall_x] == 0 and not (self.inspecting_creature.x - 1 <= wall_x <= self.inspecting_creature.x + 1 and self.inspecting_creature.y - 1 <= wall_y <= self.inspecting_creature.y + 1):
                     ScenarioBuilder.place_wall(self.test_world, x=wall_x, y=wall_y)
-                    break
-        # Разместить 15 неуправляемых существ в случных местах карты, но не других стенах и не на других существах
-        for _ in range(15):
-            while True:
-                creature_x = random.uniform(0, self.test_world.width)
-                creature_y = random.uniform(0, self.test_world.height)
-                if self.test_world.map[int(creature_y), int(creature_x)] == 0 and not (creature.x - 1 <= creature_x <= creature.x + 1 and creature.y - 1 <= creature_y <= creature.y + 1):
-                    ScenarioBuilder.place_creature(self.test_world, x=creature_x, y=creature_y, angle=random.uniform(0, 360))
                     break
         
         # Получить vision для существа (raycast) + raycast_dots для визуализации
-        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, creature)
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
         
         # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
-        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(creature, vision)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
         
         # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
         self.current_creature_state = ExperimentCreatureStateDTO(
-            x=creature.x,
-            y=creature.y,
-            angle=creature.angle,
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
             vision_input=vision,
             nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
             raycast_dots=raycast_dots

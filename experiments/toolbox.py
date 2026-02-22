@@ -62,12 +62,12 @@ class ScenarioBuilder:
         return world
     
     @staticmethod
-    def place_creature(world: World, x: float, y: float, angle: float) -> Creature:
-        """Разместить существо в заданной позиции."""
-        creature = Creature(x, y)
-        creature.angle = angle
-        world.add_creature(creature)
-        return creature
+    def copy_creature(creature: Creature) -> Creature:
+        """Создать новое чистое существо. Скопировать к него нейронную сеть, используя собственный метод нейронной сети"""
+        new_creature = Creature(x=1, y=1)  # позиция будет переопределена при размещении
+        new_creature.nn = NeuralNetwork.copy(creature.nn)  # используем метод копирования из класса NeuralNetwork
+        return new_creature
+
     
     @staticmethod
     def place_food(world: World, x: int, y: int) -> Food:

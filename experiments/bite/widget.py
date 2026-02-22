@@ -117,10 +117,10 @@ class BiteExperimentWidget:
                 pygame.draw.circle(screen, (255, 255, 0), (dot_x + CELL_SIZE//2, dot_y + CELL_SIZE//2), 1)
         
         # нарисуем круг четко вокруг существа
-        # creature_pos = experiment_map.creature_position
-        # creature_x = MATRIX_START_X + creature_pos[0] * CELL_SIZE
-        # creature_y = MATRIX_START_Y + creature_pos[1] * CELL_SIZE
-        # pygame.draw.circle(screen, (0, 255, 255), (creature_x, creature_y), 3, 1) 
+        if experiment_dto.creature_state is not None:
+            creature_x = MATRIX_START_X + experiment_dto.creature_state.x * CELL_SIZE
+            creature_y = MATRIX_START_Y + experiment_dto.creature_state.y * CELL_SIZE
+            pygame.draw.circle(screen, (255, 255, 255), (creature_x + CELL_SIZE//2, creature_y + CELL_SIZE//2), CELL_SIZE//2, 1)
 
 
 
