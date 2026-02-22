@@ -245,20 +245,18 @@ class BiteExperiment(StagedExperimentBase):
             current_stage=self.current_stage,
             stage_run_counter=self.stage_run_counter,
             num_runs_this_stage=self.num_runs_this_stage,
-            world=self._prepare_world_state_dto(),
+            world=ExperimentWorldStateDTO(
+                    map=self.test_world.map,
+                    width=self.test_world.width,
+                    height=self.test_world.height
+                ),
             vision_input=self.current_vision_input,
             nn_outputs=self.current_nn_outputs,
             raycast_dots=self.current_raycast_dots,
             summary=summary
         )
     
-    def _prepare_world_state_dto(self):
-        """Подготовить DTO для виджета. Возвращает тестового мира."""
-        return ExperimentWorldStateDTO(
-            map=self.test_world.map,
-            width=self.test_world.width,
-            height=self.test_world.height
-        )
+    
 
     def _print_summary(self):
         """Вывести резюме результатов эксперимента в консоль."""
