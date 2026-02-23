@@ -96,23 +96,20 @@ class World():
 		# 3. Перемещаем существ, согласно выходам нейросетей
 		for index, creature in enumerate(self.creatures):
 
-			# Расчитываем новые координаты, куда существо хочет перейти
-			creature.angle = creature.angle + (float(all_outs[index][0])-0.5)
-			# print(f"{all_outs[index][0]:.8f}")
-			# Нормализуем угол в диапазон [0, 2π)
-			creature.angle = creature.angle % (2 * math.pi)
-			# Если угол отрицательный, добавляем 2π чтобы получить положительное значение
-			if creature.angle < 0:
-				creature.angle += 2 * math.pi
 
-			creature.speed = creature.speed + (float(all_outs[index][1]) - 0.5)
-			if creature.speed < -0.5:
-				creature.speed = -0.5
-			if creature.speed > 0.5:
-				creature.speed = 0.5
-			newx = creature.x + creature.speed*math.cos(creature.angle)
-			newy = creature.y + creature.speed*math.sin(creature.angle)
-
+			ang, spd, newx, newy = World.apply_outs( # По моей задумке - это должен быть статичный метод класса World
+				creature_x = creature.x,
+				creature_y = creature.y,
+				creature_angle = creature.angle,
+				creature_speed = creature.speed,
+				out_angle = all_outs[index][0],  # выход нейросети для angle
+				out_speed = all_outs[index][1],  # выход нейросети для speed
+				)
+			creature.angle = ang
+			creature.speed = spd
+			# newx=newx #     просто демонстрирую, что этот метод возвращает и новые координаты тоже
+			# newy=newy #      и что дальше будет использоваться эта четверка уже расчитанных переменных
+			
 
 			# is_ok_to_go Проверяем/применяем правила, по которым существо может или не может перемещаться
 			is_ok_to_go = True
@@ -486,5 +483,29 @@ class World():
 		print(f"energy_gain_from_bite_cr: {sp.energy_gain_from_bite_cr}")
 		print(f"energy_loss_bitten: {sp.energy_loss_bitten}")
 		print(f"energy_loss_collision: {sp.energy_loss_collision}")
+	
+	@staticmethod
+	def apply_outs(creature_x, creature_y, creature_angle, creature_speed, out_angle, out_speed):
+		
+		# Расчитываем новые координаты, куда существо хочет перейти
+		new_angle = creature_angle + (float(out_angle)-0.5)
+		# print(f"{all_outs[index][0]:.8f}")
+		# Нормализуем угол в диапазон [0, 2π)
+		new_angle = new_angle % (2 * math.pi)
+		# Если угол отрицательный, добавляем 2π чтобы получить положительное значение
+		# @TODO Вообще это интересный вопрос - этот разрыв в управлении углом существа (2π) - создает ли это помехи в процессе отбора?
+		if new_angle < 0:
+			new_angle += 2 * math.pi
+
+		new_speed = creature_speed + (float(out_speed) - 0.5)
+		if new_speed < -0.5:
+			new_speed = -0.5
+		if new_speed > 0.5:
+			new_speed = 0.5
+		newx = creature_x + new_speed*math.cos(new_angle)
+		newy = creature_y + new_speed*math.sin(new_angle)
+
+		return new_angle, new_speed, newx, newy
+
 
 	
