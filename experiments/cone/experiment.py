@@ -119,17 +119,28 @@ class ConeExperiment(StagedExperimentBase):
         # Получить vision для существа (raycast) + raycast_dots для визуализации
         vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
         
-        # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
-        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
+        # Вычислить выходы нейросети (out_angle, out_speed, bite)
+        out_angle, out_speed, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
         
-        print("speed_delta:", speed_delta, "angle_delta:", angle_delta, "bite_output:", bite_output)
-        # переместить существо в тестовом мире в соответствии с выходами нейросети (приближенно к основной симуляции)
-        self.inspecting_creature.angle += angle_delta
-        new_x = self.inspecting_creature.x + math.cos(self.inspecting_creature.angle) * speed_delta
-        new_y = self.inspecting_creature.y + math.sin(self.inspecting_creature.angle) * speed_delta
 
+
+
+        ang, spd, newx, newy = World.apply_outs( # По моей задумке - это должен быть статичный метод класса World
+				creature_x = self.inspecting_creature.x,
+				creature_y = self.inspecting_creature.y,
+				creature_angle = self.inspecting_creature.angle,
+				creature_speed = self.inspecting_creature.speed,
+				out_angle = out_angle,  # выход нейросети для angle
+				out_speed = out_speed,  # выход нейросети для speed
+				)
+        self.inspecting_creature.angle = ang
+        self.inspecting_creature.speed = spd
+			# newx=newx #     просто демонстрирую, что этот метод возвращает и новые координаты тоже
+			# newy=newy #      и что дальше будет использоваться эта четверка уже расчитанных переменных
+
+        
         # Проверим, чтосущество не выползло за пределы карты
-        if new_x < 0 or new_x >= self.test_world_width or new_y < 0 or new_y >= self.test_world_height:
+        if newx < 0 or newx >= self.test_world_width or newy < 0 or newy >= self.test_world_height:
             # Если существо вышло за пределы карты, то считаем это неудачным прогоном и завершаем стадию
             self.stats_collector.add_run(
                 stage=self.current_stage,
@@ -138,8 +149,8 @@ class ConeExperiment(StagedExperimentBase):
             return  # завершить стадию, так как существо вышло за пределы карты
         else:
             # Если существо осталось в пределах карты, то обновляем его позицию
-            self.inspecting_creature.x = new_x
-            self.inspecting_creature.y = new_y
+            self.inspecting_creature.x = newx
+            self.inspecting_creature.y = newy
         # Стен на карте не будет, поэтому и правил столкновения со стенами не будет писать
         
         print("step: ", self.current_stage, self.stage_run_counter, "pos:", round(self.inspecting_creature.x, 2), round(self.inspecting_creature.y, 2), "angle:", round(self.inspecting_creature.angle, 2), "bite:", round(bite_output, 2))
@@ -151,7 +162,7 @@ class ConeExperiment(StagedExperimentBase):
             y=self.inspecting_creature.y,
             angle=self.inspecting_creature.angle,
             vision_input=vision,
-            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            nn_outputs=(float(out_angle), float(out_speed), float(bite_output)),
             raycast_dots=raycast_dots
         )
         
