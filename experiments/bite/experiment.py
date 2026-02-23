@@ -30,45 +30,45 @@ class BiteExperiment(StagedExperimentBase):
 
         self.plan = [
             {
-            "stage_method": self._stage_0, # первая стадия - базовая проверка кусания, 10 прогонов для стабильной статистики
+            "stage_method": self._stage_0, # нулевая стадия - базовая проверка кусания, 10 прогонов для стабильной статистики
             "stage_name": "Do bite: Food Nearby at front",  # для отображения в виджете
-            "num_runs": 3,
+            "num_runs": 30,
             "result_threshold": 0.9,
             }, 
             {
-            "stage_method": self._stage_1, # вторая стадия - проверка, что существо не кусает, когда пища закрыта стеной, 20 прогонов для стабильной статистики
+            "stage_method": self._stage_1, # первая стадия - проверка, что существо не кусает, когда пища закрыта стеной, 20 прогонов для стабильной статистики
             "stage_name": "Don't bite: can't see any food",  # для отображения в виджете
-            "num_runs": 20,
+            "num_runs": 30,
             "result_threshold": 0.75,
             },
             {
-            "stage_method": self._stage_2, # третья стадия - проверка, что существо не кусает, когда пища далеко по центру, 20 прогонов для стабильной статистики
+            "stage_method": self._stage_2, # вторая стадия - проверка, что существо не кусает, когда пища далеко по центру, 20 прогонов для стабильной статистики
             "stage_name": "Don't bite: Food at front but far",  # для отображения в виджете
-            "num_runs": 10,
-            "result_threshold": 0.95,
+            "num_runs": 30,
+            "result_threshold": 0.9,
             },
             {
-            "stage_method": self._stage_3, # четвертая стадия - проверка, что существо не кусает, когда пища близко, но вне досягаемости, 20 прогонов для стабильной статистики
+            "stage_method": self._stage_3, # третья стадия - проверка, что существо не кусает, когда пища близко, но вне досягаемости, 20 прогонов для стабильной статистики
             "stage_name": "Don't bite: Food still out of reach",  # для отображения в виджете
-            "num_runs": 15,
-            "result_threshold": 0.9,
+            "num_runs": 30,
+            "result_threshold": 0.7,
             },
             {
-            "stage_method": self._stage_4, # пятая стадия - проверка, что существо не кусает, когда пища чуть правее, 20 прогонов для стабильной статистики
+            "stage_method": self._stage_4, # четвертая стадия - проверка, что существо не кусает, когда пища чуть правее, 20 прогонов для стабильной статистики
             "stage_name": "Don't bite: Food at right side",  # для отображения в виджете
-            "num_runs": 20,
-            "result_threshold": 0.5,
+            "num_runs": 30,
+            "result_threshold": 0.6,
             },
             {
-            "stage_method": self._stage_5, # шестая стадия - проверка, что существо не кусает, когда пища чуть левее, 20 прогонов для стабильной статистики
+            "stage_method": self._stage_5, # пятая стадия - проверка, что существо не кусает, когда пища чуть левее, 20 прогонов для стабильной статистики
             "stage_name": "Don't bite: Food at left side",  # для отображения в виджете
-            "num_runs": 20,
-            "result_threshold": 0.9,
+            "num_runs": 30,
+            "result_threshold": 0.6,
             },
             {
-            "stage_method": self._stage_6, # седьмая стадия - резюме результатов, 1 прогон для вывода итогов
-            "stage_name": "Summary of results",  # для отображения в виджете
-            "num_runs": 1,
+            "stage_method": self._stage_6, # шестая стадия - есть пища слева и справа, посередине щель, существо должно понять что кусать нельзя, 20 прогонов для стабильной статистики
+            "stage_name": "Don't bite: Gap in the middle",  # для отображения в виджете
+            "num_runs": 30,
             "result_threshold": 0.0,
             },
             ]
@@ -96,45 +96,44 @@ class BiteExperiment(StagedExperimentBase):
         """Стадия 0: Пища впритык (экзаменуемое существо должно кусать еду рядом).
         
         Процедура прогона:
+        0. Создать пустой новый мир
         1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
         2. Разместить еду в (6, 25) - прямо перед существом
         3. Получить vision через raycast
         4. Вычислить выходы нейросети
         5. Проверить: bite_output > 0.5 = успех
         6. Записать в статистику
-        7. Очистить мир для следующего прогона
+        
         """
         
         # Очистить мир для прогона
         # Создаём пустой тестовый мир 50x50 для экспериментов
         self.test_world = ScenarioBuilder.create_test_world(50, 50)
         
-
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
         # Генерировать случайное смещение Y: ±0.3
         y_offset = random.uniform(-0.3, 0.3)
-        creature_y = 25.5 + y_offset
-        
-        # Разместить существо в мире
-        # ScenarioBuilder.place_creature(
-        #     self.test_world, 
-        #     inspecting_creature=self.inspecting_creature,
-        # )
-        creature=self.inspecting_creature
-        
-        # Разместить еду прямо перед существом (смотрящим вправо)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
+
+        # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+        # self.inspecting_creature.nn.print_nn_parameters()
+
+        # Разместим еду в (6, 25) - прямо перед существом
         ScenarioBuilder.place_food(self.test_world, x=6, y=25)
         
         # Получить vision для существа (raycast) + raycast_dots для визуализации
-        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, creature)
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
         
         # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
-        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(creature, vision)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
         
         # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
         self.current_creature_state = ExperimentCreatureStateDTO(
-            x=creature.x,
-            y=creature.y,
-            angle=creature.angle,
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
             vision_input=vision,
             nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
             raycast_dots=raycast_dots
@@ -145,21 +144,50 @@ class BiteExperiment(StagedExperimentBase):
         
         # Записать результат в статистику
         self.stats_collector.add_run(
-            stage=0,
+            stage=self.current_stage,
             success=success
         )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     def _stage_1(self):
         """Стадия 1: Пища не видна (не должен кусать)
 
         Процедура прогона:
+        0. Создать пустой новый мир
         1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
         2. Разместить еду в (6, 25) - прямо перед существом
         3. Получить vision через raycast
         4. Вычислить выходы нейросети
         5. Проверить: bite_output > 0.5 = успех
         6. Записать в статистику
-        7. Очистить мир для следующего прогона
+        
         """
         
         # Очистить мир для прогона
@@ -177,8 +205,8 @@ class BiteExperiment(StagedExperimentBase):
 
         
         
-        # Разместить 20 стен в случных местах карты, но не других стенах и не на инспектируемом существе
-        for _ in range(20):
+        # Разместить 100 стен в случных местах карты, но не других стенах и не на инспектируемом существе
+        for _ in range(100):
             while True:
                 wall_x = random.randint(0, self.test_world.width - 1)
                 wall_y = random.randint(0, self.test_world.height - 1)
@@ -203,66 +231,380 @@ class BiteExperiment(StagedExperimentBase):
         )
         
         # Проверить, кусает ли существо (bite > 0.5)
-        success = bite_output > 0.5
+        success = bite_output < 0.5
         
         # Записать результат в статистику
         self.stats_collector.add_run(
-            stage=1,
+            stage=self.current_stage,
             success=success
         )
     
     def _stage_2(self):
-        """Стадия 2: Пища далеко по центру (не должен кусать)"""
+        """Стадия 2: Пища далеко по центру (не должен кусать)
         
-        # Заглушка для проверки успеха
-        self.random_value = random.random()  # для демонстрации изменения состояния
-        success = self.random_value > 0.1
+        Процедура прогона:
+        0. Создать пустой новый мир
+        1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
+        2. Разместить еду в (17, 25) - прямо перед существом
+        3. Получить vision через raycast
+        4. Вычислить выходы нейросети
+        5. Проверить: bite_output > 0.5 = успех
+        6. Записать в статистику
+        
+        """
+        
+        # Очистить мир для прогона
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
+        
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
+        # Генерировать случайное смещение Y: ±0.3
+        y_offset = random.uniform(-0.3, 0.3)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
+
+        # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+        # self.inspecting_creature.nn.print_nn_parameters()
+
+        # Разместим еду в (17, 25) - прямо перед существом
+        ScenarioBuilder.place_food(self.test_world, x=17, y=25)
+        
+        # Получить vision для существа (raycast) + raycast_dots для визуализации
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
+        
+        # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
+        
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
+        
+        # Проверить, кусает ли существо (bite > 0.5)
+        success = bite_output < 0.5
+        
         # Записать результат в статистику
         self.stats_collector.add_run(
-            stage=2,
+            stage=self.current_stage,
             success=success
         )
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     
     def _stage_3(self):
-        """Стадия 3: Пища близко, но вне досягаемости (не должен кусать)"""
+        """Стадия 3: Пища близко, но вне досягаемости (не должен кусать)
+        
+        Процедура прогона:
+        0. Создать пустой новый мир
+        1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
+        2. Разместить еду в (8, 25) - прямо перед существом
+        3. Получить vision через raycast
+        4. Вычислить выходы нейросети
+        5. Проверить: bite_output > 0.5 = успех
+        6. Записать в статистику
+        
+        """
+        
+        # Очистить мир для прогона
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
+        
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
+        # Генерировать случайное смещение Y: ±0.3
+        y_offset = random.uniform(-0.3, 0.3)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
 
-        # Заглушка для проверки успеха
-        self.random_value = random.random()  # для демонстрации изменения состояния
-        success = self.random_value > 0.1
+        # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+        # self.inspecting_creature.nn.print_nn_parameters()
+
+        # Разместим еду в (8, 25) - прямо перед существом
+        ScenarioBuilder.place_food(self.test_world, x=8, y=25)
+        
+        # Получить vision для существа (raycast) + raycast_dots для визуализации
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
+        
+        # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
+        
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
+        
+        # Проверить, кусает ли существо (bite > 0.5)
+        success = bite_output < 0.5
+        
         # Записать результат в статистику
         self.stats_collector.add_run(
-            stage=3,
+            stage=self.current_stage,
             success=success
         )
+    
+
+
+
+
+
+
+
+
+
+
+
+
     
     def _stage_4(self):
-        """Стадия 4: Пища чуть правее (не должен кусать)"""
+        """Стадия 4: Пища чуть правее (не должен кусать)
+        
+        Процедура прогона:
+        0. Создать пустой новый мир
+        1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
+        2. Разместить еду в (7, 26) - прямо перед существом
+        3. Получить vision через raycast
+        4. Вычислить выходы нейросети
+        5. Проверить: bite_output > 0.5 = успех
+        6. Записать в статистику
+        
+        """
+        
+        # Очистить мир для прогона
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
+        
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
+        # Генерировать случайное смещение Y: ±0.3
+        y_offset = random.uniform(-0.3, 0.3)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
 
-        # Заглушка для проверки успеха
-        self.random_value = random.random()  # для демонстрации изменения состояния
-        success = self.random_value > 0.1
+        # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+        # self.inspecting_creature.nn.print_nn_parameters()
+
+        # Разместим еду в (7, 26) - прямо перед существом
+        ScenarioBuilder.place_food(self.test_world, x=7, y=26)
+        
+        # Получить vision для существа (raycast) + raycast_dots для визуализации
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
+        
+        # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
+        
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
+        
+        # Проверить, кусает ли существо (bite > 0.5)
+        success = bite_output < 0.5
+        
         # Записать результат в статистику
         self.stats_collector.add_run(
-            stage=4,
+            stage=self.current_stage,
             success=success
         )
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     def _stage_5(self):
-        """Стадия 5: Пища чуть правее (не должен кусать)"""
+        """Стадия 5: Пища чуть левее (не должен кусать)
+        
+        Процедура прогона:
+        0. Создать пустой новый мир
+        1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
+        2. Разместить еду в (7, 24) - прямо перед существом
+        3. Получить vision через raycast
+        4. Вычислить выходы нейросети
+        5. Проверить: bite_output > 0.5 = успех
+        6. Записать в статистику
+        
+        """
+        
+        # Очистить мир для прогона
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
+        
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
+        # Генерировать случайное смещение Y: ±0.3
+        y_offset = random.uniform(-0.3, 0.3)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
 
-        # Заглушка для проверки успеха
-        success = random.random() > 0.1
+        # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+        # self.inspecting_creature.nn.print_nn_parameters()
+
+        # Разместим еду в (7, 24) - прямо перед существом
+        ScenarioBuilder.place_food(self.test_world, x=7, y=24)
+        
+        # Получить vision для существа (raycast) + raycast_dots для визуализации
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
+        
+        # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
+        
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
+        
+        # Проверить, кусает ли существо (bite > 0.5)
+        success = bite_output < 0.5
+        
         # Записать результат в статистику
         self.stats_collector.add_run(
-            stage=5,
+            stage=self.current_stage,
             success=success
         )
     
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
     def _stage_6(self):
-        """Стадия 6: Резюме (финальная стадия)."""
+        """Стадия 6: шестая стадия - есть пища слева и справа, посередине щель, существо должно понять что кусать нельзя, 20 прогонов для стабильной статистики.
         
-        # Выводим резюме результатов
-        self._print_summary()
+        Процедура прогона:
+        0. Создать пустой новый мир
+        1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
+        2. Разместить еду в (7, 24) - слева перед существом
+        3. Разместить еду в (7, 26) - справа перед существом
+        4. Получить vision через raycast
+        5. Вычислить выходы нейросети
+        6. Проверить: bite_output > 0.5 = успех
+        7. Записать в статистику
+        
+        """
+        
+        # Очистить мир для прогона
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(50, 50)
+        
+        # Размещаем существо
+        self.inspecting_creature.x = 5.7
+        # Генерировать случайное смещение Y: ±0.3
+        y_offset = random.uniform(-0.3, 0.3)
+        self.inspecting_creature.y = 25.5 + y_offset
+        self.inspecting_creature.angle = 0.0
+
+        # отладочный вывод весов, чтобы проверить что сетка копируется и передается успешно в эксперимент. Принты пока оставлю, потом уберу так или иначе.
+        # self.inspecting_creature.nn.print_nn_parameters()
+
+        # Разместим еду в (7, 24) - слева перед существом
+        ScenarioBuilder.place_food(self.test_world, x=7, y=24)
+        # Разместим еду в (7, 26) - справа перед существом
+        ScenarioBuilder.place_food(self.test_world, x=7, y=26)
+        
+        # Получить vision для существа (raycast) + raycast_dots для визуализации
+        vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
+        
+        # Вычислить выходы нейросети (angle_delta, speed_delta, bite)
+        angle_delta, speed_delta, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
+        
+        # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
+        self.current_creature_state = ExperimentCreatureStateDTO(
+            x=self.inspecting_creature.x,
+            y=self.inspecting_creature.y,
+            angle=self.inspecting_creature.angle,
+            vision_input=vision,
+            nn_outputs=(float(angle_delta), float(speed_delta), float(bite_output)),
+            raycast_dots=raycast_dots
+        )
+        
+        # Проверить, кусает ли существо (bite > 0.5)
+        success = bite_output < 0.5
+        
+        # Записать результат в статистику
+        self.stats_collector.add_run(
+            stage=self.current_stage,
+            success=success
+        )
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     def get_experiment_dto(self):
         """Вернуть DTO для виджета с полной изоляцией через DTO."""
