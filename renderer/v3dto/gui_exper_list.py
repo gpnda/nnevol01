@@ -101,9 +101,10 @@ class ExperListModal:
     
         # Обработка цифр 0-9 для выбора эксперимента
         if pygame.K_0 <= event.key <= pygame.K_9:
-            experiment_id = event.key - pygame.K_0
-            self.on_experiment_choose(experiment_id)
-            return True
+            if self.selected_creature_id is not None:
+                experiment_id = event.key - pygame.K_0
+                self.on_experiment_choose(experiment_id)
+                return True
             
         
         return False
