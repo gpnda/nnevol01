@@ -16,6 +16,8 @@ Registry:
 from experiments.base import ExperimentBase
 from experiments.bite.experiment import BiteExperiment
 from experiments.bite.widget import BiteExperimentWidget
+from experiments.cone.experiment import ConeExperiment
+from experiments.cone.widget import ConeExperimentWidget
 from experiments.dummy import DummyExperiment, DummyExperimentWidget
 # from experiments.spambite import SpambiteExperiment, SpambiteExperimentWidget
 
@@ -33,6 +35,12 @@ EXPERIMENTS = {
         'widget_class': BiteExperimentWidget,
         'name': 'BiteExperiment',
         'description': 'Test creature behavior on finding food with success/failure tracking',
+    },
+    'cone': {
+        'experiment_class': ConeExperiment,
+        'widget_class': ConeExperimentWidget,
+        'name': 'ConeExperiment',
+        'description': 'Test creature behavior on seeing food in different coordinates',
     },
     # 'spambite': {
     #     'experiment_class': SpambiteExperiment,
@@ -58,4 +66,6 @@ __all__ = [
     'EXPERIMENTS',
     'BiteExperiment',
     'BiteExperimentWidget',
+    'ConeExperiment',
+    'ConeExperimentWidget',
 ]
