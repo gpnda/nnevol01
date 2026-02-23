@@ -144,14 +144,13 @@ class VisionSimulator:
 
 class StatsCollector:
     """
-    Гибкий сборщик статистики для многостадийных экспериментов.
-    
-    Поддерживает произвольные метрики через **kwargs.
-    Структура: [{stage, success, metrics: {название: значение}}, ...]
+    Cборщик статистики.
+        Пока не реализовано, но в теории может поддерживать произвольные метрики через **kwargs.
+        Структура: [{stage, success, metrics: {название: значение}}, ...]
     """
     
     def __init__(self):
-        self.runs: List[Dict[str, Any]] = []
+        self.stats = []  # список словарей с результатами прогонов
     
     def add_run(self, stage: int, success: bool, **metrics):
         """
@@ -166,7 +165,7 @@ class StatsCollector:
             stats.add_run(stage=1, success=True, bite=0.85)
             stats.add_run(stage=2, success=False, bite=0.42, energy=5, reaction_time=100)
         """
-        self.runs.append({
+        self.stats.append({
             'stage': stage,
             'success': success,
             'metrics': metrics,
@@ -179,85 +178,93 @@ class StatsCollector:
         Returns:
             {total, success, fail, success_rate}
         """
-        stage_runs = [r for r in self.runs if r['stage'] == stage]
+        stage_runs = [r for r in self.stats if r['stage'] == stage]
         total = len(stage_runs)
         success_count = sum(1 for r in stage_runs if r['success'])
         
         return {
             'total': total,
-            'success': success_count,
-            'fail': total - success_count,
-            'success_rate': success_count / total if total > 0 else 0.0,
+            'success': success_count
         }
     
-    def get_metric_stats(self, stage: int, metric_name: str) -> dict:
+    def get_all_stages_stats(self) -> dict:
         """
-        Получить подробную статистику для любой метрики.
-        
-        Args:
-            stage: Номер стадии
-            metric_name: Название метрики ('bite', 'energy_consumed', 'vision_quality', и т.д.)
+        Получить статистику по всем стадиям.
         
         Returns:
-            {avg, max, min, std, count}
-        
-        Пример:
-            energy_stats = stats.get_metric_stats(stage=1, metric_name='energy_consumed')
-            print(f"Avg: {energy_stats['avg']:.2f}, Std: {energy_stats['std']:.2f}")
+            {stage_number: stage_stats, ...}
         """
-        stage_runs = [r for r in self.runs if r['stage'] == stage]
-        values = [r['metrics'].get(metric_name) for r in stage_runs 
-                  if metric_name in r['metrics']]
-        
-        if not values:
-            return {'avg': 0.0, 'max': 0.0, 'min': 0.0, 'std': 0.0, 'count': 0}
-        
-        values_array = np.array(values)
-        return {
-            'avg': float(np.mean(values_array)),
-            'max': float(np.max(values_array)),
-            'min': float(np.min(values_array)),
-            'std': float(np.std(values_array)),
-            'count': len(values),
-        }
+        stages = set(r['stage'] for r in self.stats)
+        return {stage: self.get_stage_stats(stage) for stage in sorted(stages)}
     
-    def get_all_metrics_names(self) -> set:
-        """
-        Получить все известные метрики из всех прогонов.
+    # def get_metric_stats(self, stage: int, metric_name: str) -> dict:
+    #     """
+    #     Получить подробную статистику для любой метрики.
         
-        Returns:
-            Set названий метрик
+    #     Args:
+    #         stage: Номер стадии
+    #         metric_name: Название метрики ('bite', 'energy_consumed', 'vision_quality', и т.д.)
         
-        Пример:
-            all_metrics = stats.get_all_metrics_names()
-            print(f"Available: {all_metrics}")
-            # Output: Available: {'bite', 'energy_consumed', 'vision_quality'}
-        """
-        all_names = set()
-        for run in self.runs:
-            all_names.update(run['metrics'].keys())
-        return all_names
+    #     Returns:
+    #         {avg, max, min, std, count}
+        
+    #     Пример:
+    #         energy_stats = stats.get_metric_stats(stage=1, metric_name='energy_consumed')
+    #         print(f"Avg: {energy_stats['avg']:.2f}, Std: {energy_stats['std']:.2f}")
+    #     """
+    #     stage_runs = [r for r in self.runs if r['stage'] == stage]
+    #     values = [r['metrics'].get(metric_name) for r in stage_runs 
+    #               if metric_name in r['metrics']]
+        
+    #     if not values:
+    #         return {'avg': 0.0, 'max': 0.0, 'min': 0.0, 'std': 0.0, 'count': 0}
+        
+    #     values_array = np.array(values)
+    #     return {
+    #         'avg': float(np.mean(values_array)),
+    #         'max': float(np.max(values_array)),
+    #         'min': float(np.min(values_array)),
+    #         'std': float(np.std(values_array)),
+    #         'count': len(values),
+    #     }
     
-    def get_summary(self) -> dict:
-        """
-        Получить полную сводку по всем стадиям.
+    # def get_all_metrics_names(self) -> set:
+    #     """
+    #     Получить все известные метрики из всех прогонов.
         
-        Returns:
-            {1: stage_stats, 2: stage_stats, ..., 'overall': overall_stats}
-        """
-        stages = set(r['stage'] for r in self.runs)
-        summary = {}
-        for stage in sorted(stages):
-            summary[stage] = self.get_stage_stats(stage)
+    #     Returns:
+    #         Set названий метрик
         
-        total_runs = len(self.runs)
-        total_success = sum(1 for r in self.runs if r['success'])
+    #     Пример:
+    #         all_metrics = stats.get_all_metrics_names()
+    #         print(f"Available: {all_metrics}")
+    #         # Output: Available: {'bite', 'energy_consumed', 'vision_quality'}
+    #     """
+    #     all_names = set()
+    #     for run in self.runs:
+    #         all_names.update(run['metrics'].keys())
+    #     return all_names
+    
+    # def get_summary(self) -> dict:
+    #     """
+    #     Получить полную сводку по всем стадиям.
         
-        summary['overall'] = {
-            'total_runs': total_runs,
-            'total_success': total_success,
-            'overall_success_rate': total_success / total_runs if total_runs > 0 else 0.0,
-        }
+    #     Returns:
+    #         {1: stage_stats, 2: stage_stats, ..., 'overall': overall_stats}
+    #     """
+    #     stages = set(r['stage'] for r in self.runs)
+    #     summary = {}
+    #     for stage in sorted(stages):
+    #         summary[stage] = self.get_stage_stats(stage)
         
-        return summary
+    #     total_runs = len(self.runs)
+    #     total_success = sum(1 for r in self.runs if r['success'])
+        
+    #     summary['overall'] = {
+    #         'total_runs': total_runs,
+    #         'total_success': total_success,
+    #         'overall_success_rate': total_success / total_runs if total_runs > 0 else 0.0,
+    #     }
+        
+    #     return summary
 

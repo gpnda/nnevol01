@@ -28,26 +28,69 @@ class BiteExperiment(StagedExperimentBase):
     def __init__(self, target_creature_id: int, world: World):
         super().__init__(target_creature_id, world)
 
-        # Создаём пустой тестовый мир 50x50 для экспериментов
-        self.test_world = ScenarioBuilder.create_test_world(50, 50)
+        self.plan = [
+            {
+            "stage_method": self._stage_0, # первая стадия - базовая проверка кусания, 10 прогонов для стабильной статистики
+            "stage_name": "Do bite: Food Nearby at front",  # для отображения в виджете
+            "num_runs": 3,
+            "result_threshold": 0.9,
+            }, 
+            {
+            "stage_method": self._stage_1, # вторая стадия - проверка, что существо не кусает, когда пища закрыта стеной, 20 прогонов для стабильной статистики
+            "stage_name": "Don't bite: can't see any food",  # для отображения в виджете
+            "num_runs": 20,
+            "result_threshold": 0.75,
+            },
+            {
+            "stage_method": self._stage_2, # третья стадия - проверка, что существо не кусает, когда пища далеко по центру, 20 прогонов для стабильной статистики
+            "stage_name": "Don't bite: Food at front but far",  # для отображения в виджете
+            "num_runs": 10,
+            "result_threshold": 0.95,
+            },
+            {
+            "stage_method": self._stage_3, # четвертая стадия - проверка, что существо не кусает, когда пища близко, но вне досягаемости, 20 прогонов для стабильной статистики
+            "stage_name": "Don't bite: Food still out of reach",  # для отображения в виджете
+            "num_runs": 15,
+            "result_threshold": 0.9,
+            },
+            {
+            "stage_method": self._stage_4, # пятая стадия - проверка, что существо не кусает, когда пища чуть правее, 20 прогонов для стабильной статистики
+            "stage_name": "Don't bite: Food at right side",  # для отображения в виджете
+            "num_runs": 20,
+            "result_threshold": 0.5,
+            },
+            {
+            "stage_method": self._stage_5, # шестая стадия - проверка, что существо не кусает, когда пища чуть левее, 20 прогонов для стабильной статистики
+            "stage_name": "Don't bite: Food at left side",  # для отображения в виджете
+            "num_runs": 20,
+            "result_threshold": 0.9,
+            },
+            {
+            "stage_method": self._stage_6, # седьмая стадия - резюме результатов, 1 прогон для вывода итогов
+            "stage_name": "Summary of results",  # для отображения в виджете
+            "num_runs": 1,
+            "result_threshold": 0.0,
+            },
+            ]
+
+        # Создаём пустой тестовый мир 50x50 для экспериментов. ХОТЯ МИРЫ СОЗДАЮТСЯ В ОТДЕЛЬНЫХ СТАДИЯХ СВОИ
+        # self.test_world = ScenarioBuilder.create_test_world(50, 50)
 
         # Создаем экспериментальное существо с нейронной сеткой, скопированной из target_creature
         self.inspecting_creature = ScenarioBuilder.copy_creature(
             world.get_creature_by_id(target_creature_id)
         )
 
-        
         # Инициализация сборщика статистики
-        self.stats = StatsCollector()
+        self.stats_collector = StatsCollector()
         
         # Переменные для хранения текущего состояния существа (для передачи в DTO)
         self.current_creature_state = None  # ExperimentCreatureStateDTO
         
-        # Переменная для отладки (удалить позже)
+        # Переменная для отладки (по сути - чтоб заглушки работали, просто поищи по файлу - увидишь)
         self.random_value = 0.0
     
-    def _get_total_stages(self) -> int:
-        return 7  # 6 тестовых стадий + 1 финальная
+    
     
     def _stage_0(self):
         """Стадия 0: Пища впритык (экзаменуемое существо должно кусать еду рядом).
@@ -61,11 +104,6 @@ class BiteExperiment(StagedExperimentBase):
         6. Записать в статистику
         7. Очистить мир для следующего прогона
         """
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 1
-
         
         # Очистить мир для прогона
         # Создаём пустой тестовый мир 50x50 для экспериментов
@@ -106,13 +144,9 @@ class BiteExperiment(StagedExperimentBase):
         success = bite_output > 0.5
         
         # Записать результат в статистику
-        self.stats.add_run(
+        self.stats_collector.add_run(
             stage=0,
-            success=success,
-            bite_output=float(bite_output),
-            vision_sum=float(np.sum(vision)),
-            angle_delta=float(angle_delta),
-            speed_delta=float(speed_delta)
+            success=success
         )
 
     def _stage_1(self):
@@ -127,11 +161,6 @@ class BiteExperiment(StagedExperimentBase):
         6. Записать в статистику
         7. Очистить мир для следующего прогона
         """
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 20
-
         
         # Очистить мир для прогона
         # Создаём пустой тестовый мир 50x50 для экспериментов
@@ -177,129 +206,102 @@ class BiteExperiment(StagedExperimentBase):
         success = bite_output > 0.5
         
         # Записать результат в статистику
-        self.stats.add_run(
+        self.stats_collector.add_run(
             stage=1,
-            success=success,
-            bite_output=float(bite_output),
-            vision_sum=float(np.sum(vision)),
-            angle_delta=float(angle_delta),
-            speed_delta=float(speed_delta)
+            success=success
         )
     
     def _stage_2(self):
         """Стадия 2: Пища далеко по центру (не должен кусать)"""
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 10
         
         # Заглушка для проверки успеха
         self.random_value = random.random()  # для демонстрации изменения состояния
         success = self.random_value > 0.1
         # Записать результат в статистику
-        self.stats.add_run(
-            stage=0,
+        self.stats_collector.add_run(
+            stage=2,
             success=success
         )
     
     def _stage_3(self):
         """Стадия 3: Пища близко, но вне досягаемости (не должен кусать)"""
 
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 5
-        
         # Заглушка для проверки успеха
         self.random_value = random.random()  # для демонстрации изменения состояния
         success = self.random_value > 0.1
         # Записать результат в статистику
-        self.stats.add_run(
-            stage=0,
+        self.stats_collector.add_run(
+            stage=3,
             success=success
         )
     
     def _stage_4(self):
         """Стадия 4: Пища чуть правее (не должен кусать)"""
 
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 7
-        
-        
         # Заглушка для проверки успеха
         self.random_value = random.random()  # для демонстрации изменения состояния
         success = self.random_value > 0.1
         # Записать результат в статистику
-        self.stats.add_run(
-            stage=0,
+        self.stats_collector.add_run(
+            stage=4,
             success=success
         )
     
     def _stage_5(self):
         """Стадия 5: Пища чуть правее (не должен кусать)"""
 
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 5
-        
-        
         # Заглушка для проверки успеха
         success = random.random() > 0.1
         # Записать результат в статистику
-        self.stats.add_run(
-            stage=0,
+        self.stats_collector.add_run(
+            stage=5,
             success=success
         )
     
     def _stage_6(self):
         """Стадия 6: Резюме (финальная стадия)."""
-        # Инициализация количества прогонов для этой стадии.
-        # тупое место для инициализации, но так у нас не будет отдельного метода для инициализации стадии
-        # Обязательно нужно задавать эту переменную в каждой стадии, иначе она перейдет с предыдущей стадии! 
-        self.num_runs_this_stage = 10
-
+        
         # Выводим резюме результатов
         self._print_summary()
     
     def get_experiment_dto(self):
         """Вернуть DTO для виджета с полной изоляцией через DTO."""
-        summary = self.stats.get_summary()
+        # summary = self.stats.get_summary()
         return BiteExperimentDTO(
             creature_id=self.target_creature.id,
             is_running=self.is_running,
             current_stage=self.current_stage,
             stage_run_counter=self.stage_run_counter,
-            num_runs_this_stage=self.num_runs_this_stage,
             world=ExperimentWorldStateDTO(
                     map=self.test_world.map,
                     width=self.test_world.width,
                     height=self.test_world.height
                 ),
             creature_state=self.current_creature_state,
-            summary=summary
+            plan=self.plan,
+            stats=self.stats_collector.get_all_stages_stats(),
         )
     
-    
+    def _get_total_stages(self) -> int:
+        return len(self.plan)
 
     def _print_summary(self):
         """Вывести резюме результатов эксперимента в консоль."""
-        summary = self.stats.get_summary()
-        print(f"\n[BITE EXPERIMENT] Summary for creature {self.target_creature.id}")
+        pass
+        # summary = self.stats.get_summary()
+        # print(f"\n[BITE EXPERIMENT] Summary for creature {self.target_creature.id}")
         
-        for stage in sorted([k for k in summary.keys() if isinstance(k, int)])[:6]:  # первые 6 стадий
-            stage_stats = summary[stage]
-            print(f"  Stage {stage}: "
-                  f"Total={stage_stats['total']}, "
-                  f"Success={stage_stats['success']}, "
-                  f"Fail={stage_stats['fail']}, "
-                  f"Rate={stage_stats['success_rate']*100:.1f}%")
+        # for stage in sorted([k for k in summary.keys() if isinstance(k, int)])[:6]:  # первые 6 стадий
+        #     stage_stats = summary[stage]
+        #     print(f"  Stage {stage}: "
+        #           f"Total={stage_stats['total']}, "
+        #           f"Success={stage_stats['success']}, "
+        #           f"Fail={stage_stats['fail']}, "
+        #           f"Rate={stage_stats['success_rate']*100:.1f}%")
         
-        if 'overall' in summary:
-            overall = summary['overall']
-            print(f"  OVERALL: "
-                  f"Total={overall['total_runs']}, "
-                  f"Success={overall['total_success']}, "
-                  f"Rate={overall['overall_success_rate']*100:.1f}%")
+        # if 'overall' in summary:
+        #     overall = summary['overall']
+        #     print(f"  OVERALL: "
+        #           f"Total={overall['total_runs']}, "
+        #           f"Success={overall['total_success']}, "
+        #           f"Rate={overall['overall_success_rate']*100:.1f}%")

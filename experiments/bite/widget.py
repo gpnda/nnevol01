@@ -9,7 +9,7 @@ import pygame
 class BiteExperimentWidget:
     POPUP_WIDTH = 1100
     POPUP_HEIGHT = 500
-    FONT_SIZE = 14
+    FONT_SIZE = 20
     COLORS = {
         'bg': (5, 41, 158),
         'border': (170, 170, 170),
@@ -24,9 +24,11 @@ class BiteExperimentWidget:
         try:
             self.font = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', self.FONT_SIZE)
             self.font_title = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', self.FONT_SIZE + 4)
+            self.small_font = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', self.FONT_SIZE - 4)
         except:
             self.font = pygame.font.Font(None, self.FONT_SIZE)
             self.font_title = pygame.font.Font(None, self.FONT_SIZE + 4)
+            self.small_font = pygame.font.Font(None, self.FONT_SIZE - 4)
     
     def draw(self, screen: pygame.Surface, experiment_dto):
         if experiment_dto is None:
@@ -130,6 +132,15 @@ class BiteExperimentWidget:
         # Рисуем текущий vision input (15 лучей)
         # ##########################################################################
 
+        # Определить координату левого края виджета
+        screen_w, screen_h = screen.get_size()
+        x = (screen_w - self.POPUP_WIDTH) // 2
+        y = (screen_h - self.POPUP_HEIGHT) // 2
+        
+        VISION_MATRIX_X = x + 25
+        VISION_MATRIX_Y = y + 420
+        VISION_CELL_SIZE = 17
+
         # Преобразование в uint8 диапазон [0, 255]
         if experiment_dto.creature_state is not None and experiment_dto.creature_state.vision_input is not None:
             vision_int = (experiment_dto.creature_state.vision_input * 255).astype(np.uint8)
@@ -141,9 +152,9 @@ class BiteExperimentWidget:
                 vision_int_list[30:45]
             ))
             
-            # Рисуем видение в виде 15 цветных квадратов
+            # Рисуем видение в виде 15 цветных квадратов (горизонтально)
             for i, color in enumerate(rgb_tuples):
-                square_rect = pygame.Rect(x + 400, y + 60 + i * 25, 20, 20)
+                square_rect = pygame.Rect(VISION_MATRIX_X + i * VISION_CELL_SIZE, VISION_MATRIX_Y, VISION_CELL_SIZE, VISION_CELL_SIZE)
                 pygame.draw.rect(screen, color, square_rect)
                 pygame.draw.rect(screen, (80, 80, 80), square_rect, 1)
         
@@ -155,73 +166,134 @@ class BiteExperimentWidget:
         # ##########################################################################
         # Информация о стадиях эксперимента и результатах
         # ##########################################################################
+        # Нарисуем таблицу с ходом эксперимента, на основании данных из: 
+        #    experiment_dto.plan
+        #    experiment_dto.stats
+        TABLE_STATS_X = 500
+        TABLE_STATS_Y = 150
+        TABLE_LINE_HEIGHT = 25
+        COLUMN_WIDTHS = [250, 40, 100, 50, 50]  # ширина каждой колонки
+        PADDING = 3
+        OFFSET_Y = -5
 
-        # Какие данные нам могут понадобится?
-        # experiment_dto.creature_id
-        # experiment_dto.current_stage
-        # experiment_dto.stage_run_counter
-        # experiment_dto.num_runs_this_stage
-        # experiment_dto.summary
-        #   stage_stats = experiment_dto.summary[experiment_dto.current_stage]
-        #   success_count = stage_stats.get('success', 0)
-        #   total_count = stage_stats.get('total', 0)
-        #   success_rate = stage_stats.get('success_rate', 0.0)
+        # Draw table header
+        header_text = self.font.render("Experiment Stages Progress", False, self.COLORS['text'])
+        screen.blit(header_text, (TABLE_STATS_X, TABLE_STATS_Y - 40))
 
-
-
-        content_y = y + 60
-        lines = [
-            f"Creature ID: {experiment_dto.creature_id}",
-            f"Stage: {experiment_dto.current_stage}/6 (Run {experiment_dto.stage_run_counter}/{experiment_dto.num_runs_this_stage})",
-            "",
-            f"Results:"
-        ]
-        
-        for line in lines:
-            text_surface = self.font.render(line, True, self.COLORS['text'])
-            screen.blit(text_surface, (x + 620, content_y))
-            content_y += 25
-        
-        # Показать результаты из summary
-        if experiment_dto.summary and experiment_dto.current_stage in experiment_dto.summary:
-            stage_stats = experiment_dto.summary[experiment_dto.current_stage]
-            
-            # Основная статистика
-            success_count = stage_stats.get('success', 0)
-            total_count = stage_stats.get('total', 0)
-            success_rate = stage_stats.get('success_rate', 0.0)
-            
-            stats_lines = [
-                f"Total runs: {total_count}/{experiment_dto.num_runs_this_stage}",
-                f"Success: {success_count}  Fail: {stage_stats.get('fail', 0)}",
-                f"Success rate: {success_rate*100:.1f}%",
-            ]
-            
-            print (f"[WIDGET] Drawing stats for stage {experiment_dto.current_stage}: "
-                   f"Total={total_count}, Success={success_count}, Rate={success_rate*100:.1f}%")
-
-            for line in stats_lines:
-                color = self.COLORS['success'] if 'Success:' in line and success_count > total_count // 2 else self.COLORS['text']
-                if 'rate' in line and success_rate > 0.5:
-                    color = self.COLORS['success']
-                text_surface = self.font.render(line, True, color)
-                screen.blit(text_surface, (x + 620, content_y))
-                content_y += 25
+        # Сначала нарисуем все стадии экспмеримента и их статус
+        if experiment_dto.plan is not None:
+            for stage_num, stage_info in enumerate(experiment_dto.plan):
+                # Получим статистику по количеству прогонов и успешных прогонов для этой стадии
+                # Все данные по идее хранятся в experiment_dto.stats, который содержит stats_collector.get_all_stages_stats()
+                stage_stats = experiment_dto.stats.get(stage_num, {})
+                total_runs = stage_stats.get('total', 0)        # Всего прогонов
+                success_runs = stage_stats.get('success', 0)    # Успешных
+                fail_runs = total_runs - success_runs           # Неудачных
+                success_rate = int(success_runs / total_runs * 100) if total_runs > 0 else 0
+                goal_treshold = int(stage_info['result_threshold']*100)
 
 
-            
-        # Выводим блоки информации по каждой стадии эксперимента
-        if experiment_dto.summary:
-            for stage, stats in experiment_dto.summary.items():
-                stage_line = f"Stage {stage}: Success={stats.get('success', 0)}, Fail={stats.get('fail', 0)}, Total={stats.get('total', 0)}, Rate={stats.get('success_rate', 0.0)*100:.1f}%"
-                text_surface = self.font.render(stage_line, True, self.COLORS['text'])
-                screen.blit(text_surface, (x + 620, content_y))
-                content_y += 25
+                
+                # Первая колонка - название номер стадии
+                text_surface = self.small_font.render(f"{stage_num}. {stage_info['stage_name']}", False, self.COLORS['text'])
+                screen.blit(text_surface, (TABLE_STATS_X, TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT))
+                
+                # Вторая колонка - порог успеха для стадии в виде текста
+                text_surface = self.small_font.render(f"{goal_treshold}%", False, self.COLORS['text'])
+                screen.blit(text_surface, (TABLE_STATS_X + COLUMN_WIDTHS[0], TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT))
 
-            
-        
+                # Третья колонка - success_rate в виде прогресс-бара
+                # Рисуем рамку вокруг прогресс-бара
+                progress_bar_rect = pygame.Rect(TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + PADDING, 
+                                                TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + PADDING + OFFSET_Y,
+                                                COLUMN_WIDTHS[2] - PADDING*2, TABLE_LINE_HEIGHT - PADDING*2)
+                pygame.draw.rect(screen, (80, 80, 80), progress_bar_rect, 1)
+
+                # Заполняем прогресс-бар в зависимости от success_rate
+                progress_width = int((success_rate / 100) * COLUMN_WIDTHS[2])
+                progress_rect = pygame.Rect(TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + PADDING + 2 , 
+                                                TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + PADDING + OFFSET_Y + 2,
+                                                progress_width - PADDING*2 - 4, TABLE_LINE_HEIGHT - PADDING*2 - 4)
+                pygame.draw.rect(screen, self.COLORS['success'], progress_rect)
+
+                
+                # Внутри прогресс-бара напишем текстом процент успеха
+                text_surface = self.small_font.render(f"{success_rate}%", False, self.COLORS['text'])
+                text_rect = text_surface.get_rect(center=progress_bar_rect.center)
+                screen.blit(text_surface, text_rect)
+
+                # Обозначим полоской порог успеха (goal_treshold)
+                threshold_x = TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + PADDING + int((goal_treshold / 100) * (COLUMN_WIDTHS[2] - PADDING*2))
+                pygame.draw.line(screen, self.COLORS['fail'], (threshold_x, TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + PADDING + OFFSET_Y), (threshold_x, TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + TABLE_LINE_HEIGHT - PADDING + OFFSET_Y), 2)    
+
+
+                # Четвертая колонка - текстом plan_runs
+                # Если данная стадия является текущей стадией эксперимента
+                if stage_num == experiment_dto.current_stage:
+                    # Нарисуем рамку вокруг этой колонки
+                    current_stage_rect = pygame.Rect(TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + COLUMN_WIDTHS[2], 
+                                                        TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + PADDING + OFFSET_Y,
+                                                        COLUMN_WIDTHS[3] + COLUMN_WIDTHS[4], TABLE_LINE_HEIGHT - PADDING*2 )
+                    pygame.draw.rect(screen, self.COLORS['text'], current_stage_rect, 1)
+                    # Заполним прогресс-бар в зависимости от количества прогонов внутри стадии
+                    progress_width = int((total_runs / stage_info['num_runs']) * (COLUMN_WIDTHS[3] + COLUMN_WIDTHS[4])) - 4
+                    progress_rect = pygame.Rect(current_stage_rect.x + 2 , current_stage_rect.y + 2, progress_width, current_stage_rect.height - 4)
+                    pygame.draw.rect(screen, self.COLORS['success'], progress_rect)
+                    # Внутри прогресс-бара напишем текстом количество прогонов внутри стадии
+                    text_surface = self.small_font.render(f"{total_runs}/{stage_info['num_runs']}", False, self.COLORS['text'])
+                    text_rect = text_surface.get_rect(center=current_stage_rect.center)
+                    screen.blit(text_surface, text_rect)
+                else:
+                    # Хочу тут текст внутри ячейки по центру
+                    text_surface = self.small_font.render(f"{stage_info['num_runs']}", False, self.COLORS['text'])
+                    text_rect = text_surface.get_rect(center=(TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + COLUMN_WIDTHS[2] + COLUMN_WIDTHS[3] // 2, 
+                                                              TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + PADDING + OFFSET_Y + (TABLE_LINE_HEIGHT - PADDING*2) // 2))
+                    screen.blit(text_surface, text_rect)
+
+                
+                
+                # Пятая колонка - текстом, если success_rate> goal_treshold to пишем pass иначе пишем fail
+                if total_runs == stage_info['num_runs']:
+                    result_text = "PASS" if success_rate >= goal_treshold else "FAIL"
+                    # draw tag background
+                    tag_color = self.COLORS['success'] if result_text == "PASS" else self.COLORS['fail']
+                    tag_rect = pygame.Rect(TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1] + COLUMN_WIDTHS[2] + COLUMN_WIDTHS[3], 
+                                            TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT + PADDING + OFFSET_Y,
+                                            COLUMN_WIDTHS[4], TABLE_LINE_HEIGHT - PADDING*2)
+                    pygame.draw.rect(screen, tag_color, tag_rect)
+                    text_surface = self.small_font.render(result_text, False, self.COLORS['text'])
+                    text_rect = text_surface.get_rect(center=tag_rect.center)
+                    screen.blit(text_surface, text_rect)
+
+                
+
+                # Третья колонка - прогресс в виде прогресс-бара
+                # if stage_info['num_runs'] > 0:
+                #     progress_width = int((total_runs / stage_info['num_runs']) * COLUMN_WIDTHS[2])
+                #     progress_rect = pygame.Rect(TABLE_STATS_X + COLUMN_WIDTHS[0] + COLUMN_WIDTHS[1], 
+                #                                 TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT,
+                #                                 progress_width, TABLE_LINE_HEIGHT - 5)
+                #     pygame.draw.rect(screen, self.COLORS['success'], progress_rect)
+
+                
+
+                # stage_text = (f"Stage {stage_num}: "
+                #     # f"Runs: {stage_info['num_runs']} | "
+                #     f"Rate: {success_rate:.0f}%"
+                #     f"Threshold: {goal_treshold}% | "
+                #     f"runs done: {total_runs}/{stage_info['num_runs']} | "
+                #     f"Success: {success_runs} | "
+                #     f"Fail: {fail_runs} | "
+                #     )
+                # text_color = self.COLORS['text']
+                # if stage_num == experiment_dto.current_stage:
+                #     text_color = self.COLORS['success'] if experiment_dto.stage_run_counter > 0 else self.COLORS['fail']
+                # text_surface = self.font.render(stage_text, False, text_color)
+                # screen.blit(text_surface, (TABLE_STATS_X, TABLE_STATS_Y + stage_num * TABLE_LINE_HEIGHT))
+
+
         # Реализуем небольшую паузу между кадрами
-        pygame.time.delay(500)
+        # pygame.time.delay(500)
 
 
 

@@ -20,10 +20,10 @@ class BiteExperimentDTO:
     is_running: bool
     current_stage: int
     stage_run_counter: int
-    num_runs_this_stage: int
     world: ExperimentWorldStateDTO
     
     # Состояние существа для визуализации - через DTO для полной изоляции
     creature_state: Optional[ExperimentCreatureStateDTO] = None
-    
-    summary: Optional[Dict[str, Any]] = None  # результаты stats.get_summary()
+    plan: Optional[Dict[str, Any]] = None  # план действий существа (для отладки)
+    stats: Optional[Dict[int, Dict[str, Any]]] = None  # статистика по всем стадиям
+    # summary: Optional[Dict[str, Any]] = None  # результаты stats.get_summary()

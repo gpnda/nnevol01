@@ -40,7 +40,6 @@ class StagedExperimentBase(ExperimentBase, ABC):
         
         # State machine
         self.current_stage = 0
-        self.num_runs_this_stage = 0  # для контроля количества прогонов в каждой стадии
         self.stage_run_counter = 0  # счетчик прогонов внутри стадии
 
         
@@ -67,7 +66,6 @@ class StagedExperimentBase(ExperimentBase, ABC):
         """Остановить эксперимент."""
         self.is_running = False
         # print(f"[STAGED EXPERIMENT] Stopped")
-        self._print_summary()
     
     def update(self):
         """Основной цикл обновления."""
@@ -93,7 +91,7 @@ class StagedExperimentBase(ExperimentBase, ABC):
         """Увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит."""
         self.stage_run_counter += 1
         
-        if self.stage_run_counter >= self.num_runs_this_stage:
+        if self.stage_run_counter >= self.plan[self.current_stage]["num_runs"]:
             # Переход к следующей стадии
             self.stage_run_counter = 0   # сбросить счетчик для следующей стадии
             self.current_stage += 1      # перейти к следующей стадии
