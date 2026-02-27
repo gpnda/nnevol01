@@ -1,4 +1,5 @@
 .venv/
+.venv310/
 .vscode/
 __pycache__/
 *.prof
