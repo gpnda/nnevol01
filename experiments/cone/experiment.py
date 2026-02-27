@@ -47,10 +47,10 @@ class ConeExperiment(StagedExperimentBase):
 
 
         # параметры экспериментального мира
-        self.test_world_width = 50
-        self.test_world_height = 50
+        self.test_world_width = 27
+        self.test_world_height = 27
 
-        # Создаём пустой тестовый мир 50x50 для экспериментов
+        # Создаём пустой тестовый мир 27x27 для экспериментов
         self.test_world = ScenarioBuilder.create_test_world(self.test_world_width, self.test_world_height)
         
         # Переменные для хранения текущей позиции пищи
@@ -61,8 +61,8 @@ class ConeExperiment(StagedExperimentBase):
         ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
         
         # Размещаем существо
-        self.inspecting_creature.x = 5.5
-        self.inspecting_creature.y = 25.5
+        self.inspecting_creature.x = 2.5
+        self.inspecting_creature.y = 12.5
         self.inspecting_creature.angle = 0.0
         
     
@@ -141,19 +141,44 @@ class ConeExperiment(StagedExperimentBase):
         
         # Проверим, чтосущество не выползло за пределы карты
         if newx < 0 or newx >= self.test_world_width or newy < 0 or newy >= self.test_world_height:
-            # Если существо вышло за пределы карты, то считаем это неудачным прогоном и завершаем стадию
-            self.stats_collector.add_run(
-                stage=self.current_stage,
-                success=False
-            )
-            return  # завершить стадию, так как существо вышло за пределы карты
-        else:
-            # Если существо осталось в пределах карты, то обновляем его позицию
-            self.inspecting_creature.x = newx
-            self.inspecting_creature.y = newy
-        # Стен на карте не будет, поэтому и правил столкновения со стенами не будет писать
+            self.finish_run(success=False)
+            return
         
-        print("step: ", self.current_stage, self.stage_run_counter, "pos:", round(self.inspecting_creature.x, 2), round(self.inspecting_creature.y, 2), "angle:", round(self.inspecting_creature.angle, 2), "bite:", round(bite_output, 2))
+        # Существо осталось в пределах карты, обновляем его позицию
+        self.inspecting_creature.x = newx
+        self.inspecting_creature.y = newy
+
+        # Стен на карте не будет, поэтому и правил столкновения со стенами не будет писать
+        # ...
+
+        # Проверим другие условия SUCCESS/FAIL, например, кусает ли существо пищу (bite > 0.5) и пища в поле зрения
+        # Проверить, кусает ли существо (bite > 0.5)
+        if bite_output > 0.5:
+            # Проверить, что на куснутом участке - еда. Это значит SUCCESS
+            bitex = self.inspecting_creature.x + self.inspecting_creature.bite_range*math.cos(self.inspecting_creature.angle)
+            bitey = self.inspecting_creature.y + self.inspecting_creature.bite_range*math.sin(self.inspecting_creature.angle)
+            
+            # Проверим выход за пределы карты > app.world.dimx-1 mappointer
+            if (int(bitex) < 0 or int(bitex) > self.test_world_width-1):
+                return False
+            if (int(bitey) < 0 or int(bitey) > self.test_world_height-1):
+                return False
+
+            # # Проверим на попытку укусить себя
+            #               ДА ПОФИГ, СУЩЕСТВО ТО МОЖЕТ СТОЯТЬ НА ПИЩЕ В ОДНОЙ КЛЕТКЕ, ТАК ЧТО ПУСТЬ КУСАЕТ
+            # if (int(bitex) == int(self.x) and int(bitey) == int(self.y)):
+            # 	return False
+            
+            # получим информацию о том, что находится в клетке, которую существо кусает
+            biteplace =  self.test_world.get_cell(int(bitex), int(bitey))
+
+            if biteplace == 2:
+                # Существу повезло, оно укусило пищу.
+                self.finish_run(success=True)
+                return
+        
+
+        # print("step: ", self.current_stage, self.stage_run_counter, "pos:", round(self.inspecting_creature.x, 2), round(self.inspecting_creature.y, 2), "angle:", round(self.inspecting_creature.angle, 2), "bite:", round(bite_output, 2))
 
 
         # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
@@ -165,11 +190,45 @@ class ConeExperiment(StagedExperimentBase):
             nn_outputs=(float(out_angle), float(out_speed), float(bite_output)),
             raycast_dots=raycast_dots
         )
+
+        if self.stage_run_counter == 10:
+            self.stage_run_counter = 0
+            self.finish_run(success=False)
+
         
-        # Проверить, кусает ли существо (bite > 0.5)
-        success = bite_output > 0.5
         
-        # Записать результат в статистику
+        
+
+
+
+
+
+
+
+
+    def finish_run(self, success: bool):
+        print(" ##########################  FINISH RUN ###########################")
+        # Создаём пустой тестовый мир 50x50 для экспериментов
+        self.test_world = ScenarioBuilder.create_test_world(self.test_world_width, self.test_world_height)
+        
+        # Переходим к следующей позиции пищи (п.2 в процедуре прогона: Последовательно размещать пищу в разных точках карты)
+        self.current_food_x += 1
+        if self.current_food_x >= self.test_world_width:
+            self.current_food_x = 0
+            self.current_food_y += 1
+            if self.current_food_y >= self.test_world_height:
+                print("All food positions tested.")
+                return
+
+        # Разместим еду в начальной позиции
+        ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
+        
+        # Разместим существо обратно в начальную позицию
+        self.inspecting_creature.x = 2.5
+        self.inspecting_creature.y = 12.5
+        self.inspecting_creature.angle = 0.0
+        
+        # Сохраняем результат прогона в статистику
         self.stats_collector.add_run(
             stage=self.current_stage,
             success=success
@@ -207,10 +266,7 @@ class ConeExperiment(StagedExperimentBase):
 
 
 
-
-
-
-
+    
 
 
     

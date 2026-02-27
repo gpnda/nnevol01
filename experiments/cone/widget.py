@@ -67,7 +67,7 @@ class ConeExperimentWidget:
         # Параметры рисования матрицы
         MATRIX_START_X = 100
         MATRIX_START_Y = 100
-        CELL_SIZE = 7
+        CELL_SIZE = 15
         
         experiment_map = experiment_dto.world
 
