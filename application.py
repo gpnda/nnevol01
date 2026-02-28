@@ -37,25 +37,29 @@ class Application():
 		
 		while self.quit_flag == False:
 
-			if self.is_running:
-				self.world.update()
-				self.world.update_map()
-				if logme.is_enabled():
-					logme.write_stats(self.world.creatures)
-					logme.write_population_size(len(self.world.creatures))
-			elif self.experiment_mode:
+			if self.experiment_mode:
 				self.experiment.update()
-			else:
-				pass
-			
-			if self.animate_flag:
 				self.renderer.draw()
-
-			
+				self.renderer.control_run()
+			else:
+				if self.is_running:
+					self.world.update()
+					self.world.update_map()
+					if logme.is_enabled():
+						logme.write_stats(self.world.creatures)
+						logme.write_population_size(len(self.world.creatures))
+					if self.animate_flag:
+						self.renderer.draw()
+						self.renderer.control_run()
+					else:
+						self.renderer.control_run()
+				else:
+					self.renderer.draw()
+					self.renderer.control_run()
 			
 			#self.limit_fps()
 
-			self.renderer.control_run()
+			
 
 			self.performance_monitor.tick(self.world.tick)
 
