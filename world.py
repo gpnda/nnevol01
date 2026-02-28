@@ -236,14 +236,15 @@ class World():
 		
 		# Здесь надо как-то сохранить статистику по умершим существам
 		# Пока кот так в лоб TODO потом надо както оптимизировтаь этот код
-		for cr in self.creatures:
-			if cr.energy < 0:
-				logme.write_death_stats(
-					id=cr.id,
-					generation=cr.generation,
-					age=cr.age,
-					reprod_ages=cr.birth_ages
-				)
+		if logme.is_enabled():
+			for cr in self.creatures:
+				if cr.energy < 0:
+					logme.write_death_stats(
+						id=cr.id,
+						generation=cr.generation,
+						age=cr.age,
+						reprod_ages=cr.birth_ages
+					)
 
 		# Иначе удаляем существ с энергией < 0
 		self.creatures = [creature for creature in self.creatures if creature.energy >= 0]
@@ -257,7 +258,8 @@ class World():
 			i_children = i.reprodCreature()
 			baby_creatures += i_children
 			# print("Существо с ID " + str(i.id) + " родило " + str(len(i_children)) + " детей.")
-			logme.log_event(creature_id=i.id, tick=self.tick, event_type="CREATE_CHILD", value=len(i_children))
+			if logme.is_enabled():
+				logme.log_event(creature_id=i.id, tick=self.tick, event_type="CREATE_CHILD", value=len(i_children))
 		self.creatures += baby_creatures
 		
 	def creature_bite(self, cr):
@@ -279,7 +281,8 @@ class World():
 		biteplace =  self.get_cell(int(bitex), int(bitey))
 
 		if biteplace == 2:
-			logme.log_event(creature_id=cr.id, tick=self.tick, event_type="EAT_FOOD", value=1)
+			if logme.is_enabled():
+				logme.log_event(creature_id=cr.id, tick=self.tick, event_type="EAT_FOOD", value=1)
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
 			cr.gain_energy(sp.energy_gain_from_food)
 			

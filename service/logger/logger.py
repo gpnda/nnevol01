@@ -45,6 +45,8 @@ class Logger:
     def __init__(self):
         if not hasattr(self, '_initialized'):
 
+            self._enabled = True  # Флаг для включения/отключения логирования
+
             # Словарь для хранения истории энергии по ID существа
             # Ключ: ID существа, Значение: очередь значений энергии (float)
             self.energy_history: Dict[int, Deque[float]] = defaultdict(
@@ -63,7 +65,40 @@ class Logger:
 
             # Пометка об инициализации
             self._initialized = True
-            
+    
+
+
+
+
+
+
+
+
+
+    def is_enabled(self) -> bool:
+        """Проверить, включено ли логирование."""
+        return self._enabled
+
+    def set_enabled(self, enabled: bool) -> None:
+        """Включить/выключить логирование."""
+        if self._enabled and not enabled:
+            # При отключении очистить все данные
+            self.clear_all()
+        self._enabled = enabled
+
+    def clear_all(self) -> None:
+        """Очистить все собранные данные."""
+        self.energy_history.clear()
+        self.events_log.clear()
+        self.population_size.clear()
+        self.death_stats.clear()
+
+
+
+
+
+
+
 
 
     def write_stats(self, creatures: List[Any]) -> None:

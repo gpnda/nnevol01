@@ -418,7 +418,7 @@ class Renderer:
             energy_loss_collision=sp.energy_loss_collision,
             is_running=self.app.is_running,
             is_animating=self.app.animate_flag,
-            is_logging=self.app.is_logging,
+            is_logging=logme.is_enabled(),
             allow_mutations=sp.allow_mutations,
         )
     

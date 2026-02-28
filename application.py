@@ -16,7 +16,6 @@ class Application():
 		self.quit_flag = False
 		self.is_running = True
 		self.animate_flag = True
-		self.is_logging = True
 		self.performance_monitor = PerformanceMonitor(self)
 		self.experiment_mode = False
 		self.experiment = None
@@ -41,7 +40,7 @@ class Application():
 			if self.is_running:
 				self.world.update()
 				self.world.update_map()
-				if self.is_logging:
+				if logme.is_enabled():
 					logme.write_stats(self.world.creatures)
 					logme.write_population_size(len(self.world.creatures))
 			elif self.experiment_mode:
@@ -114,13 +113,6 @@ class Application():
 		else:
 			self.animate_flag = True
 
-	def toggle_logging(self):
-		"""Включить/выключить логгирование (L)."""
-		if self.is_logging:
-			self.is_logging = False
-		else:
-			self.is_logging = True
-	
 	def limit_fps(self):
 		"""Ограничение FPS."""
 		self.renderer.clock.tick(2)
