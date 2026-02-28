@@ -125,6 +125,9 @@ class Renderer:
         self.frame_count = 0
         self.fps = 0
 
+        # Кэшируем последний render_state для отладки
+        self.last_render_state: Optional[RenderStateDTO] = None
+
     # ============================================================================
     # УПРАВЛЕНИЕ СОСТОЯНИЯМИ
     # ============================================================================
@@ -710,6 +713,7 @@ class Renderer:
         
         # Подготовка полного снимка состояния для виджетов
         render_state = self._prepare_render_state_dto()
+        self.last_render_state = render_state
         
         # Отрисовка в зависимости от состояния
         if self.current_state == 'main':

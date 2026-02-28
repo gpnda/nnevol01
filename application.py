@@ -17,7 +17,7 @@ class Application():
 		self.is_running = True
 		self.animate_flag = True
 		self.is_logging = True
-		self.performance_monitor = PerformanceMonitor()
+		self.performance_monitor = PerformanceMonitor(self)
 		self.experiment_mode = False
 		self.experiment = None
 
