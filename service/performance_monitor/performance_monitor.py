@@ -92,4 +92,9 @@ class PerformanceMonitor:
             print(f"                 Per creature: {int(get_full_size(self.app.world.creatures)/len(self.app.world.creatures)):,} bytes")
             print(f"       logme: {get_full_size(logme):,} bytes")
             print(f"       debug: {get_full_size(debug):,} bytes")
+            # распечатаем размеры всех переменных, накапливающих статистику: energy_history, events_log, population_size, death_stats
+            print(f"       logme.energy_history (len={len(logme.energy_history)}): {get_full_size(logme.energy_history):,} bytes")
+            print(f"       logme.events_log (len={len(logme.events_log)}): {get_full_size(logme.events_log):,} bytes")
+            print(f"       logme.population_size (len={len(logme.population_size)}): {get_full_size(logme.population_size):,} bytes")
+            print(f"       logme.death_stats (len={len(logme.death_stats)}): {get_full_size(logme.death_stats):,} bytes")
 
