@@ -79,6 +79,9 @@ class Logger:
     def get_death_stats_as_ndarray(self):
         data_array = np.array(self.death_stats, dtype=dtype_population_data)
         return data_array
+    
+    def get_population_size_history_as_list(self) -> List[int]:
+        return list(self.population_size)
 
     def _cleanup_dead_creatures_stats(self):
         #TODO: Реализовать очистку статистики мертвых существ.

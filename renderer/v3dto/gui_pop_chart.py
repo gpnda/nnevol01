@@ -93,7 +93,7 @@ class PopulationChart:
         
         # Получаем историю популяции из logger
         from service.logger.logger import logme
-        population_history = list(logme.population_size)
+        population_history = logme.get_population_size_history_as_list()
         
         # Если история пуста, выводим сообщение
         if not population_history or len(population_history) == 0:
