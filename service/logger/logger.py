@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from collections import deque, defaultdict
-from typing import Dict, Deque, List, Any
-from array import array
+from typing import Dict, Deque, List, Any, Tuple
 import numpy as np
 
 # Опишем структуру данных для ханения исторической информации о поколениях, смертях, 
@@ -35,6 +34,8 @@ class Logger:
     
     _instance = None
     MAX_HISTORY = 1000  # Максимальное количество сохраняемых тиков
+    MAX_POPULATION_HISTORY = 1500  # Максимальное количество сохраняемых значений численности популяции
+    MAX_DEATH_STATS = 200  # Максимальное количество сохраняемых записей о смертях
     
     def __new__(cls):
         if cls._instance is None:
@@ -54,10 +55,11 @@ class Logger:
             # Ключ: ID существа, Значение: список событий (CreatureEvent)
             self.events_log: Dict[int, List[CreatureEvent]] = defaultdict(list)
 
-            # История численности популяции
-            self.population_size: array = array('I') # История численности популяции. Индекс будет равняться номеру тика
+            # История численности популяции (хранит только последние MAX_POPULATION_HISTORY значений)
+            self.population_size: Deque[int] = deque(maxlen=self.MAX_POPULATION_HISTORY)
 
-            self.death_stats: deque = deque() # История смертей за тик
+            # История смертей (хранит только последние MAX_DEATH_STATS записей)
+            self.death_stats: Deque[Tuple] = deque(maxlen=self.MAX_DEATH_STATS)
 
             # Пометка об инициализации
             self._initialized = True
