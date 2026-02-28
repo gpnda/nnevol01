@@ -68,7 +68,7 @@ class Logger:
         for cr in creatures:
             self.energy_history[cr.id].append(float(cr.energy))
         
-        self._cleanup_dead_creatures_stats()
+        self._cleanup_dead_creatures_stats(creatures)
 
     def write_population_size(self, size: int) -> None:
         self.population_size.append(size)
@@ -83,15 +83,22 @@ class Logger:
     def get_population_size_history_as_list(self) -> List[int]:
         return list(self.population_size)
 
-    def _cleanup_dead_creatures_stats(self):
-        #TODO: Реализовать очистку статистики мертвых существ.
-        # alive_ids = {cr.id for cr in self.creatures}
-        # dead_ids = set(self.energy_history.keys()) - alive_ids # магиеская магия питона
+    def _cleanup_dead_creatures_stats(self, alive_creatures: List[Any]) -> None:
+        """
+        Удаляет статистику об умерших существах.
         
-        # for dead_id in dead_ids:
-        #     del self.energy_history[dead_id]
-        #     if dead_id in self.events_log:
-        #         del self.events_log[dead_id]
+        Из историй energy_history и events_log удаляются существа,
+        которые больше не присутствуют в списке живых.
+        
+        Args:
+            alive_creatures: Список живых существ
+        """
+        alive_ids = {cr.id for cr in alive_creatures}
+        dead_ids = set(self.energy_history.keys()) - alive_ids
+        
+        for dead_id in dead_ids:
+            self.energy_history.pop(dead_id)
+            self.events_log.pop(dead_id)
         pass
         
     
