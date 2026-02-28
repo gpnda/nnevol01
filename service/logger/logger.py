@@ -97,8 +97,8 @@ class Logger:
         dead_ids = set(self.energy_history.keys()) - alive_ids
         
         for dead_id in dead_ids:
-            self.energy_history.pop(dead_id)
-            self.events_log.pop(dead_id)
+            self.energy_history.pop(dead_id, None)
+            self.events_log.pop(dead_id, None)
         pass
         
     
