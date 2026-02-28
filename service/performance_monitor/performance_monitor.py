@@ -92,5 +92,4 @@ class PerformanceMonitor:
             print(f"                 Per creature: {int(get_full_size(self.app.world.creatures)/len(self.app.world.creatures)):,} bytes")
             print(f"       logme: {get_full_size(logme):,} bytes")
             print(f"       debug: {get_full_size(debug):,} bytes")
-            print(f"debug._debug_data: {get_full_size(debug._debug_data):,} bytes")
 
