@@ -96,6 +96,7 @@ class Renderer:
         self.states = {
             'main': 'Основное окно с картой',
             'main_fast': 'Основная симуляция, ускоренный режим, без анимации',
+            'main_fast_nolog': 'Основная симуляция, ускоренный режим, без анимации и без логирования',
             'popup_simparams': 'Popup окно параметров симуляции (модальное)',
             'creatures_list': 'Список существ (модальное)',
             'logs': 'Логи в полный экран (модальное)',
@@ -176,11 +177,19 @@ class Renderer:
             # Включаем ускоренный режим (без анимации)
             self.app.animation_off()
             render_state = self._prepare_render_state_dto()
-            self._draw_main_fast_screen(render_state)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
+            self._draw_main_fast_screen(render_state, nolog=False)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
+        
+        if state_name == 'main_fast_nolog':
+            # Включаем ускоренный режим (без анимации и без логирования)
+            self.app.animation_off()
+            logme.set_enabled(False)  # Отключаем логирование для максимальной производительности
+            render_state = self._prepare_render_state_dto()
+            self._draw_main_fast_screen(render_state, nolog=True)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
         
         if state_name == 'main':
             # Включаем ускоренный режим (без анимации)
-            self.app.animation_on()
+            self.app.animation_on()  # Включаем анимацию при возвращении в основной режим
+            logme.set_enabled(True)  # Включаем логирование при возвращении в основной режим
 
     
     # ============================================================================
@@ -507,6 +516,8 @@ class Renderer:
             return self._handle_keyboard_main(event)
         elif self.current_state == 'main_fast':
             return self._handle_keyboard_main_fast(event)
+        elif self.current_state == 'main_fast_nolog':
+            return self._handle_keyboard_main_fast_nolog(event)
         elif self.current_state == 'popup_simparams':
             return self._handle_keyboard_popup_simparams(event)
         elif self.current_state == 'creatures_list':
@@ -553,6 +564,10 @@ class Renderer:
         elif event.key == pygame.K_a:
             self.set_state('main_fast')
             return False
+
+        elif event.key == pygame.K_f:
+            self.set_state('main_fast_nolog')
+            return False
         
         elif event.key == pygame.K_TAB:
             # Проверяем, нажата ли клавиша Shift
@@ -570,7 +585,18 @@ class Renderer:
         return False
 
     def _handle_keyboard_main_fast(self, event: pygame.event.Event) -> bool:
-        """Обработка событий в основном состоянии."""
+        """Обработка событий в быстром режиме симуляции."""
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        elif event.key == pygame.K_ESCAPE:
+            self.set_state('main')
+            return False
+        
+        return False
+
+    def _handle_keyboard_main_fast_nolog(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в быстром режиме симуляции без логирования."""
         if event.type != pygame.KEYDOWN:
             return False
         
@@ -826,19 +852,34 @@ class Renderer:
         """
         self.experiment_widget.draw(self.screen, experiment_dto)
     
-    def _draw_main_fast_screen(self, render_state: RenderStateDTO) -> None:
+    def _draw_main_fast_screen(self, render_state: RenderStateDTO, nolog: bool = False) -> None:
         """Отрисовка экрана в ускоренном режиме (без анимации)."""
         # Просто закрасим экран черным цветом, а в центре нарисуем иконку быстрой перемотки fast forward
         self.screen.fill(self.COLORS['background'])
+
         center_x = self.SCREEN_WIDTH // 2
         center_y = self.SCREEN_HEIGHT // 2
         triangle_size = 40
-        points = [
-            (center_x - triangle_size, center_y - triangle_size),
-            (center_x - triangle_size, center_y + triangle_size),
-            (center_x + triangle_size, center_y),
-        ]
-        pygame.draw.polygon(self.screen, self.COLORS['text'], points)
+
+        # Если nolog=False
+        if not nolog:
+            # Нарисуем текст "FAST FORWARD MODE" в верхней части экрана
+            text_surface = self.font.render("FAST FORWARD MODE", True, self.COLORS['text'])
+            text_rect = text_surface.get_rect(center=(center_x, 30))
+            self.screen.blit(text_surface, text_rect)
+            
+            points = [
+                (center_x - triangle_size, center_y - triangle_size),
+                (center_x - triangle_size, center_y + triangle_size),
+                (center_x + triangle_size, center_y),
+            ]
+            pygame.draw.polygon(self.screen, self.COLORS['text'], points)
+        else:
+            # Если nolog=True, добавим текст "NO LOGGING" под иконкой
+            text_surface = self.font.render("FAST FORWARD MODE NO LOGGING", True, self.COLORS['text'])
+            text_rect = text_surface.get_rect(center=(center_x, center_y + triangle_size + 20))
+            self.screen.blit(text_surface, text_rect)
+        
         # Обновление дисплея
         pygame.display.flip()
 
