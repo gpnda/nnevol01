@@ -117,6 +117,14 @@ class Application():
 		else:
 			self.animate_flag = True
 
+	def animation_off(self):
+		"""Выключить анимацию"""
+		self.animate_flag = False
+	
+	def animation_on(self):
+		"""Включить анимацию"""
+		self.animate_flag = True
+
 	def limit_fps(self):
 		"""Ограничение FPS."""
 		self.renderer.clock.tick(2)

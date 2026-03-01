@@ -95,6 +95,7 @@ class Renderer:
         self.current_state = 'main'
         self.states = {
             'main': 'Основное окно с картой',
+            'main_fast': 'Основная симуляция, ускоренный режим, без анимации',
             'popup_simparams': 'Popup окно параметров симуляции (модальное)',
             'creatures_list': 'Список существ (модальное)',
             'logs': 'Логи в полный экран (модальное)',
@@ -143,11 +144,11 @@ class Renderer:
             self.current_state = state_name
             
             # Управление паузой: модальные окна ставят симуляцию на паузу
-            if state_name != 'main':
-                self.app.is_running = False
-                #self.selected_creature_id = None  # Очищаем выбор при открытии popup
-            else:
-                self.app.is_running = True
+            # if state_name != 'main':
+            #     self.app.is_running = False
+            #     #self.selected_creature_id = None  # Очищаем выбор при открытии popup
+            # else:
+            #     self.app.is_running = True
             
             self._on_state_enter(state_name)
         
@@ -170,6 +171,16 @@ class Renderer:
         if state_name == 'creatures_list':
             # Сбрасываем навигацию при открытии списка существ
             self.creatures_list_modal.reset()
+        
+        if state_name == 'main_fast':
+            # Включаем ускоренный режим (без анимации)
+            self.app.animation_off()
+            render_state = self._prepare_render_state_dto()
+            self._draw_main_fast_screen(render_state)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
+        
+        if state_name == 'main':
+            # Включаем ускоренный режим (без анимации)
+            self.app.animation_on()
 
     
     # ============================================================================
@@ -494,6 +505,8 @@ class Renderer:
         """Обработка клавиатурных событий."""
         if self.current_state == 'main':
             return self._handle_keyboard_main(event)
+        elif self.current_state == 'main_fast':
+            return self._handle_keyboard_main_fast(event)
         elif self.current_state == 'popup_simparams':
             return self._handle_keyboard_popup_simparams(event)
         elif self.current_state == 'creatures_list':
@@ -523,9 +536,11 @@ class Renderer:
         elif event.key == pygame.K_F2:
             self.set_state('exper_list')
             return False
+        
         elif event.key == pygame.K_F9:
             self.set_state('popup_simparams')
             return False
+        
         elif event.key == pygame.K_F12:
             self.set_state('logs')
             return False
@@ -534,9 +549,11 @@ class Renderer:
         if event.key == pygame.K_SPACE:
             self.app.toggle_run()
             return False
+
         elif event.key == pygame.K_a:
-            self.app.toggle_animate()
+            self.set_state('main_fast')
             return False
+        
         elif event.key == pygame.K_TAB:
             # Проверяем, нажата ли клавиша Shift
             mods = pygame.key.get_mods()
@@ -549,6 +566,17 @@ class Renderer:
             return False
         elif event.key == pygame.K_ESCAPE:
             self._select_creature_reset()
+        
+        return False
+
+    def _handle_keyboard_main_fast(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в основном состоянии."""
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        elif event.key == pygame.K_ESCAPE:
+            self.set_state('main')
+            return False
         
         return False
     
@@ -650,9 +678,12 @@ class Renderer:
         return False
     
 
-    def _handle_mouse(self, event: pygame.event.Event, world_dto: WorldStateDTO) -> None:
+    def _handle_mouse(self, event: pygame.event.Event) -> None:
         """Обработка событий мыши."""
         if self.current_state == 'main':
+            # Подготовим DTO для mouse handler (может потребоваться)
+            world_dto = self._prepare_world_dto()
+
             # Сначала обрабатываем событие в viewport (пан, зум)
             self.viewport.handle_event(event)
             
@@ -675,9 +706,6 @@ class Renderer:
         Returns:
             True если надо выходить из приложения
         """
-        # Подготовим DTO для mouse handler (может потребоваться)
-        world_dto = self._prepare_world_dto()
-        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -690,7 +718,7 @@ class Renderer:
             
             # Обработка мыши
             elif event.type in (pygame.MOUSEBUTTONDOWN, pygame.MOUSEBUTTONUP, pygame.MOUSEMOTION):
-                self._handle_mouse(event, world_dto)
+                self._handle_mouse(event)
         
         return False
 
@@ -798,6 +826,23 @@ class Renderer:
         """
         self.experiment_widget.draw(self.screen, experiment_dto)
     
+    def _draw_main_fast_screen(self, render_state: RenderStateDTO) -> None:
+        """Отрисовка экрана в ускоренном режиме (без анимации)."""
+        # Просто закрасим экран черным цветом, а в центре нарисуем иконку быстрой перемотки fast forward
+        self.screen.fill(self.COLORS['background'])
+        center_x = self.SCREEN_WIDTH // 2
+        center_y = self.SCREEN_HEIGHT // 2
+        triangle_size = 40
+        points = [
+            (center_x - triangle_size, center_y - triangle_size),
+            (center_x - triangle_size, center_y + triangle_size),
+            (center_x + triangle_size, center_y),
+        ]
+        pygame.draw.polygon(self.screen, self.COLORS['text'], points)
+        # Обновление дисплея
+        pygame.display.flip()
+
+
     
     def _draw_debug_info(self, render_state: RenderStateDTO) -> None:
         """Вспомогательный метод для отрисовки отладочной информации."""
