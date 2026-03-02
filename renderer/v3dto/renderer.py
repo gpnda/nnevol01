@@ -176,6 +176,7 @@ class Renderer:
         if state_name == 'main_fast':
             # Включаем ускоренный режим (без анимации)
             self.app.animation_off()
+            self.app.is_running = True  # Убедиться, что симуляция запущена в ускоренном режиме
             render_state = self._prepare_render_state_dto()
             self._draw_main_fast_screen(render_state, nolog=False)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
         
@@ -183,6 +184,7 @@ class Renderer:
             # Включаем ускоренный режим (без анимации и без логирования)
             self.app.animation_off()
             logme.set_enabled(False)  # Отключаем логирование для максимальной производительности
+            self.app.is_running = True  # Убедиться, что симуляция запущена в ускоренном режиме
             render_state = self._prepare_render_state_dto()
             self._draw_main_fast_screen(render_state, nolog=True)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
         
@@ -190,6 +192,7 @@ class Renderer:
             # Включаем ускоренный режим (без анимации)
             self.app.animation_on()  # Включаем анимацию при возвращении в основной режим
             logme.set_enabled(True)  # Включаем логирование при возвращении в основной режим
+            self.app.is_running = True
 
     
     # ============================================================================
