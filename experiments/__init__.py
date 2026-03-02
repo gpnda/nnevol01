@@ -18,6 +18,8 @@ from experiments.bite.experiment import BiteExperiment
 from experiments.bite.widget import BiteExperimentWidget
 from experiments.cone.experiment import ConeExperiment
 from experiments.cone.widget import ConeExperimentWidget
+from experiments.cone2.experiment import Cone2Experiment
+from experiments.cone2.widget import Cone2ExperimentWidget
 from experiments.dummy import DummyExperiment, DummyExperimentWidget
 # from experiments.spambite import SpambiteExperiment, SpambiteExperimentWidget
 
@@ -40,6 +42,12 @@ EXPERIMENTS = {
         'experiment_class': ConeExperiment,
         'widget_class': ConeExperimentWidget,
         'name': 'ConeExperiment',
+        'description': 'Test creature behavior on seeing food in different coordinates',
+    },
+    'cone2': {
+        'experiment_class': Cone2Experiment,
+        'widget_class': Cone2ExperimentWidget,
+        'name': 'Cone2Experiment',
         'description': 'Test creature behavior on seeing food in different coordinates',
     },
     # 'spambite': {
@@ -68,4 +76,6 @@ __all__ = [
     'BiteExperimentWidget',
     'ConeExperiment',
     'ConeExperimentWidget',
+    'Cone2Experiment',
+    'Cone2ExperimentWidget',
 ]

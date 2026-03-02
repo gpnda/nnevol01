@@ -80,7 +80,7 @@ class PerformanceMonitor:
         if elapsed >= self.interval:
             self.last_print_time = current_time
             self.last60sec.append(tick_number)
-            print(f"Tick: {tick_number}. ticks in last 60 sec: {self.last60sec[-1] - self.last60sec[0] if len(self.last60sec) > 1 else 0}")
+            # print(f"Tick: {tick_number}. ticks in last 60 sec: {self.last60sec[-1] - self.last60sec[0] if len(self.last60sec) > 1 else 0}")
             # print("Memory usage:")
             # print(f"       Application: {get_full_size(self.app):,} bytes")
             # print(f"            Renderer: {get_full_size(self.app.renderer, exclude_attr_names={'app', 'world'}):,} bytes")
