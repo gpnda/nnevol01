@@ -191,7 +191,10 @@ class ConeExperiment(StagedExperimentBase):
             raycast_dots=raycast_dots
         )
 
-        if self.stage_run_counter == 10:
+        # Прервать run, если за XXX тиков не удалось ее куснуть. 
+        # Если не прервать таким образом и не вернуть счетчик к нулю, то 
+        # эксперимент завершиться по достижению количества, указанного в плане.
+        if self.stage_run_counter == 50:
             self.stage_run_counter = 0
             self.finish_run(success=False)
 
@@ -218,6 +221,7 @@ class ConeExperiment(StagedExperimentBase):
             self.current_food_y += 1
             if self.current_food_y >= self.test_world_height:
                 print("All food positions tested.")
+                self.stop()
                 return
 
         # Разместим еду в начальной позиции

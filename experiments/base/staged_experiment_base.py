@@ -65,7 +65,7 @@ class StagedExperimentBase(ExperimentBase, ABC):
     def stop(self):
         """Остановить эксперимент."""
         self.is_running = False
-        # print(f"[STAGED EXPERIMENT] Stopped")
+        print(f"[STAGED EXPERIMENT] Stopped")
     
     def update(self):
         """Основной цикл обновления."""
@@ -89,6 +89,7 @@ class StagedExperimentBase(ExperimentBase, ABC):
     
     def stage_run_counter_increment(self):
         """Увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит."""
+        print("Переход к следующей стадии---------------")
         self.stage_run_counter += 1
         
         if self.stage_run_counter >= self.plan[self.current_stage]["num_runs"]:
@@ -98,6 +99,7 @@ class StagedExperimentBase(ExperimentBase, ABC):
         
             # Если все стадии завершены, то
             if self.current_stage >= self._get_total_stages():
+                print("ALL STAGES COMPLETE. NORMAL STOP ( stage_run_counter_increment() ).")
                 self.stop()
 
     def _print_summary(self):
