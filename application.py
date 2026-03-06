@@ -57,7 +57,6 @@ class Application():
 					self.renderer.draw()
 					self.renderer.control_run()
 			
-			#self.limit_fps()
 
 			
 
@@ -125,9 +124,6 @@ class Application():
 		"""Включить анимацию"""
 		self.animate_flag = True
 
-	def limit_fps(self):
-		"""Ограничение FPS."""
-		self.renderer.clock.tick(2)
 
 	def saveWorld(self):
 		"""Сохранить мир (F1)."""

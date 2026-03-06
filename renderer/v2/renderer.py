@@ -80,8 +80,6 @@ class Renderer:
             'logs': 'Логи в полный экран (модальное)',
         }
         
-        # Часы для управления FPS
-        self.clock = pygame.time.Clock()
         
         # ИНИЦИАЛИЗАЦИЯ ВИДЖЕТОВ
         self.viewport = Viewport(world=self.world)

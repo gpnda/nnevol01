@@ -183,7 +183,7 @@ screen_width = map_panel_width + panel_width
 screen_height = map_height * cell_size
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("RayCast Test Stand")
-clock = pygame.time.Clock()
+
 
 # Создаем отдельную поверхность для карты
 map_surface = pygame.Surface((map_panel_width, screen_height))
@@ -534,6 +534,6 @@ while running:
     
     # Обновление экрана
     pygame.display.flip()
-    clock.tick(60)
+
 
 pygame.quit()

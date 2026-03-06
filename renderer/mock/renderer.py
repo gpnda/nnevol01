@@ -6,13 +6,10 @@ class Renderer:
     def __init__(self, world, app):
         self.world = world
         self.app = app
-        self.clock = self  # self будет использоваться как clock
         self._variables = {}
         self._function_keys = {}
         
-    def tick(self, fps):
-        """Заглушка для clock.tick()"""
-        pass
+
     
     def add_variable(self, name, initial_value, var_type, min_val=0.0, max_val=1.0, on_change=None):
         """Добавляет переменную в панель управления (заглушка)."""

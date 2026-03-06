@@ -104,8 +104,6 @@ class Renderer:
             'experiment': 'Окно активного эксперимента (модальное)',
         }
         
-        # Часы для управления FPS
-        self.clock = pygame.time.Clock()
         
         # ВИДЖЕТЫ
         self.viewport = Viewport()
@@ -123,9 +121,6 @@ class Renderer:
         # ВЫБОР СУЩЕСТВА (только ID, данные передаются через DTO)
         self.selected_creature_id: Optional[int] = None
         
-        # FPS счетчик для отладки
-        self.frame_count = 0
-        self.fps = 0
 
         # Кэшируем последний render_state для отладки
         self.last_render_state: Optional[RenderStateDTO] = None
@@ -507,7 +502,6 @@ class Renderer:
             selected_creature=selected_creature_dto,
             current_state=self.current_state,
             tick=self.world.tick,
-            fps=self.fps,
             exper_list=exper_list_dto,
         )
 
@@ -794,13 +788,7 @@ class Renderer:
         # Обновление дисплея
         pygame.display.flip()
         
-        # Обновление FPS
-        self.frame_count += 1
-        if self.frame_count >= 30:
-            self.fps = int(self.clock.get_fps())
-            self.frame_count = 0
-        
-        self.clock.tick(60)  # 60 FPS max
+
     
     def _draw_main(self, render_state: RenderStateDTO) -> None:
         """Отрисовка основного состояния.
@@ -898,7 +886,6 @@ class Renderer:
             f"Population: {render_state.population_count}",
             f"Food: {render_state.food_count}",
             f"Tick: {render_state.tick}",
-            f"FPS: {render_state.fps}",
             f"Selected: {self.selected_creature_id}",
             f"",
             f"DTO Structure:",

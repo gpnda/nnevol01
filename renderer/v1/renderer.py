@@ -62,8 +62,6 @@ class Renderer:
         self.func_keys_panel = FunctionKeysPanel(app=self.app)
         self.creatures_popup = CreaturesPopup(world=self.world)
         
-        # Часы для управления FPS
-        self.clock = pygame.time.Clock()
 
     def _handle_keyboard(self, event: pygame.event.Event) -> bool:
         """
@@ -152,6 +150,5 @@ class Renderer:
         # Обновление дисплея
         pygame.display.flip()
         
-        # Ограничение FPS (опционально раскомментировать)
-        # self.clock.tick(60)
+
 

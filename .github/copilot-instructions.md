@@ -52,7 +52,7 @@ This is a **neural network-based evolutionary simulation** written in Python wit
 #### **Renderer** (`renderer/v3dto/renderer.py`) - Main Coordinator
 - **Role**: Pygame manager + DTO factory + state machine
 - **Responsibilities**:
-  - Initialize pygame window and clock
+  - Initialize pygame window
   - Manage state machine (main, popup_simparams, creatures_list, logs)
   - Handle keyboard/mouse events and state transitions
   - Transform domain objects → DTOs (world→WorldStateDTO, logger→HistoryDTO)
