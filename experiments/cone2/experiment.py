@@ -130,23 +130,22 @@ class Cone2Experiment(StagedExperimentBase):
             bitey = self.inspecting_creature.y + self.inspecting_creature.bite_range*math.sin(self.inspecting_creature.angle)
             
             # Проверим выход за пределы карты > app.world.dimx-1 mappointer
-            if (int(bitex) < 0 or int(bitex) > self.test_world_width-1):
-                return False
-            if (int(bitey) < 0 or int(bitey) > self.test_world_height-1):
-                return False
+            if (int(bitex) < 0 or int(bitex) > self.test_world_width-1) or (int(bitey) < 0 or int(bitey) > self.test_world_height-1):
+                # Если существо куснуло за пределы карты, то просто не считаем это укусом, иначе будет Out of index
+                pass
+            else:
+                # # Проверим на попытку укусить себя
+                #               ДА ПОФИГ, СУЩЕСТВО ТО МОЖЕТ СТОЯТЬ НА ПИЩЕ В ОДНОЙ КЛЕТКЕ, ТАК ЧТО ПУСТЬ КУСАЕТ
+                # if (int(bitex) == int(self.x) and int(bitey) == int(self.y)):
+                # 	return False
+                
+                # получим информацию о том, что находится в клетке, которую существо кусает
+                biteplace =  self.test_world.get_cell(int(bitex), int(bitey))
 
-            # # Проверим на попытку укусить себя
-            #               ДА ПОФИГ, СУЩЕСТВО ТО МОЖЕТ СТОЯТЬ НА ПИЩЕ В ОДНОЙ КЛЕТКЕ, ТАК ЧТО ПУСТЬ КУСАЕТ
-            # if (int(bitex) == int(self.x) and int(bitey) == int(self.y)):
-            # 	return False
-            
-            # получим информацию о том, что находится в клетке, которую существо кусает
-            biteplace =  self.test_world.get_cell(int(bitex), int(bitey))
-
-            if biteplace == 2:
-                # Существу повезло, оно укусило пищу.
-                self.finish_run(success=True)
-                return
+                if biteplace == 2:
+                    # Существу повезло, оно укусило пищу.
+                    self.finish_run(success=True)
+                    return
         
         # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
         self.current_creature_state = ExperimentCreatureStateDTO(
@@ -166,11 +165,21 @@ class Cone2Experiment(StagedExperimentBase):
             self.finish_run(success=False)
 
 
+        # увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит
+        self.stage_run_counter_increment()
+
+
 
 
 
     def finish_run(self, success: bool):
-        # print(" ##########################  FINISH RUN ###########################")
+        print(" ##########################  FINISH RUN ###########################")
+        print("###   self.stage_run_counter", self.stage_run_counter)
+        print("###   self.current_food_x", self.current_food_x)
+        print("###   self.current_food_y", self.current_food_y)
+        
+        self.stage_run_counter = 0 # обнуляем счетчик
+        print("###   NOW NEW VALUE self.stage_run_counter", self.stage_run_counter)
         
         # Сохраняем результат прогона в статистику
         self.stats_collector.add_run(

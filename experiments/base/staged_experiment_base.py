@@ -83,8 +83,7 @@ class StagedExperimentBase(ExperimentBase, ABC):
         # выполнить логику стадии
         stage_method()
 
-        # увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит
-        self.stage_run_counter_increment()
+        
         
     
     def stage_run_counter_increment(self):
@@ -93,6 +92,7 @@ class StagedExperimentBase(ExperimentBase, ABC):
         print(f"[STAGED EXPERIMENT] Stage {self.current_stage} - Run {self.stage_run_counter}")
         
         if self.stage_run_counter >= self.plan[self.current_stage]["num_runs"]:
+            print("_-_-_-_-_-_-_-_ self.stage_run_counter: ", self.stage_run_counter)
             # Переход к следующей стадии
             self.stage_run_counter = 0   # сбросить счетчик для следующей стадии
             self.current_stage += 1      # перейти к следующей стадии
