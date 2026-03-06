@@ -177,6 +177,7 @@ class Renderer:
             # Включаем ускоренный режим (без анимации)
             self.app.animation_off()
             self.app.is_running = True  # Убедиться, что симуляция запущена в ускоренном режиме
+            # Это чтобы один раз отрисовать экран ускоренной перемотки сразу при входе в состояние, чтобы не было "зависания" на старом кадре
             render_state = self._prepare_render_state_dto()
             self._draw_main_fast_screen(render_state, nolog=False)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
         
@@ -185,6 +186,7 @@ class Renderer:
             self.app.animation_off()
             logme.set_enabled(False)  # Отключаем логирование для максимальной производительности
             self.app.is_running = True  # Убедиться, что симуляция запущена в ускоренном режиме
+            # Это чтобы один раз отрисовать экран ускоренной перемотки сразу при входе в состояние, чтобы не было "зависания" на старом кадре
             render_state = self._prepare_render_state_dto()
             self._draw_main_fast_screen(render_state, nolog=True)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
         
