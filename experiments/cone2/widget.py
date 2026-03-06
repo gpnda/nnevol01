@@ -6,6 +6,13 @@ import pygame
 
 
 
+# Параметры рисования матрицы
+MATRIX_START_X = 100
+MATRIX_START_Y = 100
+CELL_SIZE = 15
+MATRIX_WIDTH =27
+MATRIX_HEIGHT = 27
+
 class Cone2ExperimentWidget:
     POPUP_WIDTH = 1100
     POPUP_HEIGHT = 500
@@ -29,6 +36,27 @@ class Cone2ExperimentWidget:
             self.font = pygame.font.Font(None, self.FONT_SIZE)
             self.font_title = pygame.font.Font(None, self.FONT_SIZE + 4)
             self.small_font = pygame.font.Font(None, self.FONT_SIZE - 4)
+        
+
+        # Цвет сетки
+        mesh_color = (40, 40, 40)
+
+
+        self.mesh = pygame.Surface((MATRIX_WIDTH * CELL_SIZE, MATRIX_HEIGHT * CELL_SIZE))
+
+        for row in range(MATRIX_HEIGHT):
+            for col in range(MATRIX_WIDTH):
+                # Нарисуем Вертикальные 
+                line_start = (col * CELL_SIZE, 0)
+                line_end = (col * CELL_SIZE, MATRIX_HEIGHT * CELL_SIZE)
+                pygame.draw.line(self.mesh, mesh_color, line_start, line_end)
+
+                # Нарисуем Горизонтальные
+                line_start = (0, row * CELL_SIZE)
+                line_end = (MATRIX_WIDTH * CELL_SIZE, row * CELL_SIZE)
+                pygame.draw.line(self.mesh, mesh_color, line_start, line_end)
+
+
     
     def draw(self, screen: pygame.Surface, experiment_dto):
         if experiment_dto is None:
@@ -64,40 +92,27 @@ class Cone2ExperimentWidget:
         # Рисуем карту эксперимента
         # ##########################################################################
 
-        # Параметры рисования матрицы
-        MATRIX_START_X = 100
-        MATRIX_START_Y = 100
-        CELL_SIZE = 15
-        
         experiment_map = experiment_dto.world
 
+        # Вставим сетку mesh
+        screen.blit(self.mesh, (MATRIX_START_X , MATRIX_START_Y ))
 
         # Рисуем матрицу карты
         map_data = experiment_map.map
+
         for row in range(map_data.shape[0]):
             for col in range(map_data.shape[1]):
 
-                # Цвет сетки
-                mesh_color = (40, 40, 40)
-                # Нарисуем Вертикальные 
-                line_start = (MATRIX_START_X + col * CELL_SIZE, MATRIX_START_Y)
-                line_end = (MATRIX_START_X + col * CELL_SIZE, MATRIX_START_Y + map_data.shape[0] * CELL_SIZE)
-                pygame.draw.line(screen, mesh_color, line_start, line_end)
-
-                # Нарисуем Горизонтальные
-                line_start = (MATRIX_START_X, MATRIX_START_Y + row * CELL_SIZE)
-                line_end = (MATRIX_START_X + map_data.shape[1] * CELL_SIZE, MATRIX_START_Y + row * CELL_SIZE)
-                pygame.draw.line(screen, mesh_color, line_start, line_end)
-
-                # Далее - рисуем содержимое карты
+                # рисуем содержимое карты
                 cell_x = MATRIX_START_X + col * CELL_SIZE
                 cell_y = MATRIX_START_Y + row * CELL_SIZE
-                cell_rect = pygame.Rect(cell_x, cell_y, CELL_SIZE, CELL_SIZE)
+                cell_rect = pygame.Rect(cell_x+1, cell_y+1, CELL_SIZE-1, CELL_SIZE-1)
                 
                 # Определяем цвет ячейки на основе значения
                 cell_value = map_data[row, col]
                 if cell_value == 0:  # Пусто
-                    cell_color = (10, 10, 10)
+                    # cell_color = (10, 10, 10)
+                    continue # Пропустим этот шаг, ничего не будем рисовать для пустых клеток
                 elif cell_value == 1:  # Стена
                     cell_color = (50, 50, 50)
                 elif cell_value == 2:  # Еда
@@ -105,7 +120,8 @@ class Cone2ExperimentWidget:
                 elif cell_value == 3:  # Существо
                     cell_color = (50, 50, 255)
                 else:
-                    cell_color = (255, 10, 10)
+                    # cell_color = (255, 10, 10)
+                    pass
                 
                 # Рисуем заполненный прямоугольник и границу
                 pygame.draw.rect(screen, cell_color, cell_rect)
