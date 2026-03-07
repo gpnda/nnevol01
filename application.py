@@ -39,7 +39,7 @@ class Application():
 
 			if self.experiment_mode:
 				self.experiment.update()
-				self.renderer.draw()
+				self.renderer.draw(self.experiment.get_experiment_dto())
 				self.renderer.control_run()
 			else:
 				if self.is_running:
@@ -49,12 +49,12 @@ class Application():
 						logme.write_stats(self.world.creatures)
 						logme.write_population_size(len(self.world.creatures))
 					if self.animate_flag:
-						self.renderer.draw()
+						self.renderer.draw(self.renderer._prepare_render_state_dto())
 						self.renderer.control_run()
 					else:
 						self.renderer.control_run()
 				else:
-					self.renderer.draw()
+					self.renderer.draw(self.renderer._prepare_render_state_dto())
 					self.renderer.control_run()
 			
 

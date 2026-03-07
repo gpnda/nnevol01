@@ -751,7 +751,7 @@ class Renderer:
     # ОТРИСОВКА
     # ============================================================================
 
-    def draw(self) -> None:
+    def draw(self, render_state) -> None:
         """Отрисовка всех компонентов.
         
         Главный метод рисования, вызывается один раз за фрейм из application.py.
@@ -765,7 +765,6 @@ class Renderer:
         self.screen.fill(self.COLORS['background'])
         
         # Подготовка полного снимка состояния для виджетов
-        render_state = self._prepare_render_state_dto()
         self.last_render_state = render_state
         
         # Отрисовка в зависимости от состояния
@@ -782,7 +781,7 @@ class Renderer:
         elif self.current_state == 'experiment':
             # получить DTO эксперимента из application и передать в виджет
             # Это позволяет сделать виджет эксперимента чистым, полностью независимым от логики эксперимента и мира
-            self._draw_experiment(experiment_dto=self.app.experiment.get_experiment_dto())
+            self._draw_experiment(render_state)
 
         
         # Обновление дисплея
