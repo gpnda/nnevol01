@@ -184,7 +184,9 @@ class Cone2Experiment(StagedExperimentBase):
         # Сохраняем результат прогона в статистику
         self.stats_collector.add_run(
             stage=self.current_stage,
-            success=success
+            success=success,
+            point_x=self.current_food_x,
+            point_y=self.current_food_y,
         )
 
         # Создаём пустой тестовый мир 27x27 для экспериментов
