@@ -122,9 +122,6 @@ class Renderer:
         self.selected_creature_id: Optional[int] = None
         
 
-        # Кэшируем последний render_state для отладки
-        self.last_render_state: Optional[RenderStateDTO] = None
-
     # ============================================================================
     # УПРАВЛЕНИЕ СОСТОЯНИЯМИ
     # ============================================================================
@@ -763,9 +760,6 @@ class Renderer:
         """
         # Очистка экрана
         self.screen.fill(self.COLORS['background'])
-        
-        # Подготовка полного снимка состояния для виджетов
-        self.last_render_state = render_state
         
         # Отрисовка в зависимости от состояния
         if self.current_state == 'main':
