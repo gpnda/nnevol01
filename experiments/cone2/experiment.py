@@ -200,6 +200,7 @@ class Cone2Experiment(StagedExperimentBase):
             if self.current_food_y >= self.test_world_height:
                 print("All food positions tested.")
                 self.stop()
+                self.finish_experiment()
                 return
         
         print(f"Next food position: ({self.current_food_x}, {self.current_food_y})")
@@ -238,4 +239,13 @@ class Cone2Experiment(StagedExperimentBase):
 
     def _print_summary(self):
         """Вывести резюме результатов эксперимента в консоль."""
-        pass
+        # Просто распечатать содержимое накопленной статистики
+        print("EXPERIMENT SUMMARY:")
+        all_stats = self.stats_collector.get_all_stages_stats()
+        print(f"Experiment Summary for creature {self.target_creature.id}:")
+        print(all_stats)
+        # print(self.stats_collector.stats) # Вот так выводить бесмысленно, слишком много данных, но формально у нас эти данные есть.
+
+    def finish_experiment(self):
+        """Завершить эксперимент и вывести резюме."""
+        self._print_summary()
