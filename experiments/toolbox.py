@@ -58,7 +58,7 @@ class ScenarioBuilder:
     def create_test_world(width: int = 10, height: int = 10) -> World:
         """Создать пустой тестовый мир с правильной инициализацией."""
         # Используем WorldGenerator с нулевыми параметрами для правильной инициализации walls_map
-        world = WorldGenerator.generate_world(width, height, wall_count=0, food_count=0, creatures_count=0)
+        world = WorldGenerator.generate_world(width, height, wall_count=0, food_count=0, creatures_count=0, border_walls=False)
         return world
     
     @staticmethod

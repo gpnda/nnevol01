@@ -7,9 +7,9 @@ from world import World
 
 class WorldGenerator:
     @staticmethod
-    def generate_world(width=20, height=20, wall_count=100, food_count=10, creatures_count=15):
+    def generate_world(width=20, height=20, wall_count=100, food_count=10, creatures_count=15, border_walls=True):
         world = World(width, height)
-        WorldGenerator.generate_walls(world, wall_count)
+        WorldGenerator.generate_walls(world, wall_count, border_walls)
         WorldGenerator.save_walls_map(world)
         WorldGenerator.generate_food(world, food_count)
         WorldGenerator.generate_creatures(world, creatures_count)
@@ -17,7 +17,7 @@ class WorldGenerator:
     
     
     @staticmethod
-    def generate_walls(world, wall_count):
+    def generate_walls(world, wall_count, border_walls):
         width = world.width
         height = world.height
 
@@ -26,15 +26,17 @@ class WorldGenerator:
             x, y = random.randint(0, width-1), random.randint(0, height-1)
             world.set_cell(x , y , 1)
         
-        # Генерация стен у границ карты - горизонтальные верхняя и нижняя
-        for i in range(width):
-            world.set_cell(i , 0 , 1)
-            world.set_cell(i , height-1 , 1)
+        if border_walls:
+            # Генерация стен у границ карты - горизонтальные верхняя и нижняя
+            for i in range(width):
+                world.set_cell(i , 0 , 1)
+                world.set_cell(i , height-1 , 1)
 		
-        # Генерация стен у границ карты - вертикальные левая и правая
-        for i in range(height):
-            world.set_cell(0 , i , 1)
-            world.set_cell(width-1, i , 1)
+        if border_walls:
+            # Генерация стен у границ карты - вертикальные левая и правая
+            for i in range(height):
+                world.set_cell(0 , i , 1)
+                world.set_cell(width-1, i , 1)
     
     @staticmethod
     def save_walls_map(world):
