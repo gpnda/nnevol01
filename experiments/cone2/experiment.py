@@ -72,6 +72,17 @@ class Cone2Experiment(StagedExperimentBase):
         self.current_food_x = 0
         self.current_food_y = 0
 
+        # массива с результатами для всех координак карты, пища пробегает по всем возможнымположениям на карте,
+        # запускается прогон в MAX_TICKS_TO_ACHIVE_GOAL тиков, если существо кусает пищу - 
+        # то результат для этой точки карты сохраняется как SUCCESS, если не кусает - FAIL.
+        # так что это 2D массив размером self.test_world_width на self.test_world_height
+        # Возможные значения: 
+        #   -1 - не тестировалось, 
+        #   0 - тестировалось, результат FAIL, 
+        #   1 - тестировалось, результат SUCCESS
+        self.results_map = np.zeros((self.test_world_height, self.test_world_width), dtype=np.int32)
+        self.results_map.fill(-1)  # Изначально все позиции не тестировались, заполняем -1
+
     
     def _stage_0(self):
         """Стадия 0: CONE CONE CONE
@@ -189,6 +200,12 @@ class Cone2Experiment(StagedExperimentBase):
             point_y=self.current_food_y,
         )
 
+        # Сохраняем результаты прогона на карте results_map
+        if success:
+            self.results_map[self.current_food_y, self.current_food_x] = 1  # SUCCESS
+        else:
+            self.results_map[self.current_food_y, self.current_food_x] = 0  # FAIL
+
         # Создаём пустой тестовый мир 27x27 для экспериментов
         self.test_world = ScenarioBuilder.create_test_world(self.test_world_width, self.test_world_height)
         
@@ -232,6 +249,7 @@ class Cone2Experiment(StagedExperimentBase):
             creature_state=self.current_creature_state,
             plan=self.plan,
             stats=self.stats_collector.get_all_stages_stats(),
+            results_map=self.results_map
         )
     
     def _get_total_stages(self) -> int:
@@ -243,8 +261,13 @@ class Cone2Experiment(StagedExperimentBase):
         print("EXPERIMENT SUMMARY:")
         all_stats = self.stats_collector.get_all_stages_stats()
         print(f"Experiment Summary for creature {self.target_creature.id}:")
+        
         print(all_stats)
         # print(self.stats_collector.stats) # Вот так выводить бесмысленно, слишком много данных, но формально у нас эти данные есть.
+        
+        # распечатаем карту results_map
+        print("Results Map ( -1 = not tested, 0 = FAIL, 1 = SUCCESS ):")
+        print(self.results_map)
 
     def finish_experiment(self):
         """Завершить эксперимент и вывести резюме."""

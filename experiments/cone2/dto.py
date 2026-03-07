@@ -27,3 +27,6 @@ class Cone2ExperimentDTO:
     plan: Optional[Dict[str, Any]] = None  # план экперимента
     stats: Optional[Dict[int, Dict[str, Any]]] = None  # статистика по всем стадиям
     # summary: Optional[Dict[str, Any]] = None  # результаты stats.get_summary()
+    
+    # Пробросим в виджет 2D карту results_map, с результатами прогонов 
+    results_map: Optional[np.ndarray] = None  # карта результатов ( -1 = not tested, 0 = FAIL, 1 = SUCCESS )

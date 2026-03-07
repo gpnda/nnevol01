@@ -111,8 +111,7 @@ class Cone2ExperimentWidget:
                 # Определяем цвет ячейки на основе значения
                 cell_value = map_data[row, col]
                 if cell_value == 0:  # Пусто
-                    # cell_color = (10, 10, 10)
-                    continue # Пропустим этот шаг, ничего не будем рисовать для пустых клеток
+                    cell_color = (10, 10, 10)
                 elif cell_value == 1:  # Стена
                     cell_color = (50, 50, 50)
                 elif cell_value == 2:  # Еда
@@ -120,13 +119,22 @@ class Cone2ExperimentWidget:
                 elif cell_value == 3:  # Существо
                     cell_color = (50, 50, 255)
                 else:
-                    # cell_color = (255, 10, 10)
-                    pass
+                    cell_color = (255, 0, 0) # Неизвестное значение, красный для отладки
                 
                 # Рисуем заполненный прямоугольник и границу
                 pygame.draw.rect(screen, cell_color, cell_rect)
                 #pygame.draw.rect(screen, (80, 80, 80), cell_rect, 1)
 
+                result_value = experiment_dto.results_map[row, col]
+                icon_size = 3
+                if result_value == 1:  # SUCCESS
+                    # нарисуем квадрат внутри ячейки
+                    pygame.draw.rect(screen, self.COLORS['success'], (cell_x + CELL_SIZE//2 - icon_size, cell_y + CELL_SIZE//2 - icon_size, icon_size*2, icon_size*2), 1)
+                elif result_value == 0:  # FAIL
+                    # нарисуем крестик - две пересеченные крест-накрест линии
+                    pygame.draw.line(screen, self.COLORS['fail'], (cell_x + CELL_SIZE//2 - icon_size, cell_y + CELL_SIZE//2 - icon_size), (cell_x + CELL_SIZE//2 + icon_size, cell_y + CELL_SIZE//2 + icon_size), 1)
+                    pygame.draw.line(screen, self.COLORS['fail'], (cell_x + CELL_SIZE//2 - icon_size, cell_y + CELL_SIZE//2 + icon_size), (cell_x + CELL_SIZE//2 + icon_size, cell_y + CELL_SIZE//2 - icon_size), 1)
+                
         # нарисуем точки Raycast
         if experiment_dto.creature_state is not None and experiment_dto.creature_state.raycast_dots is not None:
             for dot in experiment_dto.creature_state.raycast_dots:
