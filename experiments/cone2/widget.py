@@ -82,7 +82,7 @@ class Cone2ExperimentWidget:
         # Заголовок
         title_rect = pygame.Rect(x, y, self.POPUP_WIDTH, 30)
         pygame.draw.rect(screen, self.COLORS['title_bg'], title_rect)
-        title_text = self.font_title.render("Cone2Experiment", True, self.COLORS['title_text'])
+        title_text = self.font_title.render("Cone2Experiment", False, self.COLORS['title_text'])
         screen.blit(title_text, (x + 20, y + 7))
         
 
@@ -148,7 +148,7 @@ class Cone2ExperimentWidget:
             creature_y = MATRIX_START_Y + experiment_dto.creature_state.y * CELL_SIZE
             pygame.draw.circle(screen, (255, 255, 255), (creature_x + CELL_SIZE//2, creature_y + CELL_SIZE//2), CELL_SIZE//2, 1)
 
-
+        
 
 
 
@@ -161,9 +161,17 @@ class Cone2ExperimentWidget:
         x = (screen_w - self.POPUP_WIDTH) // 2
         y = (screen_h - self.POPUP_HEIGHT) // 2
         
-        VISION_MATRIX_X = x + 25
-        VISION_MATRIX_Y = y + 420
+        VISION_MATRIX_X = x + 450
+        VISION_MATRIX_Y = y + 50
         VISION_CELL_SIZE = 17
+
+        # Надпись Vision
+        vision_text = self.font.render("Vision:", False, self.COLORS['text'])
+        screen.blit(vision_text, (VISION_MATRIX_X, VISION_MATRIX_Y ))
+
+        # Надпись Bite
+        bite_text = self.font.render("Bite:", False, self.COLORS['text'])
+        screen.blit(bite_text, (VISION_MATRIX_X, VISION_MATRIX_Y + 20))
 
         # Преобразование в uint8 диапазон [0, 255]
         if experiment_dto.creature_state is not None and experiment_dto.creature_state.vision_input is not None:
@@ -178,10 +186,28 @@ class Cone2ExperimentWidget:
             
             # Рисуем видение в виде 15 цветных квадратов (горизонтально)
             for i, color in enumerate(rgb_tuples):
-                square_rect = pygame.Rect(VISION_MATRIX_X + i * VISION_CELL_SIZE, VISION_MATRIX_Y, VISION_CELL_SIZE, VISION_CELL_SIZE)
+                square_rect = pygame.Rect(VISION_MATRIX_X + 60 + i * VISION_CELL_SIZE, VISION_MATRIX_Y, VISION_CELL_SIZE, VISION_CELL_SIZE)
                 pygame.draw.rect(screen, color, square_rect)
                 pygame.draw.rect(screen, (80, 80, 80), square_rect, 1)
         
+        
+        # Если существо куснуло - нарисуем индикатор укуса рядом с vision input, он будет заполняться  в зависимости от усилия укуса
+        bite_rect_width = 50
+        bite_rect_height = VISION_CELL_SIZE
+        bite_color = self.COLORS['border']
+
+        # Сначала рамочку и фон для индикатора укуса
+        bite_rect = pygame.Rect(VISION_MATRIX_X + 60, VISION_MATRIX_Y + 20, bite_rect_width, bite_rect_height)
+        pygame.draw.rect(screen, (10, 10, 10), bite_rect)  # фон
+        pygame.draw.rect(screen, (80, 80, 80), bite_rect, 1)
+        # Теперь наполнение
+        if experiment_dto.creature_state is not None and experiment_dto.creature_state.nn_outputs is not None and experiment_dto.creature_state.nn_outputs[2] > 0.5:
+            bite_color = self.COLORS['success']
+        
+        bite_actual_width = int(bite_rect_width * (experiment_dto.creature_state.nn_outputs[2] if experiment_dto.creature_state is not None and experiment_dto.creature_state.nn_outputs is not None else 0))
+        bite_fill_rect = pygame.Rect(VISION_MATRIX_X + 60 + 2, VISION_MATRIX_Y + 22, bite_actual_width - 4, bite_rect_height - 4)
+        pygame.draw.rect(screen, bite_color, bite_fill_rect)
+            
 
 
 
