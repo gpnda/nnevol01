@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
+
+import sys
 from world_generator import WorldGenerator
-# from renderer.v1.renderer import Renderer
-# from renderer.mock.renderer import Renderer
-# from renderer.v2.renderer import Renderer
 from renderer.v3dto.renderer import Renderer
 from simparams import sp
 from service.logger.logger import logme
@@ -20,25 +19,26 @@ class Application():
 		self.experiment_mode = False
 		self.experiment = None
 
-		# Генерация мира
-		# self.world = WorldGenerator.generate_world(
-		# 	width=100,
-		# 	height=50,
-		# 	wall_count=350, 
-		# 	food_count=sp.food_amount,
-		# 	creatures_count=500,
-		# 	border_walls=True,
-        # )
-
-		# Загрузка мира из CSV
-		self.world = WorldGenerator.generate_world_fromCSV(
-			file_path='maps/map1.csv',
-			random_wall_count=350, 
-			food_count=sp.food_amount,
-			creatures_count=500,
-			border_walls=True,
-		)
-
+		if len(sys.argv) == 3 and sys.argv[1] == '-csvmap':
+			# Загрузка мира из CSV
+			self.world = WorldGenerator.generate_world_fromCSV(
+				file_path=sys.argv[2],
+				random_wall_count=350, 
+				food_count=sp.food_amount,
+				creatures_count=500,
+				border_walls=True,
+			)
+		else:
+			# Генерация мира стандартным способом
+			self.world = WorldGenerator.generate_world(
+				width=100,
+				height=50,
+				wall_count=350, 
+				food_count=sp.food_amount,
+				creatures_count=500,
+				border_walls=True,
+			)
+		
 
 		self.renderer = Renderer(self.world, self)
 		
