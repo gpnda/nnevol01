@@ -24,7 +24,7 @@ class Viewport:
     # Параметры камеры по умолчанию
     CAMERA_OFFSET_DEFAULT = pygame.Vector2(0, -6.0)
     CAMERA_SCALE_DEFAULT = 8.0
-    CAMERA_SCALE_MIN = 7.0
+    CAMERA_SCALE_MIN = 1.0
     CAMERA_SCALE_MAX = 50.0
     
     # Цвета для отрисовки

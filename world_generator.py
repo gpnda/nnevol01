@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import csv
 import random
+import numpy as np
 from food import Food
 from creature import Creature
 from world import World
@@ -10,6 +12,37 @@ class WorldGenerator:
     def generate_world(width=20, height=20, wall_count=100, food_count=10, creatures_count=15, border_walls=True):
         world = World(width, height)
         WorldGenerator.generate_walls(world, wall_count, border_walls)
+        WorldGenerator.save_walls_map(world)
+        WorldGenerator.generate_food(world, food_count)
+        WorldGenerator.generate_creatures(world, creatures_count)
+        return world
+    
+    @staticmethod
+    def generate_world_fromCSV(file_path, random_wall_count=100, food_count=10, creatures_count=15, border_walls=True):
+        print("Initialisig World from CSV file")
+
+        # Сначала читаем CSV в обычный список, чтобы узнать размеры карты.
+        csv_rows = []
+        with open(file_path, newline='') as csvfile:
+            csvreader = csv.reader(csvfile, delimiter=';', quotechar='\"')
+            for row in csvreader:
+                if not row:
+                    continue
+                csv_rows.append([int(x.strip()) for x in row if x.strip() != ''])
+
+        if not csv_rows:
+            raise ValueError(f"CSV map is empty: {file_path}")
+
+        width = len(csv_rows[0])
+        height = len(csv_rows)
+        if any(len(row) != width for row in csv_rows):
+            raise ValueError(f"CSV map rows have different lengths: {file_path}")
+
+        world = World(width, height)
+        world.map = np.array(csv_rows, dtype='int')
+        
+        
+        WorldGenerator.generate_walls(world, random_wall_count, border_walls)
         WorldGenerator.save_walls_map(world)
         WorldGenerator.generate_food(world, food_count)
         WorldGenerator.generate_creatures(world, creatures_count)

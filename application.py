@@ -21,14 +21,25 @@ class Application():
 		self.experiment = None
 
 		# Генерация мира
-		self.world = WorldGenerator.generate_world(
-			width=100,
-            height=50,
-            wall_count=350, 
-            food_count=sp.food_amount,
-            creatures_count=500,
+		# self.world = WorldGenerator.generate_world(
+		# 	width=100,
+		# 	height=50,
+		# 	wall_count=350, 
+		# 	food_count=sp.food_amount,
+		# 	creatures_count=500,
+		# 	border_walls=True,
+        # )
+
+		# Загрузка мира из CSV
+		self.world = WorldGenerator.generate_world_fromCSV(
+			file_path='maps/map1.csv',
+			random_wall_count=350, 
+			food_count=sp.food_amount,
+			creatures_count=500,
 			border_walls=True,
-        )
+		)
+
+
 		self.renderer = Renderer(self.world, self)
 		
 		
