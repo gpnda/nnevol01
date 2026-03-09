@@ -179,9 +179,24 @@ class NeuralNetwork:  # класс нейронной сети
                     sum_val += w3[k, j] * z2[k]
                 outputs[i, j] = sum_val + b3[j]
 
+            # функция активации для выходного слоя сводит выходы к диапазону -1..1, что может быть удобно для принятия решений (например, если >0.5 - идти, >0.5 - атаковать и т.д.)
+            for j in range(OUTPUT_SIZE):
+                outputs[i, j] = normalize_to_range(fast_tanh(outputs[i, j]))
+                
         return outputs
 
 
+
+
+@jit(nopython=True, fastmath=True, cache=True)
+def normalize_to_range(x: np.float32) -> np.float32:
+    """Нормализует значение к диапазону -1..1 через clamp"""
+    if x > 1.0:
+        return np.float32(1.0)
+    elif x < -1.0:
+        return np.float32(-1.0)
+    else:
+        return x
 
 
 @jit(nopython=True, fastmath=True, cache=True)
