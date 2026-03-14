@@ -621,20 +621,22 @@ class World():
 	def apply_outs(creature_x, creature_y, creature_angle, creature_speed, out_angle, out_speed):
 		
 		# Расчитываем новые координаты, куда существо хочет перейти
-		new_angle = creature_angle + (out_angle-0.5)
+		new_angle = creature_angle + out_angle
 		# print(f"{all_outs[index][0]:.8f}")
 		# Нормализуем угол в диапазон [0, 2π)
 		new_angle = new_angle % (2 * math.pi)
 		# Если угол отрицательный, добавляем 2π чтобы получить положительное значение
 		# @TODO Вообще это интересный вопрос - этот разрыв в управлении углом существа (2π) - создает ли это помехи в процессе отбора?
-		if new_angle < 0:
-			new_angle += 2 * math.pi
-
-		new_speed = creature_speed + (float(out_speed) - 0.5)
-		if new_speed < -0.5:
-			new_speed = -0.5
-		if new_speed > 0.5:
-			new_speed = 0.5
+		# Думаю, что никак не влияет, потому что существо не знает своего угла, угол - абсолютный 
+		# угол (который как раз прыгает) - это параметр относящийся к миру, само существо о нем не знает вообще.
+		
+		new_speed = out_speed*0.5
+		
+		# Этот клиппинг вроде бы не нужен, потому что нейросеть должна выдавать значения в диапазоне -1.0…1.0, и при умножении на 0.5 мы получаем -0.5…0.5
+		#  if new_speed < -0.5:
+		#     new_speed = -0.5
+		# if new_speed > 0.5:
+		#     new_speed = 0.5
 		newx = creature_x + new_speed*math.cos(new_angle)
 		newy = creature_y + new_speed*math.sin(new_angle)
 
