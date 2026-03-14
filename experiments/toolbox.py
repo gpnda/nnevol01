@@ -116,7 +116,7 @@ class VisionSimulator:
         """
         world.update_map()  # обновить карту перед raycast
         creatures_pos = np.array([[creature.x, creature.y, creature.angle, creature.vision_distance]], dtype='float')
-        all_visions, raycast_dots = World.fast_get_all_visions(world.map, creatures_pos)
+        all_visions, raycast_dots = World.fast_get_all_visions_darken_with_distance(world.map, creatures_pos)
         return all_visions[0], raycast_dots  # возвращаем vision и raycast_dots первого существа
     
     @staticmethod
