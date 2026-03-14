@@ -15,7 +15,7 @@ from experiments.base.dto import ExperimentWorldStateDTO, ExperimentCreatureStat
 from experiments.cone2.dto import Cone2ExperimentDTO
 
 
-MAX_TICKS_TO_ACHIVE_GOAL = 50  # Максимальное количество тиков, за которые существо должно достичь цели (куснуть пищу)
+MAX_TICKS_TO_ACHIVE_GOAL = 550  # Максимальное количество тиков, за которые существо должно достичь цели (куснуть пищу)
 
 class Cone2Experiment(StagedExperimentBase):
     """Эксперимент с конусом - собираю его заново"""

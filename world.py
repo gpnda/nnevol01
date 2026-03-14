@@ -621,7 +621,7 @@ class World():
 	def apply_outs(creature_x, creature_y, creature_angle, creature_speed, out_angle, out_speed):
 		
 		# Расчитываем новые координаты, куда существо хочет перейти
-		new_angle = creature_angle + out_angle
+		new_angle = creature_angle + out_angle*0.25
 		# print(f"{all_outs[index][0]:.8f}")
 		# Нормализуем угол в диапазон [0, 2π)
 		new_angle = new_angle % (2 * math.pi)
@@ -630,7 +630,7 @@ class World():
 		# Думаю, что никак не влияет, потому что существо не знает своего угла, угол - абсолютный 
 		# угол (который как раз прыгает) - это параметр относящийся к миру, само существо о нем не знает вообще.
 		
-		new_speed = out_speed*0.5
+		new_speed = out_speed*0.1
 		
 		# Этот клиппинг вроде бы не нужен, потому что нейросеть должна выдавать значения в диапазоне -1.0…1.0, и при умножении на 0.5 мы получаем -0.5…0.5
 		#  if new_speed < -0.5:
