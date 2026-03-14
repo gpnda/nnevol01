@@ -202,6 +202,8 @@ def normalize_to_range(x: np.float32) -> np.float32:
 @jit(nopython=True, fastmath=True, cache=True)
 def fast_tanh(x: np.float32) -> np.float32:
     """Быстрая аппроксимация tanh"""
+    # Очень хорошо апроксимирует гиперголический тангенс, работает быстре раз в 10
+    # Но при больших значениях болье 3 и -3 - начинает расходиться с нормальным гиперболическим тангенсом.
     x2 = x * x
     return x * (27.0 + x2) / (27.0 + 9.0 * x2)
 

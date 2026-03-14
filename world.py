@@ -91,6 +91,10 @@ class World():
 		all_outs = NeuralNetwork.make_all_decisions(all_visions, creatures_nns)
 		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
 
+		# Отладочная печать выходов самого последнего рожденного существа, чтобы посмотреть на эти значения.
+		# print(";".join(f"{0.0 if abs(float(v)) < 0.999 else float(v)}".replace(".", ",") for v in all_outs[-1]))
+
+
 		debug.set("all_outs", all_outs) # Тут все `numpy.float32`
 
 		# 3. Перемещаем существ, согласно выходам нейросетей
@@ -617,7 +621,7 @@ class World():
 	def apply_outs(creature_x, creature_y, creature_angle, creature_speed, out_angle, out_speed):
 		
 		# Расчитываем новые координаты, куда существо хочет перейти
-		new_angle = creature_angle + (float(out_angle)-0.5)
+		new_angle = creature_angle + (out_angle-0.5)
 		# print(f"{all_outs[index][0]:.8f}")
 		# Нормализуем угол в диапазон [0, 2π)
 		new_angle = new_angle % (2 * math.pi)
