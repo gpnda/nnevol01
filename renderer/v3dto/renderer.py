@@ -27,6 +27,8 @@ from renderer.v3dto.gui_pop_chart import PopulationChart
 from renderer.v3dto.gui_nselection_chart import NSelectionChart
 from renderer.v3dto.gui_creatures_list import CreaturesListModal
 from renderer.v3dto.gui_exper_list import ExperListModal
+from renderer.v3dto.gui_saveworld import PopupSaveWorldModal
+from renderer.v3dto.gui_loadworld import PopupLoadWorldModal
 
 
 from renderer.v3dto.dto import (
@@ -102,6 +104,8 @@ class Renderer:
             'logs': 'Логи в полный экран (модальное)',
             'exper_list': 'Окно список экспер. (модальное)',
             'experiment': 'Окно активного эксперимента (модальное)',
+            'popup_saveworld': 'Popup окно сохранения мира (модальное)',
+            'popup_loadworld': 'Popup окно загрузки мира (модальное)',
         }
         
         
@@ -114,7 +118,9 @@ class Renderer:
         self.nselection_chart = NSelectionChart()
         self.creatures_list_modal = CreaturesListModal()
         self.exper_list_modal = ExperListModal(on_experiment_choose=self._on_experiment_choose)
-        
+        self.popup_saveworld_modal = PopupSaveWorldModal(on_do_saveworld=self.app.save_world)
+        self.popup_loadworld_modal = PopupLoadWorldModal(on_do_loadworld=self.app.load_world)
+
         # ЭКСПЕРИМЕНТ ВИДЖЕТ (инициализируется при выборе эксперимента)
         self.experiment_widget = None
 
@@ -164,6 +170,14 @@ class Renderer:
         if state_name == 'creatures_list':
             # Сбрасываем навигацию при открытии списка существ
             self.creatures_list_modal.reset()
+        
+        if state_name == 'popup_saveworld':
+            # Сбрасываем навигацию при открытии окна сохранения
+            self.popup_saveworld_modal.reset()
+        
+        if state_name == 'popup_loadworld':
+            # Сбрасываем навигацию при открытии окна загрузки
+            self.popup_loadworld_modal.reset()
         
         if state_name == 'main_fast':
             # Включаем ускоренный режим (без анимации)
@@ -359,6 +373,8 @@ class Renderer:
             print(f"✗ Unknown experiment ID: {experiment_id}")
             
 
+    
+
     # ============================================================================
     # DTO FACTORY МЕТОДЫ
     # ============================================================================
@@ -481,6 +497,33 @@ class Renderer:
         from experiments import EXPERIMENTS
         return EXPERIMENTS
 
+    def _prepare_save_slots_dto(self) -> list:
+        """Загрузить список слотов сохранения мира."""
+        # Здесь можно добавить логику для получения информации о каждом слоте (например, существует ли сохранение, дата создания и т.д.)
+        # Для простоты сейчас возвращаем просто список словарей с заглушками
+        slots = []
+        # Сначала заполняем пустыми слотами
+        for slot_id in range(50):
+            slots.append({
+                "id": None,
+                "name": "- - - empty - - -",
+                "created_at": None,
+                "creatures_count": 0,
+                "max_generation": 0,
+            })
+        
+        # Затем заполняем реальными данными из файлов сохранения (если они существуют)
+        for slot_id in range(5):
+            slots[slot_id] = {
+                "id": slot_id,
+                "name": f"Slot {slot_id} ./tests/Ac437_Siemens_PC-D.ttf ./tests/Ac437_Siemens_PC-D.ttf",
+                "created_at": "2024-06-01 12:00",
+                "creatures_count": 100,
+                "max_generation": 50,
+            }
+        
+        return slots
+
     def _prepare_render_state_dto(self) -> RenderStateDTO:
         """Собрать ПОЛНЫЙ снимок состояния для всех виджетов в RenderStateDTO.
         
@@ -491,6 +534,7 @@ class Renderer:
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
         exper_list_dto = self._prepare_exper_list_dto()
+        save_slots_dto = self._prepare_save_slots_dto()
         
         return RenderStateDTO(
             world=world_dto,
@@ -500,6 +544,7 @@ class Renderer:
             current_state=self.current_state,
             tick=self.world.tick,
             exper_list=exper_list_dto,
+            save_slots=save_slots_dto,
         )
 
     # ============================================================================
@@ -524,6 +569,10 @@ class Renderer:
             return self._handle_keyboard_exper_list(event)
         elif self.current_state == 'experiment':
             return self._handle_keyboard_experiment(event)
+        elif self.current_state == 'popup_saveworld':
+            return self._handle_keyboard_popup_saveworld(event)
+        elif self.current_state == 'popup_loadworld':
+            return self._handle_keyboard_popup_loadworld(event)
 
         
         return False
@@ -538,6 +587,14 @@ class Renderer:
             self.set_state('creatures_list')
             #print(logme.get_death_stats_as_ndarray())
             #print("SELECTED CREATURE ID:", self.selected_creature_id)
+            return False
+        
+        elif event.key == pygame.K_F2:
+            self.set_state('popup_saveworld')
+            return False
+
+        elif event.key == pygame.K_F3:
+            self.set_state('popup_loadworld')
             return False
 
         elif event.key == pygame.K_F5:
@@ -699,6 +756,35 @@ class Renderer:
         
         return False
     
+    def _handle_keyboard_popup_saveworld(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в окне сохранения мира."""
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
+            self.set_state('main')
+            return True
+        
+        # Делегируем обработку событий модалу сохранения мира
+        if self.popup_saveworld_modal.handle_event(event):
+            return True
+        
+        return False
+    
+    def _handle_keyboard_popup_loadworld(self, event: pygame.event.Event) -> bool:
+        """Обработка событий в окне загрузки мира."""
+        if event.type != pygame.KEYDOWN:
+            return False
+        
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F3:
+            self.set_state('main')
+            return True
+        
+        # Делегируем обработку событий модалу загрузки мира
+        if self.popup_loadworld_modal.handle_event(event):
+            return True
+        
+        return False
 
     def _handle_mouse(self, event: pygame.event.Event) -> None:
         """Обработка событий мыши."""
@@ -776,6 +862,10 @@ class Renderer:
             # получить DTO эксперимента из application и передать в виджет
             # Это позволяет сделать виджет эксперимента чистым, полностью независимым от логики эксперимента и мира
             self._draw_experiment(render_state)
+        elif self.current_state == 'popup_saveworld':
+            self._draw_popup_saveworld(render_state)
+        elif self.current_state == 'popup_loadworld':
+            self._draw_popup_loadworld(render_state)
 
         
         # Обновление дисплея
@@ -837,6 +927,14 @@ class Renderer:
             experiment_dto: DTO эксперимента (SpambiteExperimentDTO, DummyExperimentDTO, и т.д.)
         """
         self.experiment_widget.draw(self.screen, experiment_dto)
+    
+    def _draw_popup_saveworld(self, render_state: RenderStateDTO) -> None:
+        """Отрисовка окна сохранения мира."""
+        self.popup_saveworld_modal.draw(self.screen, render_state)
+    
+    def _draw_popup_loadworld(self, render_state: RenderStateDTO) -> None:
+        """Отрисовка окна загрузки мира."""
+        self.popup_loadworld_modal.draw(self.screen, render_state)
     
     def _draw_main_fast_screen(self, render_state: RenderStateDTO, nolog: bool = False) -> None:
         """Отрисовка экрана в ускоренном режиме (без анимации)."""

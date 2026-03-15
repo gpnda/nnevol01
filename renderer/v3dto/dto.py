@@ -257,7 +257,10 @@ class RenderStateDTO:
 
 
     # Список экспериментов из реестра
-    exper_list: Dict[str, Any] = None  
+    exper_list: Dict[str, Any] = None
+
+    # Список слотов сохранения мира
+    save_slots: List[Dict[str, Any]] = None
     
     @property
     def population_count(self) -> int:

@@ -137,17 +137,28 @@ class Application():
 		self.animate_flag = True
 
 
-	def saveWorld(self):
-		"""Сохранить мир (F1)."""
-		print("saveWorld - saving simulation state")
+	def save_world(self, save_file_name: str):
+		"""Сохранить мир в слот.
+		
+		Args:
+			save_file_name: Имя файла для сохранения
+		"""
+		print(f"✓ save_world() called with save_file_name={save_file_name}")
+		# TODO: Реализовать сохранение состояния мира в файл
 	
-	def loadWorld(self):
-		"""Загрузить мир (F2)."""
-		print("loadWorld - loading simulation state")
+	def load_world(self, save_file_name: str):
+		"""Загрузить мир из слота.
+		
+		Args:
+			save_file_name: Имя файла для загрузки
+		"""
+		print(f"✓ load_world() called with save_file_name={save_file_name}")
+		# TODO: Реализовать загрузку состояния мира из файла
 	
-	def resetWorld(self):
-		"""Сбросить мир (F3)."""
-		print("resetWorld - resetting simulation")
+	def reset_world(self):
+		"""Сбросить мир."""
+		print("✓ reset_world() called")
+		# TODO: Реализовать сброс мира к его исходному состоянию
 		self.is_running = False
 	
 	
