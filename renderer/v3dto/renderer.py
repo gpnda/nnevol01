@@ -768,6 +768,9 @@ class Renderer:
         
         # Делегируем обработку событий модалу сохранения мира
         if self.popup_saveworld_modal.handle_event(event):
+            if self.popup_saveworld_modal.should_close(): # Следует ли закрыть окно и сменить state?
+                self.set_state('main')
+                self.popup_saveworld_modal.reset()
             return True
         
         return False
@@ -783,6 +786,9 @@ class Renderer:
         
         # Делегируем обработку событий модалу загрузки мира
         if self.popup_loadworld_modal.handle_event(event):
+            if self.popup_loadworld_modal.should_close():  # ← НОВАЯ ЛОГИКА
+                self.set_state('main')
+                self.popup_loadworld_modal.reset()
             return True
         
         return False

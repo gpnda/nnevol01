@@ -87,6 +87,7 @@ class PopupSaveWorldModal:
         
         # Поле ввода имени файла
         self.file_name = ""
+        self.just_saved = False  # Флаг для отслеживания момента сохранения мира
         
 
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
@@ -177,7 +178,7 @@ class PopupSaveWorldModal:
     def reset(self) -> None:
         """Сбросить поле ввода."""
         self.file_name = ""
-    
+        self.just_saved = False
     
     
     def _is_valid_char(self, key_code: int, unicode_char: str) -> bool:
@@ -229,6 +230,7 @@ class PopupSaveWorldModal:
             if self.file_name.strip():  # Сохраняем только если имя не пусто
                 if self.on_do_saveworld is not None:
                     self.on_do_saveworld(self.file_name)
+                    self.just_saved = True # Устанавливаем флаг, что мир был сохранён и теперь окно можно закрыть
             return True
         
         # Обработка Escape - отмена (окно закроет родитель)
@@ -250,4 +252,11 @@ class PopupSaveWorldModal:
                     self.file_name += event.unicode
                 return True
         
+        return False
+    
+    def should_close(self) -> bool:
+        """Проверить, нужно ли закрывать окно."""
+        if self.just_saved:
+            self.just_saved = False  # Сбрасываем флаг
+            return True
         return False

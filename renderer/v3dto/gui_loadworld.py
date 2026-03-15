@@ -61,6 +61,9 @@ class PopupLoadWorldModal:
         # Callback функция
         self.on_do_loadworld = on_do_loadworld
 
+        # Флаг для отслеживания момента закрытия окна после загрузки мира
+        self.just_loaded = False  # ← Добавляем флаг
+
         # Инициализация шрифтов
         try:
             self.font_title = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE + 2)
@@ -345,6 +348,13 @@ class PopupLoadWorldModal:
                 selected_slot_info = self.slots_list[self.selected_slot]
                 save_file_name = selected_slot_info.get('name', '')
                 self.on_do_loadworld(save_file_name)
+                self.just_loaded = True  # Устанавливаем флаг, что мир был загружен
             return True
         
+        return False
+    
+    def should_close(self) -> bool:
+        if self.just_loaded:
+            self.just_loaded = False
+            return True
         return False
