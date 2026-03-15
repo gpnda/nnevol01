@@ -62,6 +62,8 @@ class ExperListModal:
         # Callback функция
         self.on_experiment_choose = on_experiment_choose
 
+        # Список экспериментов, будет заполнен при renderer._on_state_enter('exper_list')
+        self.exper_list = {}
         
         # Инициализация шрифтов
         try:
@@ -110,7 +112,7 @@ class ExperListModal:
         return False
     
 
-    def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
+    def draw(self, screen: pygame.Surface) -> None:
         """
         Отрисовка модального окна экспер..
         
@@ -145,14 +147,13 @@ class ExperListModal:
         content_y = self.y + self.TITLE_HEIGHT + self.CONTENT_PADDING
         content_x = self.x + self.CONTENT_PADDING
         
-        # Получаем список экспер.. из RenderStateDTO
-        exper_list = render_state.exper_list
+        
 
         # Получить id выбранного существа для отображения
-        self.selected_creature_id = render_state.selected_creature.creature.id if render_state.selected_creature else None
+        # self.selected_creature_id = render_state.selected_creature.creature.id if render_state.selected_creature else None
 
         # Отрисовка списка экспериментов
-        for id, (exper_key, exper_info) in enumerate(exper_list.items()):
+        for id, (exper_key, exper_info) in enumerate(self.exper_list.items()):
             exper_text = f"{id}: {exper_info['name']} - {exper_info['description']}"
             text_surface = self.font.render(exper_text, True, self.COLORS['label'])
             screen.blit(text_surface, (content_x, content_y))

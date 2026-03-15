@@ -171,6 +171,14 @@ class Renderer:
             # Сбрасываем навигацию при открытии списка существ
             self.creatures_list_modal.reset()
         
+        if state_name == 'exper_list':
+            # Подготавливаем список экспериментов, только когда окно открыто
+            self.exper_list_modal.exper_list = self._prepare_exper_list_dto()
+            # Передаем текущий выбор существа в модальное окно списка экспериментов
+            self.exper_list_modal.selected_creature_id = self.selected_creature_id
+            # # Сбрасываем навигацию при открытии списка экспериментов
+            # self.exper_list_modal.reset()
+
         if state_name == 'popup_saveworld':
             # Сбрасываем навигацию при открытии окна сохранения
             self.popup_saveworld_modal.reset()
@@ -530,13 +538,12 @@ class Renderer:
         """Собрать ПОЛНЫЙ снимок состояния для всех виджетов в RenderStateDTO.
         
         Это главный метод, который собирает все DTO для передачи в виджеты.
+        Этот метод должен быть тонким и быстрым, потому что дергается каждый раз.
         """
         world_dto = self._prepare_world_dto()
         params_dto = self._prepare_simulation_params_dto()
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
-        exper_list_dto = self._prepare_exper_list_dto()
-        # save_slots_dto = self._prepare_save_slots_dto()
         
         return RenderStateDTO(
             world=world_dto,
@@ -545,8 +552,6 @@ class Renderer:
             selected_creature=selected_creature_dto,
             current_state=self.current_state,
             tick=self.world.tick,
-            exper_list=exper_list_dto,
-            #save_slots=save_slots_dto,
         )
 
     # ============================================================================
@@ -865,7 +870,7 @@ class Renderer:
         elif self.current_state == 'logs':
             self._draw_logs(render_state)
         elif self.current_state == 'exper_list':
-            self._draw_exper_list(render_state)
+            self._draw_exper_list()
         elif self.current_state == 'experiment':
             # получить DTO эксперимента из application и передать в виджет
             # Это позволяет сделать виджет эксперимента чистым, полностью независимым от логики эксперимента и мира
@@ -873,7 +878,7 @@ class Renderer:
         elif self.current_state == 'popup_saveworld':
             self._draw_popup_saveworld(render_state)
         elif self.current_state == 'popup_loadworld':
-            self._draw_popup_loadworld(render_state)
+            self._draw_popup_loadworld()
 
         
         # Обновление дисплея
@@ -925,9 +930,9 @@ class Renderer:
         # TODO: self.logs_popup.draw(self.screen, render_state)
         self._draw_debug_info(render_state)
     
-    def _draw_exper_list(self, render_state: RenderStateDTO) -> None:
+    def _draw_exper_list(self) -> None:
         """Отрисовка окна списка экспер.."""
-        self.exper_list_modal.draw(self.screen, render_state)
+        self.exper_list_modal.draw(self.screen)
     
     def _draw_experiment(self, experiment_dto: object) -> None:
         """Отрисовка окна активного эксперимента.
@@ -940,7 +945,7 @@ class Renderer:
         """Отрисовка окна сохранения мира."""
         self.popup_saveworld_modal.draw(self.screen, render_state)
     
-    def _draw_popup_loadworld(self, render_state: RenderStateDTO) -> None:
+    def _draw_popup_loadworld(self) -> None:
         """Отрисовка окна загрузки мира."""
         self.popup_loadworld_modal.draw(self.screen)
         
