@@ -7,6 +7,7 @@ from renderer.v3dto.renderer import Renderer
 from simparams import sp
 from service.logger.logger import logme
 from service.performance_monitor.performance_monitor import PerformanceMonitor
+from service.world_persistence.world_persistence import world_persistence
 
 
 class Application():
@@ -143,8 +144,7 @@ class Application():
 		Args:
 			save_file_name: Имя файла для сохранения
 		"""
-		print(f"✓ save_world() called with save_file_name={save_file_name}")
-		# TODO: Реализовать сохранение состояния мира в файл
+		world_persistence.save_world(self.world, save_file_name)
 	
 	def load_world(self, save_file_name: str):
 		"""Загрузить мир из слота.
@@ -152,8 +152,8 @@ class Application():
 		Args:
 			save_file_name: Имя файла для загрузки
 		"""
-		print(f"✓ load_world() called with save_file_name={save_file_name}")
-		# TODO: Реализовать загрузку состояния мира из файла
+		if world_persistence.load_world(self.world, save_file_name):
+			self.is_running = False  # Остановить симуляцию на время загрузки
 	
 	def reset_world(self):
 		"""Сбросить мир."""

@@ -498,31 +498,32 @@ class Renderer:
         return EXPERIMENTS
 
     def _prepare_save_slots_dto(self) -> list:
-        """Загрузить список слотов сохранения мира."""
-        # Здесь можно добавить логику для получения информации о каждом слоте (например, существует ли сохранение, дата создания и т.д.)
-        # Для простоты сейчас возвращаем просто список словарей с заглушками
-        slots = []
-        # Сначала заполняем пустыми слотами
-        for slot_id in range(50):
-            slots.append({
-                "id": None,
-                "name": "- - - empty - - -",
-                "created_at": None,
-                "creatures_count": 0,
-                "max_generation": 0,
+        """
+        Получить список слотов сохранения из сервиса.
+        
+        Полностью делегирует работу с файловой системой в WorldPersistenceService.
+        Это обеспечивает:
+        - Разделение ответственности (сервис отвечает за файлы)
+        - Легкую расширяемость (если нужны новые поля, меняем только сервис)
+        - Снижение связанности (renderer не знает о деталях реализации)
+        """
+        from service.world_persistence.world_persistence import world_persistence
+        
+        # Получаем реальные слоты из сервиса
+        slots = world_persistence.get_save_slots()
+        
+        # Преобразуем в формат для виджета (добавляем ID)
+        result = []
+        for idx, slot_info in enumerate(slots):
+            result.append({
+                'id': idx,
+                'name': slot_info['name'],
+                'created_at': slot_info['created_at'],
+                'creatures_count': slot_info['creatures_count'],
+                'max_generation': slot_info['max_generation'],
             })
         
-        # Затем заполняем реальными данными из файлов сохранения (если они существуют)
-        for slot_id in range(5):
-            slots[slot_id] = {
-                "id": slot_id,
-                "name": f"Slot {slot_id} ./tests/Ac437_Siemens_PC-D.ttf ./tests/Ac437_Siemens_PC-D.ttf",
-                "created_at": "2024-06-01 12:00",
-                "creatures_count": 100,
-                "max_generation": 50,
-            }
-        
-        return slots
+        return result
 
     def _prepare_render_state_dto(self) -> RenderStateDTO:
         """Собрать ПОЛНЫЙ снимок состояния для всех виджетов в RenderStateDTO.
