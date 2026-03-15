@@ -13,7 +13,7 @@ PopupLoadWorldModal - v3dto версия.
 
 
 import pygame
-from typing import Callable, Optional
+from typing import Any, Callable, Dict, List, Optional
 from renderer.v3dto.dto import RenderStateDTO
 
 
@@ -60,6 +60,9 @@ class PopupLoadWorldModal:
 
         # Callback функция
         self.on_do_loadworld = on_do_loadworld
+
+        # Список слотов сохранения мира. Будет заполнен через renderer._on_state_enter()
+        self.save_slots = []
 
         # Флаг для отслеживания момента закрытия окна после загрузки мира
         self.just_loaded = False  # ← Добавляем флаг
@@ -113,13 +116,12 @@ class PopupLoadWorldModal:
         return (len(self.slots_list) + self.rows_per_page - 1) // self.rows_per_page
 
 
-    def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
+    def draw(self, screen: pygame.Surface) -> None:
         """
         Отрисовка модального окна загрузки мира с таблицей слотов
         
         Args:
             screen: Pygame surface для отрисовки
-            render_state: RenderStateDTO с данными для отображения
         """
 
         # Вычисляем позицию окна (центр экрана)
@@ -149,8 +151,8 @@ class PopupLoadWorldModal:
         table_y = self.y + self.TITLE_HEIGHT + self.CONTENT_PADDING
         table_x = self.x + self.CONTENT_PADDING
         
-        # Получаем список слотов из RenderStateDTO (или пустой список если нет)
-        self.slots_list = getattr(render_state, 'save_slots', [])
+        # Получаем список слотов из переданного списка (или пустой список если нет)
+        self.slots_list = self.save_slots
         
         # Отрисовка заголовка таблицы
         self._draw_table_header(screen, table_x, table_y)

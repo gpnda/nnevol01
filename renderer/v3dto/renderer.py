@@ -177,6 +177,7 @@ class Renderer:
         
         if state_name == 'popup_loadworld':
             # Сбрасываем навигацию при открытии окна загрузки
+            self.popup_loadworld_modal.save_slots = self._prepare_save_slots_dto()  # Передаем список слотов в модальное окно загрузки
             self.popup_loadworld_modal.reset()
         
         if state_name == 'main_fast':
@@ -535,7 +536,7 @@ class Renderer:
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
         exper_list_dto = self._prepare_exper_list_dto()
-        save_slots_dto = self._prepare_save_slots_dto()
+        # save_slots_dto = self._prepare_save_slots_dto()
         
         return RenderStateDTO(
             world=world_dto,
@@ -545,7 +546,7 @@ class Renderer:
             current_state=self.current_state,
             tick=self.world.tick,
             exper_list=exper_list_dto,
-            save_slots=save_slots_dto,
+            #save_slots=save_slots_dto,
         )
 
     # ============================================================================
@@ -941,8 +942,8 @@ class Renderer:
     
     def _draw_popup_loadworld(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна загрузки мира."""
-        self.popup_loadworld_modal.draw(self.screen, render_state)
-    
+        self.popup_loadworld_modal.draw(self.screen)
+        
     def _draw_main_fast_screen(self, render_state: RenderStateDTO, nolog: bool = False) -> None:
         """Отрисовка экрана в ускоренном режиме (без анимации)."""
         # Просто закрасим экран черным цветом, а в центре нарисуем иконку быстрой перемотки fast forward
