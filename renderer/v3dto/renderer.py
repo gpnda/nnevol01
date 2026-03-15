@@ -540,7 +540,7 @@ class Renderer:
             #print("SELECTED CREATURE ID:", self.selected_creature_id)
             return False
 
-        elif event.key == pygame.K_F2:
+        elif event.key == pygame.K_F5:
             self.set_state('exper_list')
             return False
         
@@ -663,7 +663,7 @@ class Renderer:
         if event.type != pygame.KEYDOWN:
             return False
         
-        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F5:
             self.set_state('main')
             return True
         
@@ -680,7 +680,7 @@ class Renderer:
         if event.type != pygame.KEYDOWN:
             return False
         
-        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F2:
+        if event.key == pygame.K_ESCAPE:
             # Останавливаем эксперимент при закрытии окна
             if self.app.experiment_mode and self.app.experiment is not None:
                 self.app.stop_experiment()
