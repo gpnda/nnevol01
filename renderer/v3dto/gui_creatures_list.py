@@ -154,6 +154,7 @@ class CreaturesListModal:
             ("X", 45),
             ("Y", 45),
             ("Energy", 65),
+            ("Health", 65),
             ("Speed", 55),
             ("Gen", 40),
         ]
@@ -194,6 +195,7 @@ class CreaturesListModal:
                     (f"{creature.x:.1f}", 45),
                     (f"{creature.y:.1f}", 45),
                     (f"{creature.energy:.1f}", 65),
+                    (f"{creature.health:.1f}", 65),
                     (f"{creature.speed:.2f}", 55),
                     (str(creature.generation), 40),
                 ]

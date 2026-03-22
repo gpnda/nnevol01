@@ -26,6 +26,7 @@ class CreatureDTO:
     y: float
     angle: float
     energy: float
+    health: float
     age: int
     speed: float
     generation: int
@@ -38,6 +39,11 @@ class CreatureDTO:
     def energy_percentage(self) -> float:
         """Энергия в процентах (0-100)."""
         return max(0, min(100, self.energy * 100))
+    
+    @property
+    def health_percentage(self) -> float:
+        """Здоровье в процентах (0-100)."""
+        return max(0, min(100, self.health * 100))
     
     @property
     def age_days(self) -> int:
@@ -112,32 +118,33 @@ class CreatureEventDTO:
 class CreatureHistoryDTO:
     """Data Transfer Object для истории существа.
     
-    Содержит всю информацию о событиях и энергии существа за его жизнь.
+    Содержит всю информацию о событиях, здоровье и энергии существа за его жизнь.
     Используется для отрисовки графиков и истории SelectedCreatureHistory.
     """
     creature_id: int
     energy_history: List[float]  # История энергии [t=0, t=1, t=2, ...]
+    health_history: List[float]  # История здоровья [t=0, t=1, t=2, ...]
     events: List[CreatureEventDTO]  # Список событий с тиками
     
-    @property
-    def energy_min(self) -> float:
-        """Минимальная энергия в истории."""
-        return min(self.energy_history) if self.energy_history else 0.0
+    # @property
+    # def energy_min(self) -> float:
+    #     """Минимальная энергия в истории."""
+    #     return min(self.energy_history) if self.energy_history else 0.0
     
-    @property
-    def energy_max(self) -> float:
-        """Максимальная энергия в истории."""
-        return max(self.energy_history) if self.energy_history else 0.0
+    # @property
+    # def energy_max(self) -> float:
+    #     """Максимальная энергия в истории."""
+    #     return max(self.energy_history) if self.energy_history else 0.0
     
-    @property
-    def energy_current(self) -> float:
-        """Текущая энергия (последнее значение в истории)."""
-        return self.energy_history[-1] if self.energy_history else 0.0
+    # @property
+    # def energy_current(self) -> float:
+    #     """Текущая энергия (последнее значение в истории)."""
+    #     return self.energy_history[-1] if self.energy_history else 0.0
     
-    @property
-    def lifespan(self) -> int:
-        """Количество тиков жизни существа."""
-        return len(self.energy_history)
+    # @property
+    # def lifespan(self) -> int:
+    #     """Количество тиков жизни существа."""
+    #     return len(self.energy_history)
 
 
 # ============================================================================

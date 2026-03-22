@@ -2,6 +2,7 @@
 
 from creature import Creature
 #from nn.nn_torch_rnn import NeuralNetwork
+from food import Food
 from nn.my_handmade_ff import NeuralNetwork
 import random
 import math
@@ -215,7 +216,8 @@ class World():
 		self.foods = [food for food in self.foods if food.nutrition >= 0]
 
 	def change_food_capacity(self):
-		# Изменение параметра еды в зависимости от текущей популяции
+		# Изменение параметра еды, когда пользователь поменял их из simparams
+		# TODO не влияет ли это на производительность, ненужный оверхед
 		for f in self.foods:
 			f.nutrition = sp.food_energy_capacity
 
@@ -225,15 +227,16 @@ class World():
 		не менее 10 существ с положительной энергией
 		"""
 		
-		# Считаем количество существ с энергией > 0
-		positive_energy_count = sum(1 for creature in self.creatures if creature.energy > 0)
+		# Считаем количество существ у которых Здоровье > 0
+		positive_health_count = sum(1 for creature in self.creatures if creature.health > 0)
 		
-		# Если существ с энергией > 0 меньше 10 шт, то не фильтруем
-		if positive_energy_count < 10:
-			# Именно тут надо поднять всем энергию, потому что существ в популяции может быть 11, 
+		# Если существ с здоровьем > 0 меньше 10 шт, то не фильтруем
+		if positive_health_count < 10:
+			# Именно тут надо поднять всем здоровье, потому что существ в популяции может быть 11, 
 			# но по факту все они уже мертвы (с отрицательной энергией)
 			for cr in self.creatures:
-				if cr.energy <= 0:
+				if cr.health <= 0:
+					cr.health = 1.0
 					cr.energy = 1.0
 					cr.age = random.randint(0, 100)
 			return
@@ -242,7 +245,7 @@ class World():
 		# Пока кот так в лоб TODO потом надо както оптимизировтаь этот код
 		if logme.is_enabled():
 			for cr in self.creatures:
-				if cr.energy < 0:
+				if cr.health < 0:
 					logme.write_death_stats(
 						id=cr.id,
 						generation=cr.generation,
@@ -251,7 +254,7 @@ class World():
 					)
 
 		# Иначе удаляем существ с энергией < 0
-		self.creatures = [creature for creature in self.creatures if creature.energy >= 0]
+		self.creatures = [creature for creature in self.creatures if creature.health >= 0]
 	
 		
 
@@ -290,10 +293,10 @@ class World():
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
 			cr.gain_energy(sp.energy_gain_from_food)
 			
-			# # Уменьшить энергию у пищи.
+			# Уменьшить энергию у пищи.
 			bitten_food = self.bitten_food( int(bitex), int(bitey) )
-
-			bitten_food.decrement()
+			if bitten_food is not None:
+				bitten_food.decrement()
 
 
 			# app.world.food_arr["X"+str(int(bitex))+"Y"+str(int(bitey))].foodAviable -= 0.35
@@ -349,7 +352,7 @@ class World():
 		return False
 		
 
-	def bitten_food(self, x, y):
+	def bitten_food(self, x, y) -> Food | None:
 		for food in self.foods:
 			if food.x == x and food.y == y:
 				return food

@@ -4,7 +4,6 @@ from nn.my_handmade_ff import NeuralNetwork
 import copy
 import random
 from simparams import sp
-from service.logger.logger import logme
 
 
 class Creature():
@@ -19,6 +18,7 @@ class Creature():
         self.x = x
         self.y = y
         self.energy = 1.0
+        self.health = 1.0
         self.age = 0
         self.speed = 1
         self.angle = random.random()*3.14
@@ -134,11 +134,14 @@ class Creature():
         # Существо тратит энергию на укус, пропорционально силе укуса
         self.energy -= abs(self.bite_effort) * sp.energy_cost_bite
 
+        # Здоровье существо меняется в зависимости от сытости (энергии)
+        self.health = self.gain_health(self.health, self.energy)
+
 
         # Существо стареет
         self.age += 1
         if self.age > sp.creature_max_age:
-            self.energy = -100.0
+            self.health = -100.0
 
 
         # Существо тратит энергию на бег в зависимости от скорости
@@ -151,82 +154,16 @@ class Creature():
         if self.energy > 1.0:
             self.energy = 1.0
 
-
-
-
-# 
-# 
-# 
-# ЧТО НАРЕКОМЕНДОВАЛ DEEPSEEK
-# 
-# 
-#   def update(self, world: World):
-#         """Полный цикл обновления существа."""
-#         # 1. Обновляем физиологию
-#         self._update_physiology()
-        
-#         # 2. Если существо живо - действуем
-#         if self.is_alive and self.energy > 0:
-#             # 3. Получаем информацию о мире
-#             vision = self.get_creature_vision(world)
-            
-#             # 4. Принимаем решение
-#             action = self.pass_vision_to_neural_network(vision)
-            
-#             # 5. Выполняем действие
-#             self.execute_output_as_creature_decisions(action, world)
-# 
-# 
-# 
-# 
-# 
-# 
-#     def get_creature_vision(self, world: World) -> VisionData:
-#         """Собирает информацию о мире вокруг существа."""
-#         vision_data = VisionData()
-        
-#         # Сканируем область вокруг
-#         for dx in range(-self.vision_range, self.vision_range + 1):
-#             for dy in range(-self.vision_range, self.vision_range + 1):
-#                 if dx == 0 and dy == 0:
-#                     continue
-                    
-#                 world_x, world_y = self.x + dx, self.y + dy
-#                 if world.is_valid_position(world_x, world_y):
-#                     cell_value = world.get_cell(world_x, world_y)
-#                     distance = max(abs(dx), abs(dy))
-                    
-#                     vision_data.add_cell(dx, dy, cell_value, distance)
-        
-#         return vision_data
-    
-#     def pass_vision_to_neural_network(self, vision: VisionData) -> Action:
-#         """Обрабатывает визуальную информацию через ИИ."""
-#         # Преобразуем vision в входные данные для нейросети
-#         network_input = self._vision_to_network_input(vision)
-        
-#         # Получаем решение от мозга
-#         network_output = self.brain.process(network_input)
-        
-#         # Интерпретируем выход нейросети как действие
-#         return self._network_output_to_action(network_output)
-    
-#     def execute_output_as_creature_decisions(self, action: Action, world: World):
-#         """Выполняет выбранное действие в мире."""
-#         if action.type == ActionType.MOVE:
-#             world.move_creature_by(self, action.dx, action.dy)
-#         elif action.type == ActionType.EAT:
-#             self.try_eat_at(world, self.x + action.dx, self.y + action.dy)
-#         elif action.type == ActionType.REST:
-#             self.rest()
-    
-#     def _update_physiology(self):
-#         """Обновляет внутреннее состояние (энергия, здоровье)."""
-#         self.energy -= 0.1
-#         if self.energy <= 0:
-#             self.health -= 1
-#             self.energy = 0
-    
-#     @property
-#     def is_alive(self) -> bool:
-#         return self.health > 0
+    @staticmethod
+    def gain_health(health, energy):
+        # Чем выше энергия, тем больше здоровье восстанавливается
+        # вообще тут должа быть функция, которая бы моделировала восстановление или падение здоровья в зависимости от сытости и голода
+        # TODO: Параметры этой функции, хорошо было бы вынести в simparams.
+        if energy > 0.5:
+            health += (energy - 0.5) * 0.1
+            if health > 1.0:
+                health = 1.0
+            return health # Восстанавливаем здоровье при достаточной энергии
+        else:
+            health -= (0.5 - energy) * 0.02  # Теряем здоровье при низкой энергии
+            return health

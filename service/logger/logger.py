@@ -52,6 +52,12 @@ class Logger:
             self.energy_history: Dict[int, Deque[float]] = defaultdict(
                 lambda: deque(maxlen=self.MAX_HISTORY)
             )
+
+            # Словарь для хранения истории здоровья по ID существа
+            # Ключ: ID существа, Значение: очередь значений здоровья (float)
+            self.health_history: Dict[int, Deque[float]] = defaultdict(
+                lambda: deque(maxlen=self.MAX_HISTORY)
+            )
             
             # Словарь для хранения событий по ID существа
             # Ключ: ID существа, Значение: список событий (CreatureEvent)
@@ -89,6 +95,7 @@ class Logger:
     def clear_all(self) -> None:
         """Очистить все собранные данные."""
         self.energy_history.clear()
+        self.health_history.clear()
         self.events_log.clear()
         self.population_size.clear()
         self.death_stats.clear()
@@ -104,6 +111,7 @@ class Logger:
     def write_stats(self, creatures: List[Any]) -> None:
         for cr in creatures:
             self.energy_history[cr.id].append(float(cr.energy))
+            self.health_history[cr.id].append(float(cr.health))
         
         self._cleanup_dead_creatures_stats(creatures)
 
@@ -124,7 +132,7 @@ class Logger:
         """
         Удаляет статистику об умерших существах.
         
-        Из историй energy_history и events_log удаляются существа,
+        Из историй energy_history, health_history и events_log удаляются существа,
         которые больше не присутствуют в списке живых.
         
         Args:
@@ -135,6 +143,7 @@ class Logger:
         
         for dead_id in dead_ids:
             self.energy_history.pop(dead_id, None)
+            self.health_history.pop(dead_id, None)
             self.events_log.pop(dead_id, None)
         pass
         
@@ -150,7 +159,18 @@ class Logger:
             list: список значений энергии (float) для каждого тика.
         """
         return list(self.energy_history.get(creature_id, []))
-
+    
+    def get_creature_health_history(self, creature_id: int) -> list:
+        """
+        Получить всю историю здоровья одного существа по ID.
+        
+        Args:
+            creature_id: ID существа.
+        
+        Returns:
+            list: список значений здоровья (float) для каждого тика.
+        """
+        return list(self.health_history.get(creature_id, []))
     
     def log_event(self, creature_id: int, tick: int, event_type: str, value: Any) -> None:
         """

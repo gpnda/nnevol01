@@ -396,6 +396,7 @@ class Renderer:
             y=creature.y,
             angle=creature.angle,
             energy=creature.energy,
+            health=creature.health,
             age=creature.age,
             speed=creature.speed,
             generation=creature.generation,
@@ -467,6 +468,7 @@ class Renderer:
     def _prepare_creature_history_dto(self, creature_id: int) -> Optional[CreatureHistoryDTO]:
         """Собрать историю существа из logger в CreatureHistoryDTO."""
         energy_history = logme.get_creature_energy_history(creature_id)
+        health_history = logme.get_creature_health_history(creature_id)
         creature_events = logme.get_creature_events(creature_id)
         
         # Преобразуем события в DTO
@@ -482,6 +484,7 @@ class Renderer:
         return CreatureHistoryDTO(
             creature_id=creature_id,
             energy_history=energy_history,
+            health_history=health_history,
             events=events_dto,
         )
     

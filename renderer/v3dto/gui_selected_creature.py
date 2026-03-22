@@ -53,10 +53,11 @@ class SelectedCreaturePanel:
         'text': (200, 200, 200),
         'label': (100, 150, 200),
         'highlight': (0, 255, 100),
+        'energy_bar': (255, 255, 100),
     }
     
     # Размеры
-    BORDER_WIDTH = 2
+    BORDER_WIDTH = 1
     PADDING = 5
 
     LINE_HEIGHT = 13
@@ -98,12 +99,12 @@ class SelectedCreaturePanel:
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
 
 
-        # Хочу вывести энергию в виде прогресс-бара
+        # Хочу вывести Здоровье в виде прогресс-бара
         pygame.draw.rect(
-                self.surface,
-                self.COLORS['border'],
-                (self.PADDING + 100, self.PADDING, 100, 12),
-                self.BORDER_WIDTH
+            self.surface,
+            self.COLORS['border'],
+            (self.PADDING + 100, self.PADDING, 110, 11),
+            self.BORDER_WIDTH
             )
         # Максимум энергии всегда = 1.0
         pygame.draw.rect(
@@ -111,45 +112,61 @@ class SelectedCreaturePanel:
             self.COLORS['highlight'],
             (self.PADDING + 100 + self.BORDER_WIDTH,
              self.PADDING + self.BORDER_WIDTH,
-             int((100 - 2 * self.BORDER_WIDTH) * min(selected_creature.energy, 1.0)),
-             12 - 2 * self.BORDER_WIDTH)
+             int((110 - 2 * self.BORDER_WIDTH) * min(selected_creature.health, 1.0)),
+             11 - 2 * self.BORDER_WIDTH)
         )
+
+        
         
         # Информация о существе
         y_offset = self.PADDING + self.LINE_HEIGHT
+
+        # Энергия
+        age_label = self.font.render("Energy:", False, self.COLORS['label'])
+        self.surface.blit(age_label, (self.PADDING, y_offset))
+
+        # Хочу вывести здоровье в виде прогресс-бара
+        pygame.draw.rect(
+            self.surface,
+            self.COLORS['border'],
+            (self.PADDING + 100, self.PADDING+13, 110, 11),
+            self.BORDER_WIDTH
+            )
+        # Максимум здоровья всегда = 1.0
+        pygame.draw.rect(
+            self.surface,
+            self.COLORS['energy_bar'],
+            (self.PADDING + 100 + self.BORDER_WIDTH,
+             self.PADDING + 13 + self.BORDER_WIDTH,
+             int((110 - 2 * self.BORDER_WIDTH) * min(selected_creature.energy, 1.0)),
+             11 - 2 * self.BORDER_WIDTH)
+        )
+
+
+        y_offset += self.LINE_HEIGHT
+
         
         # Возраст
-        age_label = self.font.render("Age:", False, self.COLORS['label'])
+        age_label = self.font.render("Age/Generation:", False, self.COLORS['label'])
         self.surface.blit(age_label, (self.PADDING, y_offset))
         
         age_value = self.font.render(f"{selected_creature.age}", False, self.COLORS['text'])
         self.surface.blit(age_value, (self.PADDING + 100, y_offset))
         
-        y_offset += self.LINE_HEIGHT
-        
-        # # Энергия
-        # energy_label = self.font.render("Energy:", False, self.COLORS['label'])
-        # self.surface.blit(energy_label, (self.PADDING, y_offset))
-        
-        # energy_value = self.font.render(
-        #     f"{selected_creature.energy:.2f}",
-        #     False,
-        #     self.COLORS['text']
-        # )
-        # self.surface.blit(energy_value, (self.PADDING + 100, y_offset))
-        
         # y_offset += self.LINE_HEIGHT
         
+        
+        
         # Поколение
-        generation_label = self.font.render("Generation:", False, self.COLORS['label'])
-        self.surface.blit(generation_label, (self.PADDING, y_offset))
+        # generation_label = self.font.render("Generation:", False, self.COLORS['label'])
+        # self.surface.blit(generation_label, (self.PADDING, y_offset))
         
         generation_value = self.font.render(
-            f"{selected_creature.generation}",
+            f"/  {selected_creature.generation}",
             False,
             self.COLORS['text']
         )
-        self.surface.blit(generation_value, (self.PADDING + 100, y_offset))
+        self.surface.blit(generation_value, (self.PADDING + 135, y_offset))
         
         y_offset += self.LINE_HEIGHT
         
