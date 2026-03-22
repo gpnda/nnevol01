@@ -56,7 +56,8 @@ class SelectedCreatureHistory:
         'label': (100, 150, 200),
         'highlight': (0, 255, 100),
         'graph_background': (20, 20, 40),
-        'graph_line': (0, 200, 100),
+        'graph_line': (255, 255, 100),
+        'health_line': (0, 255, 100),
         'graph_grid': (60, 60, 60),
     }
     
@@ -70,7 +71,7 @@ class SelectedCreatureHistory:
     # Цвета и параметры событий
     EVENT_MARKER_RADIUS = 4
     EVENT_COLORS = {
-        'EAT_FOOD': (0, 255, 0),        # Зелёный - еда
+        'EAT_FOOD': (255, 255, 100),
         'CREATE_CHILD': (255, 165, 0),  # Оранжевый - потомки
         'default': (100, 100, 255),     # Синий - прочие события
     }
@@ -104,6 +105,7 @@ class SelectedCreatureHistory:
         
         history_dto = render_state.selected_creature.history
         energy_history = history_dto.energy_history
+        health_history = history_dto.health_history
         
         # Очистка поверхности
         self.surface.fill(self.COLORS['background'])
@@ -112,8 +114,8 @@ class SelectedCreatureHistory:
         title_text = self.font.render("Energy History", True, self.COLORS['highlight'])
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
         
-        # Если история пуста, выводим сообщение
-        if not energy_history or len(energy_history) == 0:
+        # Если истории пусты, выводим сообщение
+        if (not energy_history or len(energy_history) == 0) and (not health_history or len(health_history) == 0):
             no_data_text = self.small_font.render("No history yet", True, self.COLORS['label'])
             self.surface.blit(no_data_text, (self.PADDING, self.PADDING + self.LINE_HEIGHT + 20))
             screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
@@ -122,6 +124,8 @@ class SelectedCreatureHistory:
         # Берем только последние MAX_HISTORY_POINTS значений
         if len(energy_history) > self.MAX_HISTORY_POINTS:
             energy_history = energy_history[-self.MAX_HISTORY_POINTS:]
+        if health_history and len(health_history) > self.MAX_HISTORY_POINTS:
+            health_history = health_history[-self.MAX_HISTORY_POINTS:]
         
         # Определяем границы графика (0.0 до 1.0)
         min_display = 0.0
@@ -154,10 +158,20 @@ class SelectedCreatureHistory:
         # Рисуем сетку (горизонтальные линии)
         self._draw_grid(graph_x, graph_y, min_display, max_display)
         
-        # Рисуем линию графика
+        # Рисуем линию графика энергии
         if len(energy_history) > 1:
             self._draw_graph_line(
                 energy_history,
+                graph_x,
+                graph_y,
+                min_display,
+                max_display
+            )
+        
+        # Рисуем линию графика здоровья (наложена на энергию)
+        if health_history and len(health_history) > 1:
+            self._draw_health_line(
+                health_history,
                 graph_x,
                 graph_y,
                 min_display,
@@ -274,7 +288,70 @@ class SelectedCreatureHistory:
             )
             
             # Рисуем точку на конце (для лучшей видимости)
-            pygame.draw.circle(self.surface, self.COLORS['highlight'], points[-1], 3)
+            pygame.draw.circle(self.surface, self.COLORS['graph_line'], points[-1], 3)
+    
+    def _draw_health_line(
+        self,
+        health_history: List[float],
+        graph_x: int,
+        graph_y: int,
+        min_val: float,
+        max_val: float
+    ) -> None:
+        """
+        Рисует линию графика здоровья.
+        
+        Аналог _draw_graph_line(), но для health_history.
+        Используется тот же масштаб [0, 1] и наложена поверх энергии.
+
+        Args:
+            health_history: Список значений здоровья
+            graph_x: X координата левого края графика
+            graph_y: Y координата верхнего края графика
+            min_val: Минимальное значение на оси Y
+            max_val: Максимальное значение на оси Y
+        """
+        if len(health_history) < 2:
+            return
+        
+        points = []
+        
+        for i, health in enumerate(health_history):
+            # Пропускаем None значения
+            if health is None:
+                continue
+            
+            try:
+                # Используем значение здоровья напрямую (уже в диапазоне [0, 1])
+                health_val = float(health)
+                
+                # Ограничиваем значение в диапазон [0, 1]
+                health_val = max(0, min(1, health_val))
+                
+                # Рассчитываем X координату (1 пиксел = 1 точка в истории)
+                x = graph_x + i
+                
+                # Рассчитываем Y координату (инвертируем, так как Y растет вниз)
+                y = graph_y + self.GRAPH_HEIGHT - int(health_val * self.GRAPH_HEIGHT)
+                
+                points.append((int(x), int(y)))
+            except (ValueError, TypeError):
+                # Пропускаем некорректные значения
+                continue
+        
+        # Рисуем линию
+        if len(points) > 1:
+            pygame.draw.lines(
+                self.surface,
+                self.COLORS['health_line'],
+                False,
+                points,
+                2
+            )
+        
+        # Рисуем точку на конце (для лучшей видимости)
+        pygame.draw.circle(self.surface, self.COLORS['health_line'], points[-1], 3)
+
     
     def _draw_events_on_graph(
         self,
