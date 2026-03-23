@@ -75,7 +75,7 @@ class World():
 				)
 		
 		# запускаем быструю функцию
-		all_visions, raycast_dots = self.fast_get_all_visions_darken_with_distance(current_map, creatures_pos)
+		all_visions, raycast_dots = self.fast_get_all_visions_darken_with_distance(current_map, creatures_pos, day_lighting_rate = 1.0)
 		debug.set("raycast_dots", raycast_dots) # Тут все `numpy.float32`
 
 		debug.set("all_visions", all_visions) # Тут все `numpy.float32`
@@ -486,7 +486,7 @@ class World():
 
 	@staticmethod
 	@jit(nopython=True, fastmath=True)
-	def fast_get_all_visions_darken_with_distance(map, creatures_pos):
+	def fast_get_all_visions_darken_with_distance(map, creatures_pos, day_lighting_rate: float = 1.0):
 		step = 0.9 # шаг перемещения взгляда (для raycast - дистанция на котороую двигаем вперед указатель)
 		resolution = 15 # разрешение взгляда - по сути сколько лучше отправит raycast?
 		angleofview = 1.04719 # это примерно 60 градусов
@@ -554,12 +554,36 @@ class World():
 						# Условие нужно, потому что иногда d улетает больше чем self.viewdistance, 
 						# тогда цвет станет больше 255
 						if d < distance_of_view:
-							# dotColor = World.__fadeColors(dotColor , d/distance_of_view )
-							# fadedColorArray = list(map(lambda x: int(x*(1-distance)), someColor))
-							distance_ratio = 1-d/distance_of_view
-							dotColor[0] = int(dotColor[0] * distance_ratio)
-							dotColor[1] = int(dotColor[1] * distance_ratio)
-							dotColor[2] = int(dotColor[2] * distance_ratio)
+							distance_ratio = 1 - d / distance_of_view
+
+							# 1. Уменьшаем насыщенность с дистанцией (смешиваем с серым)
+							# Чем больше дистанция, тем ближе к серому
+							desaturate_factor = distance_ratio  # на макс дистанции цвет полностью серый
+							# Или более слабое обесцвечивание: desaturate_factor = distance_ratio ** 0.5
+
+							# Вычисляем яркость пикселя (для перехода к серому)
+							luminance = (dotColor[0] + dotColor[1] + dotColor[2]) / 3
+
+							# Применяем обесцвечивание: смешиваем исходный цвет с серым
+							r = dotColor[0] * desaturate_factor + luminance * (1 - desaturate_factor)
+							g = dotColor[1] * desaturate_factor + luminance * (1 - desaturate_factor)
+							b = dotColor[2] * desaturate_factor + luminance * (1 - desaturate_factor)
+
+							# 2. Применяем затемнение от дистанции
+							r = r * distance_ratio
+							g = g * distance_ratio
+							b = b * distance_ratio
+
+							# 3. Применяем освещенность времени суток
+							# Добавляем минимальную видимость 0.05 чтобы совсем не исчезало
+							lighting_factor = max(0.05, day_lighting_rate)
+							r = r * lighting_factor
+							g = g * lighting_factor
+							b = b * lighting_factor
+
+							dotColor[0] = int(r)
+							dotColor[1] = int(g)
+							dotColor[2] = int(b)
 
 
 						# тут переменная dotColor содержит RGB Представление цвета
