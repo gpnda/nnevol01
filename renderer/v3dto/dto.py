@@ -76,6 +76,7 @@ class WorldStateDTO:
     creatures: List[CreatureDTO]
     foods: List[FoodDTO]
     tick: int
+    day_light_ndarr: np.ndarray  # Массив освещенности для графика день/ночь
     
     # Удобные методы для поиска
     def get_creature_by_id(self, creature_id: int) -> Optional[CreatureDTO]:

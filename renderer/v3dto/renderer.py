@@ -29,6 +29,7 @@ from renderer.v3dto.gui_creatures_list import CreaturesListModal
 from renderer.v3dto.gui_exper_list import ExperListModal
 from renderer.v3dto.gui_saveworld import PopupSaveWorldModal
 from renderer.v3dto.gui_loadworld import PopupLoadWorldModal
+from renderer.v3dto.gui_day_night_chart import DayNightChart
 
 
 from renderer.v3dto.dto import (
@@ -120,6 +121,7 @@ class Renderer:
         self.exper_list_modal = ExperListModal(on_experiment_choose=self._on_experiment_choose)
         self.popup_saveworld_modal = PopupSaveWorldModal(on_do_saveworld=self.app.save_world)
         self.popup_loadworld_modal = PopupLoadWorldModal(on_do_loadworld=self.app.load_world)
+        self.day_night_chart = DayNightChart()
 
         # ЭКСПЕРИМЕНТ ВИДЖЕТ (инициализируется при выборе эксперимента)
         self.experiment_widget = None
@@ -420,6 +422,10 @@ class Renderer:
         """
         creatures_dto = [self._prepare_creature_dto(c) for c in self.world.creatures]
         foods_dto = [self._prepare_food_dto(f) for f in self.world.foods]
+
+        # Соберем данные по освещенности для графика день/ночь, используя быструю из World.dayLighting(tick)
+        times = np.arange(self.world.tick-1500, self.world.tick+1500, 10)
+        day_light_ndarr = np.vectorize(self.world.dayLighting)(times)
         
         return WorldStateDTO(
             map=self.world.map,
@@ -428,6 +434,7 @@ class Renderer:
             creatures=creatures_dto,
             foods=foods_dto,
             tick=self.world.tick,
+            day_light_ndarr=day_light_ndarr,
         )
     
     def _prepare_debug_dto(self) -> DebugDataDTO:
@@ -907,6 +914,9 @@ class Renderer:
         
         # Отрисовка гистограммы смертей по возрастам
         self.nselection_chart.draw(self.screen, render_state)
+
+        # Отрисовка графика день/ночь World.dayLighting(tick)
+        self.day_night_chart.draw(self.screen, render_state)
         
         # Отрисовка панели выбранного существа
         self.selected_creature_panel.draw(self.screen, render_state)
