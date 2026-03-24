@@ -74,8 +74,12 @@ class World():
 				creature.vision_distance]
 				)
 		
+		# Уровень освещенности в зависимости от времени суток
+		day_lighting = World.dayLighting(self.tick)
+
+		
 		# запускаем быструю функцию
-		all_visions, raycast_dots = self.fast_get_all_visions_darken_with_distance(current_map, creatures_pos, day_lighting_rate = 1.0)
+		all_visions, raycast_dots = self.fast_get_all_visions_darken_with_distance(current_map, creatures_pos, day_lighting)
 		debug.set("raycast_dots", raycast_dots) # Тут все `numpy.float32`
 
 		debug.set("all_visions", all_visions) # Тут все `numpy.float32`
@@ -668,6 +672,13 @@ class World():
 		newy = creature_y + new_speed*math.sin(new_angle)
 
 		return new_angle, new_speed, newx, newy
+	
+	@staticmethod
+	def dayLighting(tick):
+		# Возвращает коэффициент освещенности от 0.0 до 1.0, в зависимости от текущего тика
+		# return 0.5*(math.tanh(10*(math.sin(((tick)/(30)))+0.5))+1)
+		# return 1.0
+	    return 0.5*(math.tanh(10*(math.sin(tick/230)+0.5))+1) # Начинается ярко, смеркается с 900 тика, ночь по 1300 тик.
 
 
 	
