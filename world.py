@@ -31,17 +31,20 @@ class World():
 
 	
 	def update_map(self):
-		"""Обновляет карту для отображения (рендерер использует эту)"""
-		# 1. Копируем стены
-		self.map = self.walls_map.copy()
+		# Копируем стены в существующий массив
+		np.copyto(self.map, self.walls_map)
 		
-		# 2. Добавляем еду
-		for food in self.foods:
-			self.set_cell(food.x, food.y, 2)  # FOOD
+		# Добавляем еду векторизованно
+		# TODO Медленная штука. Два прохода. И на 50 000 пищи - долго работает
+		food_x = [food.x for food in self.foods]
+		food_y = [food.y for food in self.foods]
+		self.map[food_y, food_x] = 2
 		
-		# 3. Добавляем существ
-		for creature in self.creatures:
-			self.set_cell(int(creature.x), int(creature.y), 3)  # CREATURE
+		# Добавляем существ векторизованно
+		# TODO Медленная штука. Два прохода. И на 50 000 пищи - долго работает
+		creature_x = [int(creature.x) for creature in self.creatures]
+		creature_y = [int(creature.y) for creature in self.creatures]
+		self.map[creature_y, creature_x] = 3
 
 	def get_cell(self, x, y):
 		return self.map[y, x]

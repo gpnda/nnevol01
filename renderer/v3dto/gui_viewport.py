@@ -244,8 +244,8 @@ class Viewport:
                                    cell_size, cell_size)
                 
                 # Проверяем видимость
-                if not self._is_visible(rect):
-                    continue
+                # if not self._is_visible(rect):
+                #     continue
                 
                 color = self._get_cell_color(cell_value)
                 pygame.draw.rect(self.surface, color, rect, 0)

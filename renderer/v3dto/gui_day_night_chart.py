@@ -36,7 +36,7 @@ class DayNightChart:
     
     # Координаты и размеры
     POSITION_X = 930
-    POSITION_Y = 5
+    POSITION_Y = 9
     WIDTH = 310
     HEIGHT = 35
     
@@ -55,7 +55,7 @@ class DayNightChart:
         'text': (200, 200, 200),
         'label': (100, 150, 200),
         'highlight': (255, 200, 100),  # Оранжевый для дня/ночи
-        'graph_background': (20, 20, 20),
+        'graph_background': (20, 20, 70),
         'graph_line': (255, 200, 100),  # Оранжевая линия освещенности
         'graph_grid': (40, 40, 40),
         'now_line': (120, 220, 255),
@@ -66,7 +66,7 @@ class DayNightChart:
     # Размеры
     BORDER_WIDTH = 1
     PADDING = 3
-    FONT_SIZE = 12
+    FONT_SIZE = 16
     
     def __init__(self):
         """Инициализация панели."""
@@ -130,6 +130,14 @@ class DayNightChart:
         graph_x = self.GRAPH_PADDING
         graph_y = self.PADDING
         
+        # Тень графика
+        pygame.draw.rect(
+            self.surface,
+            self.COLORS['background'],
+            (graph_x+5, graph_y+5, self.GRAPH_WIDTH, self.GRAPH_HEIGHT),
+            0
+        )
+
         # Фон графика
         pygame.draw.rect(
             self.surface,
@@ -173,9 +181,11 @@ class DayNightChart:
                 (now_x_int, graph_y + self.GRAPH_HEIGHT),
                 1
             )
-            now_surface = self.font.render("Now", False, self.COLORS['now_line'])
+            light_percent = int(current_light * 100)
+            value_text = f"{light_percent}%"
+            now_surface = self.font.render(f"Now: {value_text}", False, self.COLORS['now_line'])
             now_text_x = min(self.WIDTH - 24, now_x_int + 2)
-            self.surface.blit(now_surface, (now_text_x, graph_y + 1))
+            self.surface.blit(now_surface, (now_text_x, graph_y + 7))
         
         # Преобразуем значения в координаты графика
         if len(light_values) > 1:
@@ -193,8 +203,8 @@ class DayNightChart:
             
             # Рисуем текущую точку (кружок в конце)
             if len(points) > 0:
-                last_point = points[-1]
-                pygame.draw.circle(self.surface, self.COLORS['highlight'], last_point, 3)
+                now_point = points[150]
+                pygame.draw.circle(self.surface, self.COLORS['highlight'], now_point, 3)
         elif len(light_values) == 1:
             # Если одна точка, рисуем ее
             x = graph_x + self.GRAPH_WIDTH // 2
@@ -203,15 +213,14 @@ class DayNightChart:
             pygame.draw.circle(self.surface, self.COLORS['highlight'], (int(x), int(y)), 3)
         
         # Выводим заголовок и текущее значение
-        header_text = f"Day/Night"
-        light_percent = int(current_light * 100)
-        value_text = f"{light_percent}%"
+        header_text = f"Daylight"
+        
         
         title_surface = self.font.render(header_text, False, self.COLORS['highlight'])
-        value_surface = self.font.render(value_text, False, self.COLORS['label'])
+        # value_surface = self.font.render(value_text, False, self.COLORS['label'])
         
-        self.surface.blit(title_surface, (self.PADDING + 2, self.PADDING))
-        self.surface.blit(value_surface, (self.WIDTH - 50, self.PADDING))
+        self.surface.blit(title_surface, (self.PADDING + 2, self.PADDING+7))
+        # self.surface.blit(value_surface, (self.WIDTH - 50, self.PADDING+7))
         
         # Отрисовка финальной поверхности
         screen.blit(self.surface, (self.POSITION_X, self.POSITION_Y))
