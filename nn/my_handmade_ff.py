@@ -8,7 +8,7 @@ from typing import Tuple
 
 
 # Конфигурация - жестко зашито 
-INPUT_SIZE = 45
+INPUT_SIZE = 50
 HIDDEN1_SIZE = 50
 HIDDEN2_SIZE = 10
 OUTPUT_SIZE = 3

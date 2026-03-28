@@ -27,6 +27,11 @@ class Creature():
         self.bite_range = 0.5
         self.nn = NeuralNetwork()
         self.birth_ages = Creature.diceRandomAges(sp.reproduction_ages) # Рандомные возрасты для рождения потомства
+        # Дополнительные входы сетки, которые не зависят от зрения, а зависят от других факторов, таких как голод, боль и т.д.
+        self.input_hurting = 0.0
+        self.input_starving = 0.9
+        self.input_wayblocked = 0.0
+        self.input_bite_success = 0.0
 
 
     @staticmethod
@@ -154,16 +159,30 @@ class Creature():
         if self.energy > 1.0:
             self.energy = 1.0
 
-    @staticmethod
-    def gain_health(health, energy):
+    def gain_health(self, health, energy):
         # Чем выше энергия, тем больше здоровье восстанавливается
         # вообще тут должа быть функция, которая бы моделировала восстановление или падение здоровья в зависимости от сытости и голода
         # TODO: Параметры этой функции, хорошо было бы вынести в simparams.
+        # TODO: Вся эта функция кривенькая, и вызов ее тоже какойто странный, как будто в бессознательном состоянии писал. Переделать бы.
         if energy > 0.5:
             health += (energy - 0.5) * 0.1
             if health > 1.0:
                 health = 1.0
+            
+            # Сигнал голода для нейросети, нормированный от 0 до 1. При достаточной энергии голода нет, сигнал равен нулю.
+            self.input_starving = 0.0
             return health # Восстанавливаем здоровье при достаточной энергии
         else:
             health -= (0.5 - energy) * 0.02  # Теряем здоровье при низкой энергии
+            
+            # Сигнал голода для нейросети, нормированный от 0 до 1. При недостаточной энергии сигнал голода увеличивается.
+            self.input_starving = (0.5 - energy) * 2.0  # TODO Кривовато. Возможны отрицательные значения. Вся эта функция кривенькая.
             return health
+    
+
+    def hurt(self, damage: float):
+        # НЕДОДЕЛАНО!!!!!!!!!!!!!!!!!!!!!!!
+        self.health -= damage
+        if self.health < 0.0:
+            self.health = 0.0
+        return

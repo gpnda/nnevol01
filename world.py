@@ -83,9 +83,21 @@ class World():
 		
 		# запускаем быструю функцию
 		all_visions, raycast_dots = self.fast_get_all_visions_darken_with_distance(current_map, creatures_pos, day_lighting)
+
 		debug.set("raycast_dots", raycast_dots) # Тут все `numpy.float32`
 
 		debug.set("all_visions", all_visions) # Тут все `numpy.float32`
+
+
+		all_other_inputs = World.get_all_other_inputs(self.creatures) # Тут все `numpy.float32`
+
+		# К Входам всех существ добавляет 3 новых входа, которые пока будут содержать значение 0.111
+		all_inputs = np.concatenate((all_visions, all_other_inputs), axis=1)
+		# print("==============================================")
+		# print(all_other_inputs)
+
+
+		
 		
 		
 		# 2. Мышление (параллельно)  
@@ -96,7 +108,7 @@ class World():
 		# содержащий эти самые numpy ndarray: l1_weights, l2_weights, l1_bias, l2_bias ...
 		
 		# запускаем быструю функцию
-		all_outs = NeuralNetwork.make_all_decisions(all_visions, creatures_nns)
+		all_outs = NeuralNetwork.make_all_decisions(all_inputs, creatures_nns)
 		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
 
 		# Отладочная печать выходов самого последнего рожденного существа, чтобы посмотреть на эти значения.
@@ -139,6 +151,11 @@ class World():
 			if is_ok_to_go:
 				creature.x = newx
 				creature.y = newy
+				# Путь свободен
+				creature.input_wayblocked = 0.0
+			else:
+				# Идем в стену - значит сигнал "путь заблокирован" становится почти единицей, и нейросеть может научиться этому реагировать.
+				creature.input_wayblocked = 1.0
 			
 			# Если существо куснуло - проверить что оно куснуло.
 			creature.bite_effort = float(all_outs[index][2])
@@ -277,6 +294,7 @@ class World():
 		self.creatures += baby_creatures
 		
 	def creature_bite(self, cr):
+		cr.input_bite_success = 0.0 # Сбрасываем сигнал успешного укуса, чтобы нейросеть могла реагировать на него, и не держать его постоянно включенным после укуса.
 		bitex = cr.x + cr.bite_range*math.cos(cr.angle)
 		bitey = cr.y + cr.bite_range*math.sin(cr.angle)
 		
@@ -298,6 +316,7 @@ class World():
 			if logme.is_enabled():
 				logme.log_event(creature_id=cr.id, tick=self.tick, event_type="EAT_FOOD", value=1)
 			# Существу повезло, оно укусило пищу. Увеличить энергию существа.
+			cr.input_bite_success = 1.0
 			cr.gain_energy(sp.energy_gain_from_food)
 			
 			# Уменьшить энергию у пищи.
@@ -684,4 +703,18 @@ class World():
 	    return 0.5*(math.tanh(10*(math.sin(tick/230)+0.5))+1) # Начинается ярко, смеркается с 900 тика, ночь по 1300 тик.
 
 
-	
+	def get_all_other_inputs(creatures):
+		# Эта функция превращает все остальные входы существ (кроме зрения) в векторизованный массив numpy
+		# Идея в том, что мы должны подготовить все эти данные в виде numpy массива, чтобы потом скормить его быстрой функции, которая будет делать все эти расчеты параллельно для всех существ.
+		# Входы: боль, голодание, возможно возраст, возможно близость рождения, возможно столкновение со стеной.
+		n_creatures = len(creatures)
+		all_other_inputs = np.zeros((n_creatures, 5), dtype='float') # 5 - это количество входов кроме зрения
+		for index, creature in enumerate(creatures):
+			all_other_inputs[index] = np.array([
+				creature.input_hurting,
+				creature.input_starving,
+				creature.input_wayblocked,
+				creature.input_bite_success,
+				0.111,
+			])
+		return all_other_inputs	
