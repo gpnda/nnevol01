@@ -39,8 +39,14 @@ class WorldGenerator:
             raise ValueError(f"CSV map rows have different lengths: {file_path}")
 
         world = World(width, height)
-        world.map = np.array(csv_rows, dtype='int')
         
+        # 1. Загружаем информацию о зонах из оригинальных CSV данных (до преобразования '9' в '0')
+        world.zones_map.load_from_csv(csv_rows)
+        
+        # 2. Устанавливаем карту мира, заменяя '9' на '0'
+        map_array = np.array(csv_rows, dtype='int')
+        map_array[map_array == 9] = 0  # Заменяем гнёзда на открытое пространство в основной карте
+        world.map = map_array
         
         WorldGenerator.generate_walls(world, random_wall_count, border_walls)
         WorldGenerator.save_walls_map(world)

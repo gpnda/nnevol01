@@ -9,6 +9,7 @@ import math
 import numpy as np
 from numba import jit
 from simparams import sp
+from zones_map import ZonesMap
 
 from service.logger.logger import logme
 from service.debugger.debugger import debug
@@ -24,6 +25,7 @@ class World():
 		self.creatures = []
 		self.foods = []
 		self.tick = 0
+		self.zones_map = ZonesMap(width, height)
 
 
 		
@@ -174,6 +176,13 @@ class World():
 			# не таким уж и жестоким, и можно будет пстепенно сокращать этот период, чтобы постепенно не убиваю всю популяцию,
 			# вести приспособленности - не высовываться из норки без крайней необходимости в пище.
 			# ... 
+			if self.is_in_nest(creature):
+				# Существо находится внутри норки, наказание не применяется
+				pass
+			else:
+				# Существо находится вне норки, применяем наказание за радиацию
+				creature.health -= 0.1
+				creature.input_hurting = 1.0 # Сигнал для нейросети, что существо получает повреждение/
 
 
 
@@ -218,21 +227,33 @@ class World():
 
 			
 	def regulate_food(self):
-		# добавление или уничтожение пищи из массива world.foods[] в соответствии с  sim_food_amount
-		if (sp.food_amount > len(self.foods)):
-			# добавим недостающее количество пищи
-			add_amount = sp.food_amount - len(self.foods)
-			from world_generator import WorldGenerator
-			WorldGenerator.generate_food(self, add_amount)
-		else:
-			# пищи слишком много, удалим часть
-			self.foods = self.foods[0:sp.food_amount]
+		self.foods = [] # Просто очищаем массив еды
+		foods = []
+		food_amount = sp.food_amount
+		indoor_outdoor_food_proportion = 0.1
+
+		# Создаем необходимое количество пищи в норках
+		for i in range(int(food_amount*indoor_outdoor_food_proportion)):
+			# Генерируем пищу внутри норки
+			x,y= self.zones_map.get_random_indoor_pixel()
+			# проверим, что по этим координатам еще нет пищи в массиве foods, чтобы не создавать пищу в одной клетке
+			if not any(food.x == x and food.y == y for food in foods):
+				foods.append(Food(x, y))
 		
-		# # Рандомизировать положение пищи.
-		# for f in self.foods:
-		#     f.setPositionRandom(self)
+		# Создаем необходимое количество пищи вне норок
+		for i in range(int(food_amount*(1-indoor_outdoor_food_proportion))):
+			# Генерируем пищу вне норки
+			x,y= self.zones_map.get_random_outdoor_pixel()
+			if not any(food.x == x and food.y == y for food in foods):
+				foods.append(Food(x, y))
+		
+		self.foods = foods
 
-
+	def is_in_nest(self, creature):
+		# Проверяем, что существо находится внутри норки, глядя на его координаты и сравнивая их с картой зон
+		# Если там пиксель синий, значит существо находится внутри норки
+		# Если там пиксель не синий, значит существо находится вне норки
+		return self.zones_map.is_indoor(creature.x, creature.y)
 
 
 	def control_population(self):
