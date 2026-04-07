@@ -227,27 +227,19 @@ class World():
 
 			
 	def regulate_food(self):
-		self.foods = [] # Просто очищаем массив еды
-		foods = []
-		food_amount = sp.food_amount
-		indoor_outdoor_food_proportion = 0.1
-
-		# Создаем необходимое количество пищи в норках
-		for i in range(int(food_amount*indoor_outdoor_food_proportion)):
-			# Генерируем пищу внутри норки
-			x,y= self.zones_map.get_random_indoor_pixel()
-			# проверим, что по этим координатам еще нет пищи в массиве foods, чтобы не создавать пищу в одной клетке
-			if not any(food.x == x and food.y == y for food in foods):
-				foods.append(Food(x, y))
-		
-		# Создаем необходимое количество пищи вне норок
-		for i in range(int(food_amount*(1-indoor_outdoor_food_proportion))):
-			# Генерируем пищу вне норки
-			x,y= self.zones_map.get_random_outdoor_pixel()
-			if not any(food.x == x and food.y == y for food in foods):
-				foods.append(Food(x, y))
-		
-		self.foods = foods
+		# Если пищи на карте меньше чем sp.food_amount
+		# То добавляем пищу, в соответствии с пропорцией
+		indoor_outdoor_food_proportion = 0.05 # 95% пищи внутри норок, 5% пищи снаружи
+		if len(self.foods) < sp.food_amount:
+			food_to_add = sp.food_amount - len(self.foods)
+			for _ in range(food_to_add):
+				if random.random() < indoor_outdoor_food_proportion:
+					# Добавляем пищу внутри норки
+					x, y = self.zones_map.get_random_indoor_pixel()
+				else:
+					# Добавляем пищу снаружи норки
+					x, y = self.zones_map.get_random_outdoor_pixel()
+				self.add_food(Food(x, y))
 
 	def is_in_nest(self, creature):
 		# Проверяем, что существо находится внутри норки, глядя на его координаты и сравнивая их с картой зон
@@ -274,6 +266,13 @@ class World():
 		# удаляем из массива foods пищу, если она съедена, а на карту она каждый тик 
 		# заново наносится, так что про карту не паримся, это приятно 
 		self.foods = [food for food in self.foods if food.nutrition >= 0]
+		
+		# Старение пищи и удаление от старости
+		if self.tick % 10 == 0:
+			for food in self.foods:
+				food.food_age += 1
+				if food.food_age > 10: # Потом надо вынести в sp.food_max_age
+					self.foods.remove(food)
 
 	def change_food_capacity(self):
 		# Изменение параметра еды, когда пользователь поменял их из simparams

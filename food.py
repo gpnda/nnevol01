@@ -6,6 +6,7 @@ class Food():
         self.x = x
         self.y = y
         self.nutrition = sp.food_energy_capacity
+        self.food_age = 0
     
 
     def decrement(self):
