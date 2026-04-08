@@ -1,6 +1,7 @@
 .venv/
 .venv310/
 .vscode/
+saves/
 __pycache__/
 *.prof
 *.pyc
