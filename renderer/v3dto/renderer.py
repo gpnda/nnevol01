@@ -472,6 +472,8 @@ class Renderer:
             is_animating=self.app.animate_flag,
             is_logging=logme.is_enabled(),
             allow_mutations=sp.allow_mutations,
+            zones_penalty_mode=sp.zones_penalty_mode,
+            zones_penalty=sp.zones_penalty,
         )
     
     def _prepare_creature_history_dto(self, creature_id: int) -> Optional[CreatureHistoryDTO]:

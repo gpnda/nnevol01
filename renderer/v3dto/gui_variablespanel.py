@@ -84,7 +84,7 @@ class VariablesPanel:
         self.add_variable("food_energy_capacity",             float, min_val=0.0,     max_val=50.0)
         self.add_variable("food_energy_chunk",                float, min_val=0.0,     max_val=50.0)
         self.add_variable("food_max_age",                     int,   min_val=1,       max_val=100000)
-        self.add_variable("food_proportion_indoor_outdoor",   float, min_val=0.0, max_val=1.0)
+        self.add_variable("food_proportion_indoor_outdoor",   float, min_val=0.0,     max_val=1.0)
         self.add_variable("reproduction_ages",                str,   min_val=0.0,     max_val=1.0)
         self.add_variable("reproduction_offsprings",          int,   min_val=1,       max_val=100)
         self.add_variable("energy_cost_tick",                 float, min_val=0.0,     max_val=100.0)
@@ -95,7 +95,9 @@ class VariablesPanel:
         self.add_variable("energy_gain_from_bite_cr",         float, min_val=0.0,     max_val=1.0)
         self.add_variable("energy_loss_bitten",               float, min_val=0.0,     max_val=1.0)
         self.add_variable("energy_loss_collision",            float, min_val=0.0,     max_val=1.0)
-        self.add_variable("allow_mutations",                  int,  min_val=0,      max_val=1)
+        self.add_variable("allow_mutations",                  int,   min_val=0,       max_val=1)
+        self.add_variable("zones_penalty_mode",               int,   min_val=0,       max_val=2)
+        self.add_variable("zones_penalty",                    float, min_val=0.0,     max_val=1.0)
     
     def add_variable(self, name: str, var_type: type = int,
                      min_val: Optional[float] = None, 
@@ -145,6 +147,8 @@ class VariablesPanel:
         self.variables['energy_loss_bitten']['value'] = params_dto.energy_loss_bitten
         self.variables['energy_loss_collision']['value'] = params_dto.energy_loss_collision
         self.variables['allow_mutations']['value'] = params_dto.allow_mutations
+        self.variables['zones_penalty_mode']['value'] = params_dto.zones_penalty_mode
+        self.variables['zones_penalty']['value'] = params_dto.zones_penalty
     
     def get_variable(self, name: str) -> Any:
         """Получить значение переменной."""
