@@ -189,6 +189,8 @@ class SimulationParamsDTO:
     food_amount: int
     food_energy_capacity: float
     food_energy_chunk: float
+    food_max_age: int
+    food_proportion_indoor_outdoor: float
     
     # Размножение
     reproduction_ages: List[int]

@@ -25,7 +25,7 @@ class VariablesPanel:
     PANEL_X = 275
     PANEL_Y = 35
     PANEL_WIDTH = 700
-    PANEL_HEIGHT = 420
+    PANEL_HEIGHT = 470
     
     # Параметры отображения
     FONT_SIZE = 16
@@ -77,23 +77,25 @@ class VariablesPanel:
 
         # Добавляем переменные в панель
         # Значения берутся из RenderStateDTO во время draw()
-        self.add_variable("mutation_probability",        float, min_val=0.0,     max_val=1.0)
-        self.add_variable("mutation_strength",           float, min_val=0.0,     max_val=100.0)
-        self.add_variable("creature_max_age",            int,   min_val=1,       max_val=100000)
-        self.add_variable("food_amount",                 int,   min_val=1,       max_val=100000)
-        self.add_variable("food_energy_capacity",        float, min_val=0.0,     max_val=50.0)
-        self.add_variable("food_energy_chunk",           float, min_val=0.0,     max_val=50.0)
-        self.add_variable("reproduction_ages",           str,   min_val=0.0,     max_val=1.0)
-        self.add_variable("reproduction_offsprings",     int,   min_val=1,       max_val=100)
-        self.add_variable("energy_cost_tick",            float, min_val=0.0,     max_val=100.0)
-        self.add_variable("energy_cost_speed",           float, min_val=0.0,     max_val=100.0)
-        self.add_variable("energy_cost_rotate",          float, min_val=-20.0,   max_val=50.0)
-        self.add_variable("energy_cost_bite",            float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_gain_from_food",       float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_gain_from_bite_cr",    float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_loss_bitten",          float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_loss_collision",       float, min_val=0.0,     max_val=1.0)
-        self.add_variable("allow_mutations",               int,  min_val=0,      max_val=1)
+        self.add_variable("mutation_probability",             float, min_val=0.0,     max_val=1.0)
+        self.add_variable("mutation_strength",                float, min_val=0.0,     max_val=100.0)
+        self.add_variable("creature_max_age",                 int,   min_val=1,       max_val=100000)
+        self.add_variable("food_amount",                      int,   min_val=1,       max_val=100000)
+        self.add_variable("food_energy_capacity",             float, min_val=0.0,     max_val=50.0)
+        self.add_variable("food_energy_chunk",                float, min_val=0.0,     max_val=50.0)
+        self.add_variable("food_max_age",                     int,   min_val=1,       max_val=100000)
+        self.add_variable("food_proportion_indoor_outdoor",   float, min_val=0.0, max_val=1.0)
+        self.add_variable("reproduction_ages",                str,   min_val=0.0,     max_val=1.0)
+        self.add_variable("reproduction_offsprings",          int,   min_val=1,       max_val=100)
+        self.add_variable("energy_cost_tick",                 float, min_val=0.0,     max_val=100.0)
+        self.add_variable("energy_cost_speed",                float, min_val=0.0,     max_val=100.0)
+        self.add_variable("energy_cost_rotate",               float, min_val=-20.0,   max_val=50.0)
+        self.add_variable("energy_cost_bite",                 float, min_val=0.0,     max_val=1.0)
+        self.add_variable("energy_gain_from_food",            float, min_val=0.0,     max_val=1.0)
+        self.add_variable("energy_gain_from_bite_cr",         float, min_val=0.0,     max_val=1.0)
+        self.add_variable("energy_loss_bitten",               float, min_val=0.0,     max_val=1.0)
+        self.add_variable("energy_loss_collision",            float, min_val=0.0,     max_val=1.0)
+        self.add_variable("allow_mutations",                  int,  min_val=0,      max_val=1)
     
     def add_variable(self, name: str, var_type: type = int,
                      min_val: Optional[float] = None, 
@@ -130,6 +132,8 @@ class VariablesPanel:
         self.variables['food_amount']['value'] = params_dto.food_amount
         self.variables['food_energy_capacity']['value'] = params_dto.food_energy_capacity
         self.variables['food_energy_chunk']['value'] = params_dto.food_energy_chunk
+        self.variables['food_max_age']['value'] = params_dto.food_max_age
+        self.variables['food_proportion_indoor_outdoor']['value'] = params_dto.food_proportion_indoor_outdoor
         self.variables['reproduction_ages']['value'] = str(params_dto.reproduction_ages)
         self.variables['reproduction_offsprings']['value'] = params_dto.reproduction_offsprings
         self.variables['energy_cost_tick']['value'] = params_dto.energy_cost_tick

@@ -229,11 +229,10 @@ class World():
 	def regulate_food(self):
 		# Если пищи на карте меньше чем sp.food_amount
 		# То добавляем пищу, в соответствии с пропорцией
-		indoor_outdoor_food_proportion = 0.05 # 95% пищи внутри норок, 5% пищи снаружи
 		if len(self.foods) < sp.food_amount:
 			food_to_add = sp.food_amount - len(self.foods)
 			for _ in range(food_to_add):
-				if random.random() < indoor_outdoor_food_proportion:
+				if random.random() < sp.food_proportion_indoor_outdoor:
 					# Добавляем пищу внутри норки
 					x, y = self.zones_map.get_random_indoor_pixel()
 				else:
@@ -270,8 +269,8 @@ class World():
 		# Старение пищи и удаление от старости
 		if self.tick % 10 == 0:
 			for food in self.foods:
-				food.food_age += 1
-				if food.food_age > 10: # Потом надо вынести в sp.food_max_age
+				food.food_age += 10
+				if food.food_age > sp.food_max_age:
 					self.foods.remove(food)
 
 	def change_food_capacity(self):

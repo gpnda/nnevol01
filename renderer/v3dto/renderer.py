@@ -456,6 +456,8 @@ class Renderer:
             food_amount=sp.food_amount,
             food_energy_capacity=sp.food_energy_capacity,
             food_energy_chunk=sp.food_energy_chunk,
+            food_max_age=sp.food_max_age,
+            food_proportion_indoor_outdoor=sp.food_proportion_indoor_outdoor,
             reproduction_ages=sp.reproduction_ages,
             reproduction_offsprings=sp.reproduction_offsprings,
             energy_cost_tick=sp.energy_cost_tick,

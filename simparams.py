@@ -25,6 +25,11 @@ class SimParams:
         self.food_energy_capacity = 1.0
         # Энергия, откусываемая от еды за один укус
         self.food_energy_chunk = 0.5
+        # Максимальный возраст пищи
+        self.food_max_age = 200
+        # Пропорция пищи внутри норок и снаружи 0.0 .. 1.0
+        self.food_proportion_indoor_outdoor = 0.05
+		
         
         # === Параметры размножения ===
         # Возраст в диапазонах, при котором существо может размножаться (из creature.py birth_ages)
