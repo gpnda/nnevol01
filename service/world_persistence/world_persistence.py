@@ -60,6 +60,7 @@ class WorldPersistenceService:
                     'created_at': created_at,
                 },
                 'walls_map': world.walls_map.tolist(),
+                'zones_map': world.zones_map.zones_map.tolist(),
                 'creatures': self._serialize_creatures(world.creatures),
                 'foods': self._serialize_foods(world.foods),
                 'simparams': self._serialize_simparams(),
@@ -113,20 +114,46 @@ class WorldPersistenceService:
             world_data = json.loads(json_str)
             
             # Применяем загруженные данные в world
-            world.width = world_data['metadata']['width']
-            world.height = world_data['metadata']['height']
+            width = world_data['metadata']['width']
+            height = world_data['metadata']['height']
+            world.width = width
+            world.height = height
             world.tick = world_data['metadata']['tick']
-            
-            world.walls_map = np.array(world_data['walls_map'], dtype='int')
+
+            # Пересоздаём карту под загруженный размер
+            world.map = np.zeros((height, width), dtype='int')
+
+            # Загружаем walls_map и проверяем shape
+            walls_map = np.array(world_data['walls_map'], dtype='int')
+            if walls_map.shape != (height, width):
+                raise ValueError(
+                    f"walls_map shape {walls_map.shape} не соответствует размерам мира ({height}, {width})"
+                )
+            world.walls_map = walls_map
+
+            # Восстанавливаем zones_map и перестраиваем кэши зон
+            if 'zones_map' in world_data:
+                zones_arr = np.array(world_data['zones_map'], dtype='int')
+                if zones_arr.shape != (height, width):
+                    raise ValueError(
+                        f"zones_map shape {zones_arr.shape} не соответствует размерам мира ({height}, {width})"
+                    )
+                world.zones_map.width = width
+                world.zones_map.height = height
+                world.zones_map.zones_map = zones_arr
+                world.zones_map._build_pixel_caches()
+
             world.creatures = self._deserialize_creatures(world_data['creatures'])
             world.foods = self._deserialize_foods(world_data['foods'])
-            
+
             # Восстанавливаем параметры симуляции (если они сохранены)
             if 'simparams' in world_data:
                 self._restore_simparams(world_data['simparams'])
-            
+
             # Пересчитываем карту после загрузки
             world.update_map()
+            if world.map.shape != (height, width):
+                raise ValueError(f"Ошибка после update_map: map shape {world.map.shape} != ({height}, {width})")
             
             creatures_count = len(world.creatures)
             foods_count = len(world.foods)
@@ -149,6 +176,7 @@ class WorldPersistenceService:
                 'x': float(creature.x),
                 'y': float(creature.y),
                 'energy': float(creature.energy),
+                'health': float(creature.health),
                 'age': int(creature.age),
                 'speed': int(creature.speed),
                 'angle': float(creature.angle),
@@ -156,6 +184,10 @@ class WorldPersistenceService:
                 'vision_distance': int(creature.vision_distance),
                 'bite_range': float(creature.bite_range),
                 'birth_ages': [int(age) for age in creature.birth_ages],
+                'input_hurting': float(creature.input_hurting),
+                'input_starving': float(creature.input_starving),
+                'input_wayblocked': float(creature.input_wayblocked),
+                'input_bite_success': float(creature.input_bite_success),
                 'nn': self._serialize_nn(creature.nn),
             }
             data.append(creature_data)
@@ -181,6 +213,7 @@ class WorldPersistenceService:
                 'x': int(food.x),
                 'y': int(food.y),
                 'nutrition': float(food.nutrition),
+                'food_age': int(food.food_age),
             }
             data.append(food_data)
         return data
@@ -246,6 +279,7 @@ class WorldPersistenceService:
             creature.id = creature_data['id']
             creature.generation = creature_data['generation']
             creature.energy = creature_data['energy']
+            creature.health = creature_data['health']
             creature.age = creature_data['age']
             creature.speed = creature_data['speed']
             creature.angle = creature_data['angle']
@@ -253,6 +287,10 @@ class WorldPersistenceService:
             creature.vision_distance = creature_data['vision_distance']
             creature.bite_range = creature_data['bite_range']
             creature.birth_ages = creature_data['birth_ages']
+            creature.input_hurting = creature_data['input_hurting']
+            creature.input_starving = creature_data['input_starving']
+            creature.input_wayblocked = creature_data['input_wayblocked']
+            creature.input_bite_success = creature_data['input_bite_success']
             
             # Восстанавливаем веса нейросети
             creature.nn = self._deserialize_nn(creature_data['nn'])
@@ -287,6 +325,7 @@ class WorldPersistenceService:
         for food_data in food_data_list:
             food = Food(food_data['x'], food_data['y'])
             food.nutrition = food_data['nutrition']
+            food.food_age = food_data['food_age']
             foods.append(food)
         
         return foods
