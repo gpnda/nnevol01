@@ -32,6 +32,33 @@ class ZonesMap:
 		self.indoor_pixels = []
 		self.outdoor_pixels = []
 	
+	def generate_lefthalf_zone(self, walls_map: np.ndarray) -> None:
+		"""
+		Для случайной карты:
+		- левая половина свободных клеток -> indoor (норки)
+		- правая половина свободных клеток -> outdoor (снаружи)
+		- стены остаются стенами
+		"""
+		if walls_map.shape != (self.height, self.width):
+			raise ValueError(
+				f"walls_map shape {walls_map.shape} != ({self.height}, {self.width})"
+			)
+
+		self.zones_map.fill(self.ZONE_WALL)
+		split_x = self.width // 2
+
+		for y in range(self.height):
+			for x in range(self.width):
+				if int(walls_map[y, x]) == self.ZONE_WALL:
+					self.zones_map[y, x] = self.ZONE_WALL
+				elif x < split_x:
+					self.zones_map[y, x] = self.ZONE_INDOOR
+				else:
+					self.zones_map[y, x] = self.ZONE_OUTDOOR
+
+		# Единая точка построения кэшей indoor/outdoor
+		self._build_pixel_caches()
+	
 	def load_from_csv(self, raw_csv_data: list) -> None:
 		"""
 		Загружает информацию о зонах из сырых данных CSV.

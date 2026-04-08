@@ -13,6 +13,7 @@ class WorldGenerator:
         world = World(width, height)
         WorldGenerator.generate_walls(world, wall_count, border_walls)
         WorldGenerator.save_walls_map(world)
+        world.zones_map.generate_lefthalf_zone(world.walls_map)
         WorldGenerator.generate_food(world, food_count)
         WorldGenerator.generate_creatures(world, creatures_count)
         return world
