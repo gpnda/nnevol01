@@ -133,6 +133,9 @@ class VisionSimulator:
         
         # Обернуть vision в правильную форму: [1, 45]
         all_inputs = vision.reshape(1, -1).astype(np.float32)
+
+        # Дополним входы другими служебными входами: input_hurting, input_starving, input_wayblocked, input_bite_success, 0.111
+        all_inputs = np.hstack([all_inputs, np.array([[0.0, 0.0, 0.0, 0.0, 0.111]], dtype=np.float32)])  # добавляем служебные входы
         
         # Вызвать fast_calc_all_outs через make_all_decisions (тот же путь, что в основной симуляции)
         outputs = NeuralNetwork.make_all_decisions(all_inputs, creatures_nns)
