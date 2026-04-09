@@ -169,23 +169,34 @@ class Renderer:
     
     def _on_state_enter(self, state_name: str) -> None:
         """Вызывается при входе в новое состояние."""
+        if state_name == 'popup_simparams':
+            self.app.is_running = False
+
         if state_name == 'creatures_list':
+            self.app.is_running = False
             # Сбрасываем навигацию при открытии списка существ
             self.creatures_list_modal.reset()
         
+        if state_name == 'logs':
+            self.app.is_running = False
+
         if state_name == 'exper_list':
+            self.app.is_running = False
             # Подготавливаем список экспериментов, только когда окно открыто
             self.exper_list_modal.exper_list = self._prepare_exper_list_dto()
             # Передаем текущий выбор существа в модальное окно списка экспериментов
             self.exper_list_modal.selected_creature_id = self.selected_creature_id
-            # # Сбрасываем навигацию при открытии списка экспериментов
-            # self.exper_list_modal.reset()
+
+        if state_name == 'experiment':
+            self.app.is_running = False
 
         if state_name == 'popup_saveworld':
+            self.app.is_running = False
             # Сбрасываем навигацию при открытии окна сохранения
             self.popup_saveworld_modal.reset()
         
         if state_name == 'popup_loadworld':
+            self.app.is_running = False
             # Сбрасываем навигацию при открытии окна загрузки
             self.popup_loadworld_modal.save_slots = self._prepare_save_slots_dto()  # Передаем список слотов в модальное окно загрузки
             self.popup_loadworld_modal.reset()
@@ -208,7 +219,7 @@ class Renderer:
             self._draw_main_fast_screen(render_state, nolog=True)  # Рисуем экран ускоренной перемотки сразу при входе в состояние
         
         if state_name == 'main':
-            # Включаем ускоренный режим (без анимации)
+            # Включаем обычный режим
             self.app.animation_on()  # Включаем анимацию при возвращении в основной режим
             logme.set_enabled(True)  # Включаем логирование при возвращении в основной режим
             self.app.is_running = True
