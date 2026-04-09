@@ -37,6 +37,10 @@ class VariablesPanel:
     ITEM_VALUE_X = 150
     PADDING_X = 5
     PADDING_Y = 5
+
+    # Двухколоночный layout
+    COLUMN_SIZE = 17          # Максимум строк в одной колонке
+    COLUMN_WIDTH = PANEL_WIDTH // 2  # 350px на колонку
     
     # Цвета
     COLORS = {
@@ -275,18 +279,36 @@ class VariablesPanel:
     
     def _handle_navigation(self, event: pygame.event.Event, var_list: List) -> bool:
         """Обработка событий в режиме навигации."""
+        total = len(var_list)
+        col, row = divmod(self.selected_index, self.COLUMN_SIZE)
+
         if event.key == pygame.K_UP:
-            self.selected_index = max(0, self.selected_index - 1)
+            if row > 0:
+                self.selected_index -= 1
             return True
-        
+
         elif event.key == pygame.K_DOWN:
-            max_index = len(var_list) - 1
-            self.selected_index = min(max_index, self.selected_index + 1)
+            next_index = self.selected_index + 1
+            # Не переходить в следующую колонку и не выходить за конец списка
+            if next_index < total and (next_index % self.COLUMN_SIZE) != 0:
+                self.selected_index = next_index
             return True
-        
+
+        elif event.key == pygame.K_LEFT:
+            if col > 0:
+                new_index = (col - 1) * self.COLUMN_SIZE + row
+                self.selected_index = min(new_index, total - 1)
+            return True
+
+        elif event.key == pygame.K_RIGHT:
+            new_index = (col + 1) * self.COLUMN_SIZE + row
+            if new_index < total:
+                self.selected_index = new_index
+            return True
+
         elif event.key == pygame.K_RETURN:
             return self._activate_selected(var_list)
-        
+
         return False
     
     def _activate_selected(self, var_list: List) -> bool:
@@ -325,26 +347,33 @@ class VariablesPanel:
         screen.blit(title_surf, (self.rect.x + self.PADDING_X, 
                                  self.rect.y + self.TITLE_Y_OFFSET))
         
+        # Вертикальный разделитель между колонками
+        divider_x = self.rect.x + self.COLUMN_WIDTH
+        pygame.draw.line(screen, self.COLORS['highlight'],
+                         (divider_x, self.rect.y + self.TITLE_BOTTOM_OFFSET - 5),
+                         (divider_x, self.rect.y + self.PANEL_HEIGHT - 5))
+
         # Переменные
         var_list = list(self.variables.items())
-        y_offset = self.rect.y + self.TITLE_BOTTOM_OFFSET
-        
+
         for idx, (var_name, var_info) in enumerate(var_list):
+            col, row = divmod(idx, self.COLUMN_SIZE)
+            x_base = self.rect.x + col * self.COLUMN_WIDTH
+            y = self.rect.y + self.TITLE_BOTTOM_OFFSET + row * self.LINE_HEIGHT
+
             # Выделение выбранной строки
             if idx == self.selected_index:
                 pygame.draw.rect(screen, self.COLORS['selected'],
-                               (self.rect.x + 3, y_offset - 2, 
-                                self.rect.width - 6, self.LINE_HEIGHT))
-            
+                                 (x_base + 3, y - 2, self.COLUMN_WIDTH - 6, self.LINE_HEIGHT))
+
             # Имя переменной
-            name_text = f"{var_name:<15}"
+            name_text = f"{var_name:<25}"
             text_color = self.COLORS['highlight'] if idx == self.selected_index else self.COLORS['text']
             name_surf = self.font.render(name_text, False, text_color)
-            screen.blit(name_surf, (self.rect.x + self.PADDING_X, y_offset))
-            
+            screen.blit(name_surf, (x_base + self.PADDING_X, y))
+
             # Значение переменной
             if idx == self.selected_index and self.editing:
-                # В режиме редактирования показываем input_buffer с курсором
                 value_text = self.input_buffer + "_"
                 value_color = (255, 255, 0)  # Жёлтый для редактируемого
             else:
@@ -354,8 +383,6 @@ class VariablesPanel:
                 else:
                     value_text = str(value_display)[0:8] + ".."
                 value_color = text_color
-            
+
             value_surf = self.font.render(f"{value_text:>10}", False, value_color)
-            screen.blit(value_surf, (self.rect.x + self.ITEM_VALUE_X, y_offset))
-            
-            y_offset += self.LINE_HEIGHT
+            screen.blit(value_surf, (x_base + self.ITEM_VALUE_X, y))
