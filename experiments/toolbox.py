@@ -116,7 +116,7 @@ class VisionSimulator:
         """
         world.update_map()  # обновить карту перед raycast
         creatures_pos = np.array([[creature.x, creature.y, creature.angle, creature.vision_distance]], dtype='float')
-        all_visions, raycast_dots = World.fast_get_all_visions_darken_with_distance(world.map, creatures_pos)
+        all_visions, raycast_dots = World.fast_get_all_visions_darken_with_distance(world.map, creatures_pos, 1.0)
         return all_visions[0], raycast_dots  # возвращаем vision и raycast_dots первого существа
     
     @staticmethod
@@ -134,8 +134,16 @@ class VisionSimulator:
         # Обернуть vision в правильную форму: [1, 45]
         all_inputs = vision.reshape(1, -1).astype(np.float32)
 
-        # Дополним входы другими служебными входами: input_hurting, input_starving, input_wayblocked, input_bite_success, 0.111
-        all_inputs = np.hstack([all_inputs, np.array([[0.0, 0.0, 0.0, 0.0, 0.111]], dtype=np.float32)])  # добавляем служебные входы
+        # Дополним входы другими служебными входами — читаем актуальные значения из полей существа,
+        # так же как это делает World.get_all_other_inputs() в основной симуляции.
+        other_inputs = np.array([[
+            creature.input_hurting,
+            creature.input_starving,
+            creature.input_wayblocked,
+            creature.input_bite_success,
+            0.111,
+        ]], dtype=np.float32)
+        all_inputs = np.hstack([all_inputs, other_inputs])
         
         # Вызвать fast_calc_all_outs через make_all_decisions (тот же путь, что в основной симуляции)
         outputs = NeuralNetwork.make_all_decisions(all_inputs, creatures_nns)
