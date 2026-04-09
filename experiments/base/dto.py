@@ -23,6 +23,6 @@ class ExperimentCreatureStateDTO:
     x: float
     y: float
     angle: float
-    vision_input: np.ndarray  # [45] - входной вектор зрения (3 луча × 15 элементов)
+    vision_input: np.ndarray  # [45] - входной вектор зрения (3 канала цвета × 15 лучей raycast)
     nn_outputs: Tuple[float, float, float]  # (angle_delta, speed_delta, bite_output)
-    raycast_dots: np.ndarray  # [[x1, y1], [x2, y2], ...] - координаты точек луча
+    raycast_dots: np.ndarray  # [[x1, y1], [x2, y2], ...] - координаты точек raycast луча
