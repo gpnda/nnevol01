@@ -91,10 +91,11 @@ class PopupLoadWorldModal:
         # Ширина столбцов (в пикселях)
         self.col_widths = {
             'id': 30,
-            'name': 420,
-            'created_at': 130,
+            'name': 240,
+            'modified_at': 130,
             'creatures_count': 90,
             'max_generation': 80,
+            'map_size': 80,
         }
     
     @property
@@ -200,20 +201,20 @@ class PopupLoadWorldModal:
         col_y = y
         col_x = x
         
-        headers = ['ID', 'Name', 'Created At', 'Creatures', 'Max Gen']
+        headers = ['ID', 'Name', 'Modified At', 'Creatures', 'Max Gen', 'Map Size']
         widths = [
             self.col_widths['id'],
             self.col_widths['name'],
-            self.col_widths['created_at'],
+            self.col_widths['modified_at'],
             self.col_widths['creatures_count'],
             self.col_widths['max_generation'],
+            self.col_widths['map_size'],
         ]
         
-        # Отрисовка каждого столбца заголовка
         for header, width in zip(headers, widths):
             header_text = self.font.render(header, False, self.COLORS['label'])
             screen.blit(header_text, (col_x, col_y))
-            col_x += width + 10  # +10 для отступа между столбцами
+            col_x += width + 10
         
     
     def _draw_table_row(
@@ -251,18 +252,22 @@ class PopupLoadWorldModal:
         
         # Форматируем значения для таблицы
         id_str = str(slot_id)
-        name_str = str(slot_info.get('name', 'Unknown'))[:67]
-        created_at_str = str(slot_info.get('created_at', 'N/A'))
-        creatures_str = str(slot_info.get('creatures_count', 0))
-        generation_str = str(slot_info.get('max_generation', 0))
+        name_str = str(slot_info.get('name', 'Unknown'))[:35]
+        modified_at_str = str(slot_info.get('modified_at', 'N/A'))
+        creatures_val = slot_info.get('creatures_count')
+        creatures_str = str(creatures_val) if creatures_val is not None else 'N/A'
+        generation_val = slot_info.get('max_generation')
+        generation_str = str(generation_val) if generation_val is not None else 'N/A'
+        map_size_str = str(slot_info.get('map_size', 'N/A'))
         
-        values = [id_str, name_str, created_at_str, creatures_str, generation_str]
+        values = [id_str, name_str, modified_at_str, creatures_str, generation_str, map_size_str]
         widths = [
             self.col_widths['id'],
             self.col_widths['name'],
-            self.col_widths['created_at'],
+            self.col_widths['modified_at'],
             self.col_widths['creatures_count'],
             self.col_widths['max_generation'],
+            self.col_widths['map_size'],
         ]
         
         # Отрисовка каждого столбца
@@ -345,10 +350,10 @@ class PopupLoadWorldModal:
             return True
         
         elif event.key == pygame.K_RETURN:
-            # Вызываем callback с именем файла сохранения
+            # Вызываем callback с полным stem файла сохранения
             if self.on_do_loadworld is not None and 0 <= self.selected_slot < len(self.slots_list):
                 selected_slot_info = self.slots_list[self.selected_slot]
-                save_file_name = selected_slot_info.get('name', '')
+                save_file_name = selected_slot_info.get('filename', '')
                 self.on_do_loadworld(save_file_name)
                 self.just_loaded = True  # Устанавливаем флаг, что мир был загружен
             return True

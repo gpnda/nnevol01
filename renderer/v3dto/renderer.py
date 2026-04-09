@@ -525,25 +525,22 @@ class Renderer:
         Получить список слотов сохранения из сервиса.
         
         Полностью делегирует работу с файловой системой в WorldPersistenceService.
-        Это обеспечивает:
-        - Разделение ответственности (сервис отвечает за файлы)
-        - Легкую расширяемость (если нужны новые поля, меняем только сервис)
-        - Снижение связанности (renderer не знает о деталях реализации)
+        Метаданные читаются из имени файла (без распаковки архивов).
         """
         from service.world_persistence.world_persistence import world_persistence
         
-        # Получаем реальные слоты из сервиса
         slots = world_persistence.get_save_slots()
         
-        # Преобразуем в формат для виджета (добавляем ID)
         result = []
         for idx, slot_info in enumerate(slots):
             result.append({
                 'id': idx,
+                'filename': slot_info['filename'],
                 'name': slot_info['name'],
-                'created_at': slot_info['created_at'],
+                'modified_at': slot_info['modified_at'],
                 'creatures_count': slot_info['creatures_count'],
                 'max_generation': slot_info['max_generation'],
+                'map_size': slot_info['map_size'],
             })
         
         return result

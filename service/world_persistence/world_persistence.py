@@ -3,6 +3,7 @@
 
 import json
 import gzip
+import re
 from pathlib import Path
 from typing import Optional
 import numpy as np
@@ -40,14 +41,16 @@ class WorldPersistenceService:
             True если успешно, False если ошибка
         """
         try:
-            save_path = self.SAVES_DIR / f"{filename}.world.gz"
-            
-            # Вычисляем метаинформацию для сохранения
+            # Вычисляем метаинформацию
             max_generation = max(
                 (c.generation for c in world.creatures),
                 default=0
             )
             created_at = datetime.now().isoformat()
+
+            # Определяем итоговое имя файла (с encoded-суффиксом, без коллизий)
+            stem = self._resolve_save_stem(filename, world)
+            save_path = self.SAVES_DIR / f"{stem}.world.gz"
 
             # Подготавливаем данные о мире
             world_data = {
@@ -330,75 +333,96 @@ class WorldPersistenceService:
         
         return foods
 
+    # ============================================================================
+    # FILENAME ENCODING HELPERS
+    # ============================================================================
 
+    @staticmethod
+    def _build_encoded_stem(base: str, world) -> str:
+        """Возвращает stem вида 'base__c{N}_g{G}_{W}x{H}'."""
+        max_gen = max((c.generation for c in world.creatures), default=0)
+        return f"{base}__c{len(world.creatures)}_g{int(max_gen)}_{world.width}x{world.height}"
+
+    def _resolve_save_stem(self, base: str, world) -> str:
+        """
+        Возвращает stem без расширения, не конфликтующий с существующими файлами.
+        Если 'base__*.world.gz' уже существует, пробует 'base01__...', 'base02__...' и т.д.
+        """
+        stem = self._build_encoded_stem(base, world)
+        if not list(self.SAVES_DIR.glob(f"{base}__*.world.gz")):
+            return stem
+        for i in range(1, 100):
+            candidate_base = f"{base}{i:02d}"
+            if not list(self.SAVES_DIR.glob(f"{candidate_base}__*.world.gz")):
+                return self._build_encoded_stem(candidate_base, world)
+        # крайний случай — перезаписываем base99
+        return self._build_encoded_stem(f"{base}99", world)
+
+    @staticmethod
+    def _parse_filename_metadata(stem: str):
+        """
+        Парсит stem файла и извлекает закодированные метаданные.
+
+        Ожидаемый формат: 'name__c{N}_g{G}_{W}x{H}'
+
+        Returns:
+            (display_name, creatures_count, max_generation, map_w, map_h)
+            Если формат не распознан — (stem, None, None, None, None)
+        """
+        m = re.search(r'^(.+)__c(\d+)_g(\d+)_(\d+)x(\d+)$', stem)
+        if m:
+            return m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5))
+        return stem, None, None, None, None
+
+    # ============================================================================
 
     def get_save_slots(self) -> list:
         """
-        Получить список слотов сохранения из папки ./saves
-        
+        Получить список слотов сохранения из папки ./saves.
+
+        Метаданные читаются ТОЛЬКО из имени файла и stat() файловой системы —
+        без распаковки архивов.
+
         Returns:
-            Список dict с информацией о каждом слоте:
+            Список dict:
             [{
-                'name': 'test',
-                'created_at': '2024-12-15T12:30:00',
-                'creatures_count': 450,
-                'max_generation': 125,
-                'tick': 5234,
+                'filename': 'foo__c450_g125_512x256',  # полный stem для load_world()
+                'name':     'foo',                      # чистое имя для отображения
+                'modified_at': '2026-04-09 14:30',
+                'creatures_count': 450,   # int или None
+                'max_generation':  125,   # int или None
+                'map_size': '512x256',    # str или 'N/A'
                 'file_size_kb': 45.3,
             }, ...]
         """
         slots = []
-        
+
         if not self.SAVES_DIR.exists():
             return slots
-        
+
         try:
-            # Сканируем все .world.gz файлы в папке
             for file_path in sorted(self.SAVES_DIR.glob('*.world.gz')):
-                slot_info = self._extract_slot_info_from_file(file_path)
-                if slot_info is not None:
-                    slots.append(slot_info)
+                stem = file_path.name[:-9]  # убираем '.world.gz'
+                display_name, creatures_count, max_gen, map_w, map_h = \
+                    self._parse_filename_metadata(stem)
+
+                stat = file_path.stat()
+                modified_at = datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M')
+                map_size = f"{map_w}x{map_h}" if map_w is not None else 'N/A'
+
+                slots.append({
+                    'filename': stem,
+                    'name': display_name,
+                    'modified_at': modified_at,
+                    'creatures_count': creatures_count,
+                    'max_generation': max_gen,
+                    'map_size': map_size,
+                    'file_size_kb': round(stat.st_size / 1024, 1),
+                })
         except Exception as e:
             print(f"✗ Ошибка при сканировании папки сохранений: {e}")
-        
-        return slots
 
-    def _extract_slot_info_from_file(self, file_path: Path) -> Optional[dict]:
-        """
-        Извлечь информацию о слоте из файла сохранения
-        
-        Args:
-            file_path: Path к файлу .world.gz
-            
-        Returns:
-            dict с информацией о слоте или None если ошибка
-        """
-        try:
-            # Читаем и распаковываем файл
-            with open(file_path, 'rb') as f:
-                compressed_data = f.read()
-            
-            json_bytes = gzip.decompress(compressed_data)
-            json_str = json_bytes.decode('utf-8')
-            world_data = json.loads(json_str)
-            
-            # Извлекаем метаинформацию
-            metadata = world_data.get('metadata', {})
-            
-            slot_info = {
-                'name': file_path.stem.replace('.world', ''),  # Имя файла без расширения
-                'created_at': metadata.get('created_at', 'N/A'),
-                'creatures_count': metadata.get('creatures_count', 0),
-                'max_generation': metadata.get('max_generation', 0),
-                'tick': metadata.get('tick', 0),
-                'file_size_kb': round(file_path.stat().st_size / 1024, 1),
-            }
-            
-            return slot_info
-            
-        except Exception as e:
-            print(f"⚠ Ошибка при чтении метаинформации из {file_path.name}: {e}")
-            return None
+        return slots
         
 # Singleton instance
 world_persistence = WorldPersistenceService()

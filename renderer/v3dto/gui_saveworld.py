@@ -165,7 +165,7 @@ class PopupSaveWorldModal:
             "Enter - Save  |  Esc - Cancel",
             "A-Z, 0-9, _ , -  allowed",
             "Do not include file extension, will be added automatically",
-            "If file exists, random slug will be added.",
+            "If name already taken, sequential suffix (01, 02...) will be added.",
         ]
         
         instr_y = input_y + self.INPUT_FIELD_HEIGHT + self.CONTENT_PADDING
