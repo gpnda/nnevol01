@@ -148,6 +148,9 @@ class BiteExperiment(StagedExperimentBase):
             success=success
         )
 
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
+
 
 
 
@@ -238,6 +241,9 @@ class BiteExperiment(StagedExperimentBase):
             stage=self.current_stage,
             success=success
         )
+
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
     
     def _stage_2(self):
         """Стадия 2: Пища далеко по центру (не должен кусать)
@@ -294,6 +300,9 @@ class BiteExperiment(StagedExperimentBase):
             stage=self.current_stage,
             success=success
         )
+        
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
     
 
 
@@ -367,6 +376,8 @@ class BiteExperiment(StagedExperimentBase):
             success=success
         )
     
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
 
 
 
@@ -436,6 +447,8 @@ class BiteExperiment(StagedExperimentBase):
             success=success
         )
     
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
 
 
 
@@ -513,6 +526,8 @@ class BiteExperiment(StagedExperimentBase):
             success=success
         )
     
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
 
 
 
@@ -589,7 +604,9 @@ class BiteExperiment(StagedExperimentBase):
             success=success
         )
     
-
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
+        
 
 
 

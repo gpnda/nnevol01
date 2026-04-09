@@ -238,6 +238,9 @@ class ConeExperiment(StagedExperimentBase):
             success=success
         )
 
+        # Инкремент счетчика прогонов для текущей стадии
+        self.stage_run_counter_increment()
+
 
 
 
