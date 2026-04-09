@@ -29,7 +29,7 @@ class Creature():
         self.birth_ages = Creature.diceRandomAges(sp.reproduction_ages) # Рандомные возрасты для рождения потомства
         # Дополнительные входы сетки, которые не зависят от зрения, а зависят от других факторов, таких как голод, боль и т.д.
         self.input_hurting = 0.0
-        self.input_starving = 0.9
+        self.input_starving = 0.0
         self.input_wayblocked = 0.0
         self.input_bite_success = 0.0
 

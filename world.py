@@ -139,6 +139,7 @@ class World():
 
 			# is_ok_to_go Проверяем/применяем правила, по которым существо может или не может перемещаться
 			is_ok_to_go = True
+			creature.input_wayblocked = 0.0 # Сбрасываем сигнал "путь заблокирован", чтобы нейросеть могла реагировать на него, и не держать его постоянно включенным после того, как путь разблокировался.
 			# За пределы карты проверим выход
 			if int(newx) < 0 or int(newx) > self.width-1 or int(newy) < 0 or int(newy) > self.height-1:
 				is_ok_to_go = False
@@ -160,6 +161,7 @@ class World():
 				creature.input_wayblocked = 1.0
 			
 			# Если существо куснуло - проверить что оно куснуло.
+			creature.input_bite_success = 0.0 # Сбрасываем сигнал успешного укуса, чтобы нейросеть могла реагировать на него, и не держать его постоянно включенным после укуса.
 			creature.bite_effort = float(all_outs[index][2])
 			if creature.bite_effort > 0.5:
 				self.creature_bite(creature)
@@ -176,6 +178,7 @@ class World():
 			# не таким уж и жестоким, и можно будет пстепенно сокращать этот период, чтобы постепенно не убиваю всю популяцию,
 			# вести приспособленности - не высовываться из норки без крайней необходимости в пище.
 			# ... 
+			creature.input_hurting = 0.0 # Сбрасываем сигнал "получаю повреждение", чтобы нейросеть могла реагировать на него, и не держать его постоянно включенным после того, как угроза повреждения исчезла.
 			if sp.zones_penalty_mode != 0:
 				if sp.zones_penalty_mode == 1 and self.is_in_nest(creature):
 					# Существо находится внутри норки, и режим наказания за нахождение в норках
@@ -330,7 +333,6 @@ class World():
 		self.creatures += baby_creatures
 		
 	def creature_bite(self, cr):
-		cr.input_bite_success = 0.0 # Сбрасываем сигнал успешного укуса, чтобы нейросеть могла реагировать на него, и не держать его постоянно включенным после укуса.
 		bitex = cr.x + cr.bite_range*math.cos(cr.angle)
 		bitey = cr.y + cr.bite_range*math.sin(cr.angle)
 		
