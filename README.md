@@ -5,6 +5,12 @@ This is a simulation of evolution of neural networks in a 2D world. Creatures lo
 
 Application is written in Python using Pygame for rendering. It a monolithic application.
 
+## Gallery
+
+| FF — convergence (gen 29, Mar 2026) | Fun behavior (gen 4, Apr 2026) | RNN — chaotic movement (Apr 2026) |
+|:---:|:---:|:---:|
+| ![FF convergence](docs/beh_gifs/nice_convergence_ff_29-03-2026_01.gif) | ![Fun behavior](docs/beh_gifs/fun_behevior_4gen(sic)_09-04-2026.gif) | ![RNN chaotic](docs/beh_gifs/rnn_chaotic_movment_11-04-2026_03.gif) |
+
 ## How to run
 1. .venv
 2. pip install -r requirements.txt
