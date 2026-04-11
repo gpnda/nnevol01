@@ -271,8 +271,7 @@ class WorldPersistenceService:
     def _deserialize_creatures(self, creature_data_list) -> list:
         """Восстанавливает creatures из сохранённых данных"""
         from creature import Creature
-        # from nn.my_handmade_ff import NeuralNetwork
-        from nn.rnn import NeuralNetwork
+        from nn import NeuralNetwork
         
         creatures = []
         for creature_data in creature_data_list:
@@ -309,9 +308,7 @@ class WorldPersistenceService:
     
     def _deserialize_nn(self, nn_data) -> 'NeuralNetwork':
         """Восстанавливает NeuralNetwork из сохранённых данных"""
-        # from nn.my_handmade_ff import NeuralNetwork
-        from nn.rnn import NeuralNetwork
-        
+        from nn import NeuralNetwork
         nn = NeuralNetwork()
         nn.w1 = np.array(nn_data['w1'], dtype=np.float32)
         nn.b1 = np.array(nn_data['b1'], dtype=np.float32)

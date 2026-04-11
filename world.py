@@ -3,8 +3,7 @@
 from creature import Creature
 #from nn.nn_torch_rnn import NeuralNetwork
 from food import Food
-#from nn.my_handmade_ff import NeuralNetwork
-from nn.rnn import NeuralNetwork
+from nn import NeuralNetwork
 import random
 import math
 import numpy as np

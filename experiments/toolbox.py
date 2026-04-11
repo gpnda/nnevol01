@@ -47,8 +47,7 @@ from world import World
 from world_generator import WorldGenerator
 from creature import Creature
 from food import Food
-# from nn.my_handmade_ff import NeuralNetwork
-from nn.rnn import NeuralNetwork
+from nn import NeuralNetwork
 
 
 

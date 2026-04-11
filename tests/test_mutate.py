@@ -6,8 +6,7 @@
 """
 
 import numpy as np
-# from nn.my_handmade_ff import NeuralNetwork
-from nn.rnn import NeuralNetwork
+from nn import NeuralNetwork
 
 
 # ANSI цветовые коды для терминала
