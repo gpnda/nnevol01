@@ -198,15 +198,7 @@ class WorldPersistenceService:
     
     def _serialize_nn(self, nn) -> dict:
         """Конвертирует NeuralNetwork в сохраняемый формат"""
-        nn_data = {
-            'w1': nn.w1.tolist(),
-            'b1': nn.b1.tolist(),
-            'w2': nn.w2.tolist(),
-            'b2': nn.b2.tolist(),
-            'w3': nn.w3.tolist(),
-            'b3': nn.b3.tolist(),
-        }
-        return nn_data
+        return nn.serialize()
     
     def _serialize_foods(self, foods) -> list:
         """Конвертирует foods в сохраняемый формат"""
@@ -308,15 +300,16 @@ class WorldPersistenceService:
     
     def _deserialize_nn(self, nn_data) -> 'NeuralNetwork':
         """Восстанавливает NeuralNetwork из сохранённых данных"""
-        from nn import NeuralNetwork
+        from nn import NeuralNetwork, NN_BACKEND
+        saved_type = nn_data.get('__type__')
+        if saved_type is not None and saved_type != NN_BACKEND:
+            raise ValueError(
+                f"Несовместимый тип нейросети: сохранялка создана с '{saved_type}', "
+                f"а сейчас активен '{NN_BACKEND}'. "
+                f"Измени NN_BACKEND в nn/__init__.py на '{saved_type}' и перезапусти."
+            )
         nn = NeuralNetwork()
-        nn.w1 = np.array(nn_data['w1'], dtype=np.float32)
-        nn.b1 = np.array(nn_data['b1'], dtype=np.float32)
-        nn.w2 = np.array(nn_data['w2'], dtype=np.float32)
-        nn.b2 = np.array(nn_data['b2'], dtype=np.float32)
-        nn.w3 = np.array(nn_data['w3'], dtype=np.float32)
-        nn.b3 = np.array(nn_data['b3'], dtype=np.float32)
-        
+        nn.deserialize(nn_data)
         return nn
     
     def _deserialize_foods(self, food_data_list) -> list:

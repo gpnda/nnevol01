@@ -51,6 +51,25 @@ class NeuralNetwork:  # класс нейронной сети
         new_nn.w3 = original_nn.w3.copy()
         new_nn.b3 = original_nn.b3.copy()
         return new_nn
+
+    def serialize(self) -> dict:
+        return {
+            '__type__': 'ff',
+            'w1': self.w1.tolist(),
+            'b1': self.b1.tolist(),
+            'w2': self.w2.tolist(),
+            'b2': self.b2.tolist(),
+            'w3': self.w3.tolist(),
+            'b3': self.b3.tolist(),
+        }
+
+    def deserialize(self, data: dict) -> None:
+        self.w1 = np.array(data['w1'], dtype=np.float32)
+        self.b1 = np.array(data['b1'], dtype=np.float32)
+        self.w2 = np.array(data['w2'], dtype=np.float32)
+        self.b2 = np.array(data['b2'], dtype=np.float32)
+        self.w3 = np.array(data['w3'], dtype=np.float32)
+        self.b3 = np.array(data['b3'], dtype=np.float32)
     
     def mutate(self, mutation_probability, mutation_strength):
         """
@@ -115,7 +134,7 @@ class NeuralNetwork:  # класс нейронной сети
 
 
     @staticmethod
-    def make_all_decisions(all_visions_normalized, creatures_nns):
+    def make_all_decisions(all_visions_normalized, creatures, creatures_nns):
         """
         Эта функция просто пасует данные в быструю функцию, 
         разбирая List (или кортеж) на элементы

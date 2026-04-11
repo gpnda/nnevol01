@@ -7,7 +7,7 @@
 #   'rnn'        — nn/rnn.py             (RNN, кастомный)
 #   'torch_rnn'  — nn/nn_torch_rnn.py   (RNN, PyTorch)
 
-NN_BACKEND = 'rnn'
+NN_BACKEND = 'ff'  # Выбираем бэкенд нейросети: 'ff', 'rnn', или 'torch_rnn'
 
 if NN_BACKEND == 'ff':
     from nn.my_handmade_ff import NeuralNetwork

@@ -65,6 +65,33 @@ class NeuralNetwork:
         # Keep newborn states zeroed.
         return new_nn
 
+    def serialize(self) -> dict:
+        return {
+            '__type__': 'rnn',
+            'w1_x': self.w1_x.tolist(),
+            'w1_h': self.w1_h.tolist(),
+            'b1': self.b1.tolist(),
+            'w2_x': self.w2_x.tolist(),
+            'w2_h': self.w2_h.tolist(),
+            'b2': self.b2.tolist(),
+            'w3': self.w3.tolist(),
+            'b3': self.b3.tolist(),
+            'h1_state': self.h1_state.tolist(),
+            'h2_state': self.h2_state.tolist(),
+        }
+
+    def deserialize(self, data: dict) -> None:
+        self.w1_x = np.array(data['w1_x'], dtype=np.float32)
+        self.w1_h = np.array(data['w1_h'], dtype=np.float32)
+        self.b1 = np.array(data['b1'], dtype=np.float32)
+        self.w2_x = np.array(data['w2_x'], dtype=np.float32)
+        self.w2_h = np.array(data['w2_h'], dtype=np.float32)
+        self.b2 = np.array(data['b2'], dtype=np.float32)
+        self.w3 = np.array(data['w3'], dtype=np.float32)
+        self.b3 = np.array(data['b3'], dtype=np.float32)
+        self.h1_state = np.array(data['h1_state'], dtype=np.float32)
+        self.h2_state = np.array(data['h2_state'], dtype=np.float32)
+
     def mutate(self, mutation_probability: float, mutation_strength: float) -> None:
         params = [self.w1_x, self.w1_h, self.b1, self.w2_x, self.w2_h, self.b2, self.w3, self.b3]
         for param in params:
