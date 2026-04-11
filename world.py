@@ -738,7 +738,8 @@ class World():
 		# Возвращает коэффициент освещенности от 0.0 до 1.0, в зависимости от текущего тика
 		# return 0.5*(math.tanh(10*(math.sin(((tick)/(30)))+0.5))+1)
 		# return 1.0
-	    return 0.5*(math.tanh(10*(math.sin(tick/230)+0.5))+1) # Начинается ярко, смеркается с 900 тика, ночь по 1300 тик.
+	    # return 0.5*(math.tanh(10*(math.sin(tick/230)+0.5))+1) # Начинается ярко, смеркается с 900 тика, ночь по 1300 тик.
+		return 1.0
 
 
 	def get_all_other_inputs(creatures):

@@ -26,9 +26,9 @@ class SimParams:
         # Энергия, откусываемая от еды за один укус
         self.food_energy_chunk = 0.5
         # Максимальный возраст пищи
-        self.food_max_age = 200
+        self.food_max_age = 500
         # Пропорция пищи внутри норок и снаружи 0.0 .. 1.0
-        self.food_proportion_indoor_outdoor = 0.05
+        self.food_proportion_indoor_outdoor = 0.5
 		
         
         # === Параметры размножения ===
