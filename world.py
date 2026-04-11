@@ -3,7 +3,8 @@
 from creature import Creature
 #from nn.nn_torch_rnn import NeuralNetwork
 from food import Food
-from nn.my_handmade_ff import NeuralNetwork
+#from nn.my_handmade_ff import NeuralNetwork
+from nn.rnn import NeuralNetwork
 import random
 import math
 import numpy as np
@@ -110,7 +111,7 @@ class World():
 		# содержащий эти самые numpy ndarray: l1_weights, l2_weights, l1_bias, l2_bias ...
 		
 		# запускаем быструю функцию
-		all_outs = NeuralNetwork.make_all_decisions(all_inputs, creatures_nns)
+		all_outs = NeuralNetwork.make_all_decisions(all_inputs, self.creatures, creatures_nns)
 		# all_outs[] is a numpy ndarray [angle_delta, speed_delta, bite]
 
 		# Отладочная печать выходов самого последнего рожденного существа, чтобы посмотреть на эти значения.

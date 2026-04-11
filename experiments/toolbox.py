@@ -47,7 +47,8 @@ from world import World
 from world_generator import WorldGenerator
 from creature import Creature
 from food import Food
-from nn.my_handmade_ff import NeuralNetwork
+# from nn.my_handmade_ff import NeuralNetwork
+from nn.rnn import NeuralNetwork
 
 
 
@@ -146,7 +147,7 @@ class VisionSimulator:
         all_inputs = np.hstack([all_inputs, other_inputs])
         
         # Вызвать fast_calc_all_outs через make_all_decisions (тот же путь, что в основной симуляции)
-        outputs = NeuralNetwork.make_all_decisions(all_inputs, creatures_nns)
+        outputs = NeuralNetwork.make_all_decisions(all_inputs, creatures=[creature], creatures_nns=creatures_nns)
         
         return float(outputs[0, 0]), float(outputs[0, 1]), float(outputs[0, 2])
 

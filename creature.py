@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #from nn.nn_torch_rnn import NeuralNetwork
-from nn.my_handmade_ff import NeuralNetwork
+# from nn.my_handmade_ff import NeuralNetwork
+from nn.rnn import NeuralNetwork
 import copy
 import random
 from simparams import sp
