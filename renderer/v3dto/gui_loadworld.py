@@ -50,16 +50,23 @@ class PopupLoadWorldModal:
     }
 
 
-    def __init__(self, on_do_loadworld: Optional[Callable[[str], None]] = None):
+    def __init__(
+        self,
+        on_do_loadworld: Optional[Callable[[str], None]] = None,
+        on_do_loadcreatures: Optional[Callable[[str], None]] = None,
+    ):
         """Инициализация модального окна загрузки мира.
             
             Args:
             on_do_loadworld: Callback при подтверждении загрузки мира
                             Сигнатура: on_do_loadworld(save_file_name: str)
+            on_do_loadcreatures: Callback при загрузке только существ
+                            Сигнатура: on_do_loadcreatures(save_file_name: str)
         """
 
         # Callback функция
         self.on_do_loadworld = on_do_loadworld
+        self.on_do_loadcreatures = on_do_loadcreatures
 
         # Список слотов сохранения мира. Будет заполнен через renderer._on_state_enter()
         self.save_slots = []
@@ -139,11 +146,9 @@ class PopupLoadWorldModal:
         title_rect = pygame.Rect(self.x, self.y, self.POPUP_WIDTH, self.TITLE_HEIGHT)
         pygame.draw.rect(screen, self.COLORS['title_bg'], title_rect)
         
-        title_text = self.font_title.render(
-            "LOAD", 
-            False, 
-            self.COLORS['title_text']
-        )
+        shift_mode = bool(pygame.key.get_mods() & pygame.KMOD_SHIFT)
+        title = "LOAD CREATURES ONLY" if shift_mode else "LOAD"
+        title_text = self.font_title.render(title, False, self.COLORS['title_text'])
         title_x = self.x + self.CONTENT_PADDING
         title_y = self.y + (self.TITLE_HEIGHT - title_text.get_height()) // 2
         screen.blit(title_text, (title_x, title_y))
@@ -183,7 +188,9 @@ class PopupLoadWorldModal:
             table_y += self.LINE_HEIGHT
         
         # Отрисовка подсказки внизу
-        help_text = "UP/DOWN: navigate | LEFT/RIGHT: pages | ENTER: load | ESC: close"
+        help_text = (
+            "UP/DOWN: navigate | LEFT/RIGHT: pages | SHIFT+ENTER: load creatures | ENTER: load world | ESC: close"
+        )
         help_surface = self.font.render(help_text, False, self.COLORS['text'])
         help_x = self.x + (self.POPUP_WIDTH - help_surface.get_width()) // 2
         help_y = self.y + self.POPUP_HEIGHT - self.CONTENT_PADDING - help_surface.get_height()
@@ -350,12 +357,18 @@ class PopupLoadWorldModal:
             return True
         
         elif event.key == pygame.K_RETURN:
+            shift_mode = bool(event.mod & pygame.KMOD_SHIFT)
+
             # Вызываем callback с полным stem файла сохранения
-            if self.on_do_loadworld is not None and 0 <= self.selected_slot < len(self.slots_list):
+            if 0 <= self.selected_slot < len(self.slots_list):
                 selected_slot_info = self.slots_list[self.selected_slot]
                 save_file_name = selected_slot_info.get('filename', '')
-                self.on_do_loadworld(save_file_name)
-                self.just_loaded = True  # Устанавливаем флаг, что мир был загружен
+                if shift_mode and self.on_do_loadcreatures is not None:
+                    self.on_do_loadcreatures(save_file_name)
+                    self.just_loaded = True
+                elif self.on_do_loadworld is not None:
+                    self.on_do_loadworld(save_file_name)
+                    self.just_loaded = True  # Устанавливаем флаг, что мир был загружен
             return True
         
         return False

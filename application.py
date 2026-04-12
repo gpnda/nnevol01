@@ -154,6 +154,15 @@ class Application():
 		"""
 		if world_persistence.load_world(self.world, save_file_name):
 			self.is_running = False  # Остановить симуляцию на время загрузки
+
+	def load_creatures(self, save_file_name: str):
+		"""Загрузить из слота только существ и добавить в текущий мир.
+		
+		Args:
+			save_file_name: Имя файла для загрузки
+		"""
+		if world_persistence.load_creatures_only(self.world, save_file_name):
+			self.is_running = False  # Сохраняем поведение модального окна: после операции остаемся на паузе
 	
 	def reset_world(self):
 		"""Сбросить мир."""

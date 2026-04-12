@@ -4,6 +4,7 @@
 import json
 import gzip
 import re
+import random
 from pathlib import Path
 from typing import Optional
 import numpy as np
@@ -168,6 +169,91 @@ class WorldPersistenceService:
         except Exception as e:
             print(f"✗ Ошибка при загрузке мира: {e}")
             return False
+
+    def load_creatures_only(self, world, filename: str) -> bool:
+        """
+        Загружает из сохранения только существ и добавляет их в текущий мир.
+
+        Отличия от load_world():
+        - не меняет размеры мира, walls_map, zones_map, foods, tick, simparams
+        - каждому загруженному существу назначает новый уникальный id
+        - размещает существ на случайных свободных клетках текущего мира
+        """
+        try:
+            from creature import Creature
+
+            load_path = self.SAVES_DIR / f"{filename}.world.gz"
+
+            if not load_path.exists():
+                print(f"✗ Файл не найден: {load_path}")
+                return False
+
+            with open(load_path, 'rb') as f:
+                compressed_data = f.read()
+
+            json_bytes = gzip.decompress(compressed_data)
+            json_str = json_bytes.decode('utf-8')
+            world_data = json.loads(json_str)
+
+            loaded_creatures = self._deserialize_creatures(
+                world_data.get('creatures', []),
+                update_id_counter=False,
+            )
+
+            requested_count = len(loaded_creatures)
+            existing_creature_positions = {
+                (int(c.x), int(c.y))
+                for c in world.creatures
+            }
+            existing_food_positions = {
+                (int(f.x), int(f.y))
+                for f in world.foods
+            }
+
+            free_cells = []
+            for y in range(world.height):
+                for x in range(world.width):
+                    if world.walls_map[y, x] == 1:
+                        continue
+                    if (x, y) in existing_creature_positions:
+                        continue
+                    if (x, y) in existing_food_positions:
+                        continue
+                    free_cells.append((x, y))
+
+            random.shuffle(free_cells)
+
+            existing_max_id = max((c.id for c in world.creatures), default=0)
+            next_id = max(existing_max_id, Creature._id_counter)
+
+            added_count = 0
+            for creature in loaded_creatures:
+                if not free_cells:
+                    break
+
+                x, y = free_cells.pop()
+                next_id += 1
+
+                creature.id = next_id
+                creature.x = x
+                creature.y = y
+                world.creatures.append(creature)
+                added_count += 1
+
+            Creature._id_counter = max(Creature._id_counter, next_id)
+            world.update_map()
+
+            skipped_count = requested_count - added_count
+            print(f"✓ Существа загружены из {load_path}")
+            print(
+                f"  Запрошено: {requested_count}, Добавлено: {added_count}, "
+                f"Пропущено (нет места): {skipped_count}"
+            )
+            return True
+
+        except Exception as e:
+            print(f"✗ Ошибка при загрузке существ из мира: {e}")
+            return False
     
     def _serialize_creatures(self, creatures) -> list:
         """Конвертирует creatures в сохраняемый формат (list of dicts)"""
@@ -260,7 +346,7 @@ class WorldPersistenceService:
         if skipped_count > 0:
             print(f"  (пропущено {skipped_count} неизвестных параметров)")
     
-    def _deserialize_creatures(self, creature_data_list) -> list:
+    def _deserialize_creatures(self, creature_data_list, update_id_counter: bool = True) -> list:
         """Восстанавливает creatures из сохранённых данных"""
         from creature import Creature
         from nn import NeuralNetwork
@@ -292,13 +378,13 @@ class WorldPersistenceService:
             
             creatures.append(creature)
         
-        # Обновляем счётчик ID для новых существ
-        if creatures:
+        # Обновляем счётчик ID для новых существ (только для полного восстановления мира)
+        if creatures and update_id_counter:
             Creature._id_counter = max(c.id for c in creatures)
         
         return creatures
     
-    def _deserialize_nn(self, nn_data) -> 'NeuralNetwork':
+    def _deserialize_nn(self, nn_data):
         """Восстанавливает NeuralNetwork из сохранённых данных"""
         from nn import NeuralNetwork, NN_BACKEND
         saved_type = nn_data.get('__type__')

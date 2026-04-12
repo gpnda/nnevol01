@@ -67,7 +67,10 @@ print("4. Сохранение мира...")
 result = world_persistence.save_world(world, SAVE_NAME)
 check(result, "save_world вернул True", "save_world вернул False")
 
-save_path = SAVES_DIR / f"{SAVE_NAME}.world.gz"
+matching_paths = sorted(SAVES_DIR.glob(f"{SAVE_NAME}__*.world.gz"))
+check(len(matching_paths) > 0, "Файл сохранения найден по encoded-имени", "Файл не найден")
+save_path = matching_paths[-1]
+save_stem = save_path.name[:-9]
 check(save_path.exists(), f"Файл создан: {save_path}", "Файл не создан")
 
 # Проверяем что zones_map попал в файл
@@ -88,6 +91,8 @@ print("5. Загрузка мира в новый объект...")
 from world import World
 world2 = World(10, 10)  # намеренно другой размер — должен исправиться при load
 result = world_persistence.load_world(world2, SAVE_NAME)
+if not result:
+    result = world_persistence.load_world(world2, save_stem)
 check(result, "load_world вернул True", "load_world вернул False")
 check(world2.width == world.width and world2.height == world.height,
       f"Размеры восстановлены: {world2.width}×{world2.height}",
@@ -141,14 +146,57 @@ except Exception as e:
     sys.exit(1)
 
 # ---------------------------------------------------------------------------
-print("9. get_save_slots включает тестовый слот...")
+print("9. Частичная загрузка: добавление только существ в текущий мир...")
+try:
+    world3 = WorldGenerator.generate_world(
+        width=50, height=50,
+        wall_count=30, food_count=20, creatures_count=5,
+        border_walls=True,
+    )
+    world3.update_map()
+
+    pre_count = len(world3.creatures)
+    pre_size = (world3.width, world3.height)
+    pre_walls_shape = world3.walls_map.shape
+
+    load_partial_ok = world_persistence.load_creatures_only(world3, save_stem)
+    check(load_partial_ok, "load_creatures_only вернул True", "load_creatures_only вернул False")
+
+    post_count = len(world3.creatures)
+    check(post_count > pre_count,
+          f"Число существ выросло: {pre_count} -> {post_count}",
+          f"Число существ не выросло: {pre_count} -> {post_count}")
+
+    check((world3.width, world3.height) == pre_size,
+          f"Размеры мира не изменились: {world3.width}x{world3.height}",
+          "Размеры мира изменились после частичной загрузки")
+
+    check(world3.walls_map.shape == pre_walls_shape,
+          f"Форма walls_map не изменилась: {world3.walls_map.shape}",
+          "Форма walls_map изменилась после частичной загрузки")
+
+    ids = [c.id for c in world3.creatures]
+    check(len(ids) == len(set(ids)), "ID существ уникальны", "Обнаружены дубликаты ID")
+
+    for c in world3.creatures:
+        x, y = int(c.x), int(c.y)
+        if x < 0 or x >= world3.width or y < 0 or y >= world3.height:
+            print(f"   ✗ Существо вне границ: id={c.id}, x={c.x}, y={c.y}")
+            sys.exit(1)
+    print("   ✓ Все существа после partial-load в пределах карты\n")
+except Exception as e:
+    print(f"   ✗ Исключение в partial-load тесте: {e}\n")
+    sys.exit(1)
+
+# ---------------------------------------------------------------------------
+print("10. get_save_slots включает тестовый слот...")
 slots = world_persistence.get_save_slots()
 names = [s['name'] for s in slots]
 check(SAVE_NAME in names, f"Слот '{SAVE_NAME}' найден", f"Слот не найден. Слоты: {names}")
 print()
 
 # ---------------------------------------------------------------------------
-print("10. Удаляем тестовый файл...")
+print("11. Удаляем тестовый файл...")
 save_path.unlink(missing_ok=True)
 check(not save_path.exists(), "Тестовый файл удалён", "Файл не удалён")
 print()

@@ -120,7 +120,10 @@ class Renderer:
         self.creatures_list_modal = CreaturesListModal()
         self.exper_list_modal = ExperListModal(on_experiment_choose=self._on_experiment_choose)
         self.popup_saveworld_modal = PopupSaveWorldModal(on_do_saveworld=self.app.save_world)
-        self.popup_loadworld_modal = PopupLoadWorldModal(on_do_loadworld=self.app.load_world)
+        self.popup_loadworld_modal = PopupLoadWorldModal(
+            on_do_loadworld=self.app.load_world,
+            on_do_loadcreatures=self.app.load_creatures,
+        )
         self.day_night_chart = DayNightChart()
 
         # ЭКСПЕРИМЕНТ ВИДЖЕТ (инициализируется при выборе эксперимента)
