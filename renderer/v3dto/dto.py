@@ -221,6 +221,7 @@ class SimulationParamsDTO:
     # Наказание за нахождение снаружи/внутри
     zones_penalty_mode: int
     zones_penalty: float
+    zones_penalty_probability: float
 
 
 # ============================================================================

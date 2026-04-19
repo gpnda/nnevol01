@@ -102,6 +102,7 @@ class VariablesPanel:
         self.add_variable("allow_mutations",                  int,   min_val=0,       max_val=1)
         self.add_variable("zones_penalty_mode",               int,   min_val=0,       max_val=2)
         self.add_variable("zones_penalty",                    float, min_val=0.0,     max_val=1.0)
+        self.add_variable("zones_penalty_probability",        float, min_val=0.0,     max_val=1.0)
     
     def add_variable(self, name: str, var_type: type = int,
                      min_val: Optional[float] = None, 
@@ -153,7 +154,7 @@ class VariablesPanel:
         self.variables['allow_mutations']['value'] = params_dto.allow_mutations
         self.variables['zones_penalty_mode']['value'] = params_dto.zones_penalty_mode
         self.variables['zones_penalty']['value'] = params_dto.zones_penalty
-    
+        self.variables['zones_penalty_probability']['value'] = params_dto.zones_penalty_probability
     def get_variable(self, name: str) -> Any:
         """Получить значение переменной."""
         if name not in self.variables:
