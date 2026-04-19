@@ -37,6 +37,9 @@ class VariablesPanel:
     ITEM_VALUE_X = 150
     PADDING_X = 5
     PADDING_Y = 5
+    COMMENT_BOX_HEIGHT = 58
+    COMMENT_BOX_MARGIN = 8
+    COMMENT_MAX_LINES = 2
 
     # Двухколоночный layout
     COLUMN_SIZE = 17          # Максимум строк в одной колонке
@@ -81,32 +84,33 @@ class VariablesPanel:
 
         # Добавляем переменные в панель
         # Значения берутся из RenderStateDTO во время draw()
-        self.add_variable("mutation_probability",             float, min_val=0.0,     max_val=1.0)
-        self.add_variable("mutation_strength",                float, min_val=0.0,     max_val=100.0)
-        self.add_variable("creature_max_age",                 int,   min_val=1,       max_val=100000)
-        self.add_variable("food_amount",                      int,   min_val=1,       max_val=100000)
-        self.add_variable("food_energy_capacity",             float, min_val=0.0,     max_val=50.0)
-        self.add_variable("food_energy_chunk",                float, min_val=0.0,     max_val=50.0)
-        self.add_variable("food_max_age",                     int,   min_val=1,       max_val=100000)
-        self.add_variable("food_proportion_indoor_outdoor",   float, min_val=0.0,     max_val=1.0)
-        self.add_variable("reproduction_ages",                str,   min_val=0.0,     max_val=1.0)
-        self.add_variable("reproduction_offsprings",          int,   min_val=1,       max_val=100)
-        self.add_variable("energy_cost_tick",                 float, min_val=0.0,     max_val=100.0)
-        self.add_variable("energy_cost_speed",                float, min_val=0.0,     max_val=100.0)
-        self.add_variable("energy_cost_rotate",               float, min_val=-20.0,   max_val=50.0)
-        self.add_variable("energy_cost_bite",                 float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_gain_from_food",            float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_gain_from_bite_cr",         float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_loss_bitten",               float, min_val=0.0,     max_val=1.0)
-        self.add_variable("energy_loss_collision",            float, min_val=0.0,     max_val=1.0)
-        self.add_variable("allow_mutations",                  int,   min_val=0,       max_val=1)
-        self.add_variable("zones_penalty_mode",               int,   min_val=0,       max_val=2)
-        self.add_variable("zones_penalty",                    float, min_val=0.0,     max_val=1.0)
-        self.add_variable("zones_penalty_probability",        float, min_val=0.0,     max_val=1.0)
+        self.add_variable("mutation_probability",             float, min_val=0.0,     max_val=1.0,      comment="Probability of mutating each weight")
+        self.add_variable("mutation_strength",                float, min_val=0.0,     max_val=100.0,    comment="Mutation strength applied to each weight")
+        self.add_variable("creature_max_age",                 int,   min_val=1,       max_val=100000,   comment="Maximum creature age, in ticks")
+        self.add_variable("food_amount",                      int,   min_val=1,       max_val=100000,   comment="Amount of food on the map")
+        self.add_variable("food_energy_capacity",             float, min_val=0.0,     max_val=50.0,     comment="Available energy capacity of untouched food")
+        self.add_variable("food_energy_chunk",                float, min_val=0.0,     max_val=50.0,     comment="Amount bitten off from food in a single bite")
+        self.add_variable("food_max_age",                     int,   min_val=1,       max_val=100000,   comment="Maximum food age, in ticks")
+        self.add_variable("food_proportion_indoor_outdoor",   float, min_val=0.0,     max_val=1.0,      comment="Ratio of food placed inside versus outside burrows")
+        self.add_variable("reproduction_ages",                str,   min_val=0.0,     max_val=1.0,      comment="Ages at which reproduction occurs, for example: [350, 400, 450] *brackets are required*")
+        self.add_variable("reproduction_offsprings",          int,   min_val=1,       max_val=100,      comment="Number of offspring produced during each reproduction")
+        self.add_variable("energy_cost_tick",                 float, min_val=0.0,     max_val=100.0,    comment="Base energy cost of surviving one tick")
+        self.add_variable("energy_cost_speed",                float, min_val=0.0,     max_val=100.0,    comment="Energy cost of movement speed")
+        self.add_variable("energy_cost_rotate",               float, min_val=-20.0,   max_val=50.0,     comment="Energy cost of rotation")
+        self.add_variable("energy_cost_bite",                 float, min_val=0.0,     max_val=1.0,      comment="Energy cost of a bite")
+        self.add_variable("energy_gain_from_food",            float, min_val=0.0,     max_val=1.0,      comment="Energy gained from food")
+        self.add_variable("energy_gain_from_bite_cr",         float, min_val=0.0,     max_val=1.0,      comment="[unused] Energy gained from biting another creature")
+        self.add_variable("energy_loss_bitten",               float, min_val=0.0,     max_val=1.0,      comment="[unused] Energy lost when a creature is bitten")
+        self.add_variable("energy_loss_collision",            float, min_val=0.0,     max_val=1.0,      comment="Penalty for colliding with a wall (currently deducted from energy)")
+        self.add_variable("allow_mutations",                  int,   min_val=0,       max_val=1,        comment="Mutations are enabled (1) or disabled (0). This param also switches off automatically near population size borders")
+        self.add_variable("zones_penalty_mode",               int,   min_val=0,       max_val=2,        comment="Zone penalty mode (0 = none, 1 = penalty for being inside a burrow, 2 = penalty for being outside)")
+        self.add_variable("zones_penalty",                    float, min_val=0.0,     max_val=1.0,      comment="Penalty amount for staying in a zone. Applied to creature.health")
+        self.add_variable("zones_penalty_probability",        float, min_val=0.0,     max_val=1.0,      comment="Probability of receiving a zone penalty (for example, 0.02 means a 2 percent chance each tick)")
     
     def add_variable(self, name: str, var_type: type = int,
                      min_val: Optional[float] = None, 
-                     max_val: Optional[float] = None) -> None:
+                     max_val: Optional[float] = None, 
+                     comment: Optional[str] = None) -> None:
         """
         Добавить переменную в панель.
         
@@ -115,12 +119,14 @@ class VariablesPanel:
             var_type: Тип переменной (int, float, str)
             min_val: Минимальное значение (опционально)
             max_val: Максимальное значение (опционально)
+            comment: Комментарий к переменной (опционально)
         """
         self.variables[name] = {
             'value': None,  # Значение устанавливается из RenderStateDTO
             'type': var_type,
             'min': min_val,
             'max': max_val,
+            'comment': comment,
         }
     
     def update_from_render_state(self, render_state: 'RenderStateDTO') -> None:
@@ -155,6 +161,7 @@ class VariablesPanel:
         self.variables['zones_penalty_mode']['value'] = params_dto.zones_penalty_mode
         self.variables['zones_penalty']['value'] = params_dto.zones_penalty
         self.variables['zones_penalty_probability']['value'] = params_dto.zones_penalty_probability
+    
     def get_variable(self, name: str) -> Any:
         """Получить значение переменной."""
         if name not in self.variables:
@@ -299,12 +306,18 @@ class VariablesPanel:
             if col > 0:
                 new_index = (col - 1) * self.COLUMN_SIZE + row
                 self.selected_index = min(new_index, total - 1)
+            else:
+                # Если мы на первой колонке - переходим на самый первый параметр
+                self.selected_index = 0
             return True
 
         elif event.key == pygame.K_RIGHT:
             new_index = (col + 1) * self.COLUMN_SIZE + row
             if new_index < total:
                 self.selected_index = new_index
+            else:
+                # Если в следующей колонке нет строки, переходим на последнюю строку
+                self.selected_index = total - 1
             return True
 
         elif event.key == pygame.K_RETURN:
@@ -331,6 +344,29 @@ class VariablesPanel:
         
         self.editing = False
         self.input_buffer = ""
+
+    def _wrap_text(self, text: str, max_width: int) -> List[str]:
+        """Разбивает текст на строки, которые помещаются по ширине."""
+        if not text:
+            return []
+
+        words = text.split()
+        if not words:
+            return [text]
+
+        lines = []
+        current_line = words[0]
+
+        for word in words[1:]:
+            candidate = f"{current_line} {word}"
+            if self.font.size(candidate)[0] <= max_width:
+                current_line = candidate
+            else:
+                lines.append(current_line)
+                current_line = word
+
+        lines.append(current_line)
+        return lines
     
     def draw(self, screen: pygame.Surface) -> None:
         """
@@ -344,7 +380,7 @@ class VariablesPanel:
         pygame.draw.rect(screen, self.COLORS['highlight'], self.rect, 2)
         
         # Заголовок
-        title_surf = self.font.render("VARS", False, self.COLORS['highlight'])
+        title_surf = self.font.render("SIMULATION PARAMETERS", False, self.COLORS['highlight'])
         screen.blit(title_surf, (self.rect.x + self.PADDING_X, 
                                  self.rect.y + self.TITLE_Y_OFFSET))
         
@@ -387,3 +423,31 @@ class VariablesPanel:
 
             value_surf = self.font.render(f"{value_text:>10}", False, value_color)
             screen.blit(value_surf, (x_base + self.ITEM_VALUE_X, y))
+
+        # Комментарий к выбранному параметру в нижней части панели
+        if var_list and self.selected_index < len(var_list):
+            selected_name, selected_info = var_list[self.selected_index]
+            comment_rect = pygame.Rect(
+                self.rect.x + self.COMMENT_BOX_MARGIN,
+                self.rect.bottom - self.COMMENT_BOX_HEIGHT - self.COMMENT_BOX_MARGIN,
+                self.rect.width - self.COMMENT_BOX_MARGIN * 2,
+                self.COMMENT_BOX_HEIGHT,
+            )
+            pygame.draw.rect(screen, self.COLORS['bg'], comment_rect)
+            pygame.draw.rect(screen, self.COLORS['highlight'], comment_rect, 1)
+
+            min_value = selected_info.get('min')
+            max_value = selected_info.get('max')
+            min_text = min_value if min_value is not None else "-"
+            max_text = max_value if max_value is not None else "-"
+            header_text = f"HINT: {selected_name}  min:{min_text} max:{max_text}"
+            header_surf = self.font.render(header_text, False, self.COLORS['highlight'])
+            screen.blit(header_surf, (comment_rect.x + self.PADDING_X, comment_rect.y + 4))
+
+            comment_text = selected_info.get('comment') or "No description available for the selected parameter"
+            wrapped_lines = self._wrap_text(comment_text, comment_rect.width - self.PADDING_X * 2)
+
+            for line_idx, line in enumerate(wrapped_lines[:self.COMMENT_MAX_LINES]):
+                line_y = comment_rect.y + 22 + line_idx * self.LINE_HEIGHT
+                line_surf = self.font.render(line, False, self.COLORS['text'])
+                screen.blit(line_surf, (comment_rect.x + self.PADDING_X, line_y))
