@@ -335,10 +335,10 @@ class World():
 			
 			is_indoor = self.is_in_nest(creature)
 			if sp.zones_penalty_mode == 1 and is_indoor:
-				creature.energy -= sp.zones_penalty
+				creature.health -= sp.zones_penalty
 				creature.input_hurting = 1.0 # Сигнализируем нейросети, что существо получает наказание
 			elif sp.zones_penalty_mode == 2 and not is_indoor:
-				creature.energy -= sp.zones_penalty
+				creature.health -= sp.zones_penalty
 				creature.input_hurting = 1.0 # Сигнализируем нейросети, что существо получает наказание
 
 	
