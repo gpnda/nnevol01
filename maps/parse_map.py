@@ -6,8 +6,8 @@ from pathlib import Path
 import pygame
 
 
-INPUT_FILE = "map05.bmp"
-OUTPUT_FILE = "map05.csv"
+INPUT_FILE = "map06.bmp"
+OUTPUT_FILE = "map06.csv"
 
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
