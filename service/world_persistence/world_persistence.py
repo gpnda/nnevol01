@@ -374,7 +374,12 @@ class WorldPersistenceService:
             creature.input_bite_success = creature_data['input_bite_success']
             
             # Восстанавливаем веса нейросети
-            creature.nn = self._deserialize_nn(creature_data['nn'])
+            # Если десериализация прошла с ошибкой - перешагнем это существо
+            try:
+                creature.nn = self._deserialize_nn(creature_data['nn'])
+            except Exception as e:
+                print(f"Ошибка при восстановлении нейросети существа с ID {creature.id}: {e}")
+                continue
             
             creatures.append(creature)
         
