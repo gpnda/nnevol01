@@ -147,8 +147,19 @@ class WorldPersistenceService:
                 world.zones_map.zones_map = zones_arr
                 world.zones_map._build_pixel_caches()
 
-            world.creatures = self._deserialize_creatures(world_data['creatures'])
-            world.foods = self._deserialize_foods(world_data['foods'])
+            # Поймаем исключения при десериализации существ и еды, чтобы не сломать загрузку мира полностью
+            try:
+                world.creatures = self._deserialize_creatures(world_data['creatures'])
+            except Exception as e:
+                print(f"FATALITY!!! Ошибка при загрузке существ: {e}")
+                world.creatures = []
+
+            # Поймаем исключения при десериализации еды, чтобы не сломать загрузку мира полностью
+            try:
+                world.foods = self._deserialize_foods(world_data['foods'])
+            except Exception as e:
+                print(f"FATALITY!!! Ошибка при загрузке еды: {e}")
+                world.foods = []
 
             # Восстанавливаем параметры симуляции (если они сохранены)
             if 'simparams' in world_data:
