@@ -196,7 +196,47 @@ check(SAVE_NAME in names, f"Слот '{SAVE_NAME}' найден", f"Слот н�
 print()
 
 # ---------------------------------------------------------------------------
-print("11. Удаляем тестовый файл...")
+print("11. Атомарность входа: битый файл не должен мутировать world...")
+try:
+    CORRUPT_NAME = "_pytest_persistence_corrupt"
+    corrupt_json = dict(saved_json)
+    corrupt_json['metadata'] = dict(corrupt_json['metadata'])
+    corrupt_json['metadata']['width'] = corrupt_json['metadata']['width'] + 5  # рассинхронизирует с walls_map shape
+
+    corrupt_path = SAVES_DIR / f"{CORRUPT_NAME}.world.gz"
+    corrupt_bytes = gzip.compress(json.dumps(corrupt_json).encode('utf-8'), compresslevel=9)
+    with open(corrupt_path, 'wb') as f:
+        f.write(corrupt_bytes)
+
+    world4 = WorldGenerator.generate_world(
+        width=30, height=30,
+        wall_count=10, food_count=5, creatures_count=3,
+        border_walls=True,
+    )
+    pre_width, pre_height = world4.width, world4.height
+    pre_creatures_count = len(world4.creatures)
+    pre_foods_count = len(world4.foods)
+
+    result_corrupt = world_persistence.load_world(world4, CORRUPT_NAME)
+    check(result_corrupt is False, "load_world вернул False на битых данных", "load_world вернул True на битых данных")
+    check(world4.width == pre_width and world4.height == pre_height,
+          f"Размеры world не изменились: {world4.width}x{world4.height}",
+          f"Размеры world изменились после неудачной загрузки: {world4.width}x{world4.height}")
+    check(len(world4.creatures) == pre_creatures_count,
+          f"creatures не изменились: {len(world4.creatures)}",
+          f"creatures изменились после неудачной загрузки: {len(world4.creatures)}")
+    check(len(world4.foods) == pre_foods_count,
+          f"foods не изменились: {len(world4.foods)}",
+          f"foods изменились после неудачной загрузки: {len(world4.foods)}")
+
+    corrupt_path.unlink(missing_ok=True)
+    print()
+except Exception as e:
+    print(f"   ✗ Исключение в тесте атомарности: {e}\n")
+    sys.exit(1)
+
+# ---------------------------------------------------------------------------
+print("12. Удаляем тестовый файл...")
 save_path.unlink(missing_ok=True)
 check(not save_path.exists(), "Тестовый файл удалён", "Файл не удалён")
 print()

@@ -5,11 +5,23 @@ import json
 import gzip
 import re
 import random
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 import numpy as np
 from simparams import sp
 from datetime import datetime
+
+
+@dataclass
+class LoadedSnapshot:
+    """Нейтральный носитель данных загрузки: не знает про World, готов к применению."""
+    metadata: dict
+    walls_map: np.ndarray
+    zones_arr: Optional[np.ndarray]
+    creatures: list
+    foods: list
+    simparams: dict = field(default_factory=dict)
 
 
 class WorldPersistenceService:
@@ -93,93 +105,43 @@ class WorldPersistenceService:
     
     def load_world(self, world, filename: str) -> bool:
         """
-        Загружает состояние мира из JSON.GZ файла
-        
+        Загружает состояние мира из JSON.GZ файла (полная замена world).
+
+        Атомарность входа: если чтение файла или сборка snapshot падает —
+        world не тронут вообще. Мутация world происходит только в apply_full_load,
+        когда snapshot уже полностью провалидирован.
+
         Args:
             world: World объект для применения загруженных данных
             filename: Имя файла (без расширения)
-            
+
         Returns:
             True если успешно, False если ошибка
         """
         try:
-            load_path = self.SAVES_DIR / f"{filename}.world.gz"
-            
-            if not load_path.exists():
-                print(f"✗ Файл не найден: {load_path}")
-                return False
-            
-            # Читаем и распаковываем файл
-            with open(load_path, 'rb') as f:
-                compressed_data = f.read()
-            
-            json_bytes = gzip.decompress(compressed_data)
-            json_str = json_bytes.decode('utf-8')
-            world_data = json.loads(json_str)
-            
-            # Применяем загруженные данные в world
-            width = world_data['metadata']['width']
-            height = world_data['metadata']['height']
-            world.width = width
-            world.height = height
-            world.tick = world_data['metadata']['tick']
-
-            # Пересоздаём карту под загруженный размер
-            world.map = np.zeros((height, width), dtype='int')
-
-            # Загружаем walls_map и проверяем shape
-            walls_map = np.array(world_data['walls_map'], dtype='int')
-            if walls_map.shape != (height, width):
-                raise ValueError(
-                    f"walls_map shape {walls_map.shape} не соответствует размерам мира ({height}, {width})"
-                )
-            world.walls_map = walls_map
-
-            # Восстанавливаем zones_map и перестраиваем кэши зон
-            if 'zones_map' in world_data:
-                zones_arr = np.array(world_data['zones_map'], dtype='int')
-                if zones_arr.shape != (height, width):
-                    raise ValueError(
-                        f"zones_map shape {zones_arr.shape} не соответствует размерам мира ({height}, {width})"
-                    )
-                world.zones_map.width = width
-                world.zones_map.height = height
-                world.zones_map.zones_map = zones_arr
-                world.zones_map._build_pixel_caches()
-
-            # Поймаем исключения при десериализации существ и еды, чтобы не сломать загрузку мира полностью
-            try:
-                world.creatures = self._deserialize_creatures(world_data['creatures'])
-            except Exception as e:
-                print(f"FATALITY!!! Ошибка при загрузке существ: {e}")
-                world.creatures = []
-
-            # Поймаем исключения при десериализации еды, чтобы не сломать загрузку мира полностью
-            try:
-                world.foods = self._deserialize_foods(world_data['foods'])
-            except Exception as e:
-                print(f"FATALITY!!! Ошибка при загрузке еды: {e}")
-                world.foods = []
-
-            # Восстанавливаем параметры симуляции (если они сохранены)
-            if 'simparams' in world_data:
-                self._restore_simparams(world_data['simparams'])
-
-            # Пересчитываем карту после загрузки
-            world.update_map()
-            if world.map.shape != (height, width):
-                raise ValueError(f"Ошибка после update_map: map shape {world.map.shape} != ({height}, {width})")
-            
-            creatures_count = len(world.creatures)
-            foods_count = len(world.foods)
-            
-            print(f"✓ Мир загружен: {load_path}")
-            print(f"  Существ: {creatures_count}, Еды: {foods_count}, Тик: {world.tick}")
-            return True
-            
+            world_data = self._read_save_file(filename)
+        except FileNotFoundError as e:
+            print(f"✗ {e}")
+            return False
         except Exception as e:
             print(f"✗ Ошибка при загрузке мира: {e}")
             return False
+
+        try:
+            snapshot = self.build_snapshot(world_data)
+        except Exception as e:
+            print(f"✗ Ошибка при загрузке мира: {e}")
+            return False
+
+        try:
+            self.apply_full_load(world, snapshot)
+        except Exception as e:
+            print(f"✗ Ошибка при применении загруженного мира: {e}")
+            return False
+
+        print(f"✓ Мир загружен: {filename}")
+        print(f"  Существ: {len(world.creatures)}, Еды: {len(world.foods)}, Тик: {world.tick}")
+        return True
 
     def load_creatures_only(self, world, filename: str) -> bool:
         """
@@ -191,80 +153,183 @@ class WorldPersistenceService:
         - размещает существ на случайных свободных клетках текущего мира
         """
         try:
-            from creature import Creature
-
-            load_path = self.SAVES_DIR / f"{filename}.world.gz"
-
-            if not load_path.exists():
-                print(f"✗ Файл не найден: {load_path}")
-                return False
-
-            with open(load_path, 'rb') as f:
-                compressed_data = f.read()
-
-            json_bytes = gzip.decompress(compressed_data)
-            json_str = json_bytes.decode('utf-8')
-            world_data = json.loads(json_str)
-
-            loaded_creatures = self._deserialize_creatures(
-                world_data.get('creatures', []),
-                update_id_counter=False,
-            )
-
-            requested_count = len(loaded_creatures)
-            existing_creature_positions = {
-                (int(c.x), int(c.y))
-                for c in world.creatures
-            }
-            existing_food_positions = {
-                (int(f.x), int(f.y))
-                for f in world.foods
-            }
-
-            free_cells = []
-            for y in range(world.height):
-                for x in range(world.width):
-                    if world.walls_map[y, x] == 1:
-                        continue
-                    if (x, y) in existing_creature_positions:
-                        continue
-                    if (x, y) in existing_food_positions:
-                        continue
-                    free_cells.append((x, y))
-
-            random.shuffle(free_cells)
-
-            existing_max_id = max((c.id for c in world.creatures), default=0)
-            next_id = max(existing_max_id, Creature._id_counter)
-
-            added_count = 0
-            for creature in loaded_creatures:
-                if not free_cells:
-                    break
-
-                x, y = free_cells.pop()
-                next_id += 1
-
-                creature.id = next_id
-                creature.x = x
-                creature.y = y
-                world.creatures.append(creature)
-                added_count += 1
-
-            Creature._id_counter = max(Creature._id_counter, next_id)
-            world.update_map()
-
-            skipped_count = requested_count - added_count
-            print(f"✓ Существа загружены из {load_path}")
-            print(
-                f"  Запрошено: {requested_count}, Добавлено: {added_count}, "
-                f"Пропущено (нет места): {skipped_count}"
-            )
-            return True
-
+            world_data = self._read_save_file(filename)
+        except FileNotFoundError as e:
+            print(f"✗ {e}")
+            return False
         except Exception as e:
             print(f"✗ Ошибка при загрузке существ из мира: {e}")
             return False
+
+        try:
+            snapshot = self.build_snapshot(world_data)
+        except Exception as e:
+            print(f"✗ Ошибка при загрузке существ из мира: {e}")
+            return False
+
+        try:
+            added_count, requested_count = self.apply_creatures_only(world, snapshot)
+        except Exception as e:
+            print(f"✗ Ошибка при применении загруженных существ: {e}")
+            return False
+
+        skipped_count = requested_count - added_count
+        print(f"✓ Существа загружены из {filename}")
+        print(
+            f"  Запрошено: {requested_count}, Добавлено: {added_count}, "
+            f"Пропущено (нет места): {skipped_count}"
+        )
+        return True
+
+    # ============================================================================
+    # LAYER A — I/O (файл → dict, ничего не знает про World)
+    # ============================================================================
+
+    def _read_save_file(self, filename: str) -> dict:
+        """Читает, распаковывает и парсит файл сохранения. Не трогает world."""
+        load_path = self.SAVES_DIR / f"{filename}.world.gz"
+
+        if not load_path.exists():
+            raise FileNotFoundError(f"Файл не найден: {load_path}")
+
+        with open(load_path, 'rb') as f:
+            compressed_data = f.read()
+
+        json_bytes = gzip.decompress(compressed_data)
+        json_str = json_bytes.decode('utf-8')
+        return json.loads(json_str)
+
+    # ============================================================================
+    # LAYER B — Десериализация (чистая, dict → LoadedSnapshot, без мутации world)
+    # ============================================================================
+
+    def build_snapshot(self, world_data: dict) -> 'LoadedSnapshot':
+        """
+        Собирает LoadedSnapshot из сырых данных файла с полной валидацией.
+
+        Вся проверка форм/типов (shape mismatch, несовместимый NN backend)
+        происходит здесь — apply_* получает уже гарантированно консистентный snapshot.
+        """
+        metadata = dict(world_data['metadata'])
+        height = metadata['height']
+        width = metadata['width']
+
+        walls_map = np.array(world_data['walls_map'], dtype='int')
+        if walls_map.shape != (height, width):
+            raise ValueError(
+                f"walls_map shape {walls_map.shape} не соответствует размерам мира ({height}, {width})"
+            )
+
+        zones_arr = None
+        if 'zones_map' in world_data:
+            zones_arr = np.array(world_data['zones_map'], dtype='int')
+            if zones_arr.shape != (height, width):
+                raise ValueError(
+                    f"zones_map shape {zones_arr.shape} не соответствует размерам мира ({height}, {width})"
+                )
+
+        creatures = self._deserialize_creatures(world_data['creatures'])
+        foods = self._deserialize_foods(world_data['foods'])
+        simparams = dict(world_data.get('simparams', {}))
+
+        return LoadedSnapshot(
+            metadata=metadata,
+            walls_map=walls_map,
+            zones_arr=zones_arr,
+            creatures=creatures,
+            foods=foods,
+            simparams=simparams,
+        )
+
+    # ============================================================================
+    # LAYER C — Политики применения (мутируют world из уже валидного snapshot)
+    # ============================================================================
+
+    def apply_full_load(self, world, snapshot: 'LoadedSnapshot') -> None:
+        """Полная замена состояния world данными из snapshot."""
+        from creature import Creature
+
+        height = snapshot.metadata['height']
+        width = snapshot.metadata['width']
+
+        world.width = width
+        world.height = height
+        world.tick = snapshot.metadata['tick']
+        world.map = np.zeros((height, width), dtype='int')
+        world.walls_map = snapshot.walls_map
+
+        if snapshot.zones_arr is not None:
+            world.zones_map.width = width
+            world.zones_map.height = height
+            world.zones_map.zones_map = snapshot.zones_arr
+            world.zones_map._build_pixel_caches()
+
+        world.creatures = snapshot.creatures
+        world.foods = snapshot.foods
+        if snapshot.creatures:
+            Creature._id_counter = max(c.id for c in snapshot.creatures)
+
+        if snapshot.simparams:
+            self._restore_simparams(snapshot.simparams)
+
+        world.update_map()
+        if world.map.shape != (height, width):
+            raise ValueError(f"Ошибка после update_map: map shape {world.map.shape} != ({height}, {width})")
+
+    def apply_creatures_only(self, world, snapshot: 'LoadedSnapshot') -> tuple:
+        """Добавляет существ из snapshot в текущий world, переназначая id.
+
+        Returns:
+            (added_count, requested_count)
+        """
+        from creature import Creature
+
+        loaded_creatures = snapshot.creatures
+        requested_count = len(loaded_creatures)
+
+        existing_creature_positions = {
+            (int(c.x), int(c.y))
+            for c in world.creatures
+        }
+        existing_food_positions = {
+            (int(f.x), int(f.y))
+            for f in world.foods
+        }
+
+        free_cells = []
+        for y in range(world.height):
+            for x in range(world.width):
+                if world.walls_map[y, x] == 1:
+                    continue
+                if (x, y) in existing_creature_positions:
+                    continue
+                if (x, y) in existing_food_positions:
+                    continue
+                free_cells.append((x, y))
+
+        random.shuffle(free_cells)
+
+        existing_max_id = max((c.id for c in world.creatures), default=0)
+        next_id = max(existing_max_id, Creature._id_counter)
+
+        added_count = 0
+        for creature in loaded_creatures:
+            if not free_cells:
+                break
+
+            x, y = free_cells.pop()
+            next_id += 1
+
+            creature.id = next_id
+            creature.x = x
+            creature.y = y
+            world.creatures.append(creature)
+            added_count += 1
+
+        Creature._id_counter = max(Creature._id_counter, next_id)
+        world.update_map()
+
+        return added_count, requested_count
     
     def _serialize_creatures(self, creatures) -> list:
         """Конвертирует creatures в сохраняемый формат (list of dicts)"""
@@ -357,8 +422,8 @@ class WorldPersistenceService:
         if skipped_count > 0:
             print(f"  (пропущено {skipped_count} неизвестных параметров)")
     
-    def _deserialize_creatures(self, creature_data_list, update_id_counter: bool = True) -> list:
-        """Восстанавливает creatures из сохранённых данных"""
+    def _deserialize_creatures(self, creature_data_list) -> list:
+        """Восстанавливает creatures из сохранённых данных (чистая функция, id не трогает счётчик)"""
         from creature import Creature
         from nn import NeuralNetwork
         
@@ -393,11 +458,7 @@ class WorldPersistenceService:
                 continue
             
             creatures.append(creature)
-        
-        # Обновляем счётчик ID для новых существ (только для полного восстановления мира)
-        if creatures and update_id_counter:
-            Creature._id_counter = max(c.id for c in creatures)
-        
+
         return creatures
     
     def _deserialize_nn(self, nn_data):
