@@ -40,20 +40,21 @@ class CreaturesListModal:
     """
     
     # Геометрия окна (центрировано на экране)
-    POPUP_WIDTH = 600
-    POPUP_HEIGHT = 450
+    POPUP_WIDTH = 1000
+    POPUP_HEIGHT = 550
     
     # Параметры отображения
-    FONT_SIZE = 14
+    FONT_SIZE = 16
     FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
     TITLE_HEIGHT = 30
     HEADER_HEIGHT = 25
+    ROW_WIDTH = 175
     ROW_HEIGHT = 18
     PADDING_X = 10
     PADDING_Y = 8
     
     # Максимум строк в окне (для скролла)
-    MAX_VISIBLE_ROWS = 18
+    MAX_VISIBLE_ROWS = 23
     
     # Цвета в стиле BIOS
     COLORS = {
@@ -74,13 +75,13 @@ class CreaturesListModal:
         
         # Инициализация шрифтов
         try:
-            self.font_title = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE + 2)
+            self.font_title = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE)
             self.font = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE)
-            self.font_small = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE - 2)
+            self.font_small = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE)
         except (FileNotFoundError, pygame.error):
             self.font_title = pygame.font.Font(None, self.FONT_SIZE + 2)
             self.font = pygame.font.Font(None, self.FONT_SIZE)
-            self.font_small = pygame.font.Font(None, self.FONT_SIZE - 2)
+            self.font_small = pygame.font.Font(None, self.FONT_SIZE)
         
         # Позиция и размер окна (будут вычислены при первом draw)
         self.x = 0
@@ -130,7 +131,7 @@ class CreaturesListModal:
         
         title_text = self.font_title.render(
             f"Creatures: {creatures_count}", 
-            True, 
+            False, 
             self.COLORS['title_text']
         )
         title_x = self.x + self.PADDING_X
@@ -151,24 +152,21 @@ class CreaturesListModal:
         headers = [
             ("ID", 35),
             ("Age", 40),
-            ("X", 45),
-            ("Y", 45),
+            ("Gen", 40),
             ("Energy", 65),
             ("Health", 65),
-            ("Speed", 55),
-            ("Gen", 40),
         ]
         
         col_x = self.x + self.PADDING_X
         for header, width in headers:
-            text = self.font.render(header, True, self.COLORS['header'])
+            text = self.font.render(header, False, self.COLORS['header'])
             screen.blit(text, (col_x, header_y + 5))
             col_x += width
         
         # Отрисовка строк с существами
         if creatures_count == 0:
             # Сообщение если нет существ
-            msg = self.font.render("No creatures", True, self.COLORS['text'])
+            msg = self.font.render("No creatures", False, self.COLORS['text'])
             msg_x = self.x + (self.POPUP_WIDTH - msg.get_width()) // 2
             msg_y = self.y + self.TITLE_HEIGHT + self.HEADER_HEIGHT + 50
             screen.blit(msg, (msg_x, msg_y))
@@ -182,7 +180,7 @@ class CreaturesListModal:
                 
                 # Фон строки
                 if is_selected:
-                    row_rect = pygame.Rect(self.x + 1, row_y, self.POPUP_WIDTH - 2, self.ROW_HEIGHT)
+                    row_rect = pygame.Rect(self.x + 1, row_y, self.ROW_WIDTH, self.ROW_HEIGHT)
                     pygame.draw.rect(screen, self.COLORS['selected'], row_rect)
                     text_color = self.COLORS['selected_text']
                 else:
@@ -190,27 +188,28 @@ class CreaturesListModal:
                 
                 # Данные существа
                 creature_data = [
-                    (str(actual_idx), 35),
+                    (str(creature.id), 35),
                     (str(creature.age), 40),
-                    (f"{creature.x:.1f}", 45),
-                    (f"{creature.y:.1f}", 45),
+                    (str(creature.generation), 40),
                     (f"{creature.energy:.1f}", 65),
                     (f"{creature.health:.1f}", 65),
-                    (f"{creature.speed:.2f}", 55),
-                    (str(creature.generation), 40),
                 ]
                 
                 col_x = self.x + self.PADDING_X
                 for value, width in creature_data:
-                    text = self.font.render(value, True, text_color)
+                    text = self.font.render(value, False, text_color)
                     screen.blit(text, (col_x, row_y + 2))
                     col_x += width
                 
                 row_y += self.ROW_HEIGHT
         
+        # Отрисуем правую панель с информацией о выбранном существе
+        # detail_creature_id = creatures[self.selected_index].id if self.selected_index < len(creatures) else "—"
+        # Нет, будем рисовать правую панель в виде отдельного виджета
+
         # Отрисовка подсказки внизу
         help_text = "Arrows: scroll | Home/End: jump | ESC: close"
-        help_surface = self.font_small.render(help_text, True, self.COLORS['text'])
+        help_surface = self.font_small.render(help_text, False, self.COLORS['text'])
         help_x = self.x + (self.POPUP_WIDTH - help_surface.get_width()) // 2
         help_y = self.y + self.POPUP_HEIGHT - self.PADDING_Y - help_surface.get_height()
         screen.blit(help_surface, (help_x, help_y))
