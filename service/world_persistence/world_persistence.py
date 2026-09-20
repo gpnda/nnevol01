@@ -276,16 +276,22 @@ class WorldPersistenceService:
         if world.map.shape != (height, width):
             raise ValueError(f"Ошибка после update_map: map shape {world.map.shape} != ({height}, {width})")
 
-    def apply_creatures_only(self, world, snapshot: 'LoadedSnapshot') -> tuple:
-        """Добавляет существ из snapshot в текущий world, переназначая id.
-
+    def _place_creatures_on_free_cells(self, world, creatures: list) -> tuple:
+        """Размещает список существ на свободные клетки карты мира.
+        
+        Переопределяет id каждому существу, обновляет x/y.
+        Обновляет Creature._id_counter и вызывает world.update_map().
+        
+        Args:
+            world: World объект
+            creatures: List of Creature объектов для размещения
+        
         Returns:
             (added_count, requested_count)
         """
         from creature import Creature
 
-        loaded_creatures = snapshot.creatures
-        requested_count = len(loaded_creatures)
+        requested_count = len(creatures)
 
         existing_creature_positions = {
             (int(c.x), int(c.y))
@@ -313,7 +319,7 @@ class WorldPersistenceService:
         next_id = max(existing_max_id, Creature._id_counter)
 
         added_count = 0
-        for creature in loaded_creatures:
+        for creature in creatures:
             if not free_cells:
                 break
 
@@ -329,6 +335,41 @@ class WorldPersistenceService:
         Creature._id_counter = max(Creature._id_counter, next_id)
         world.update_map()
 
+        return added_count, requested_count
+    
+    def apply_creatures_only(self, world, snapshot: 'LoadedSnapshot') -> tuple:
+        """Добавляет существ из snapshot в текущий world, переназначая id.
+
+        Returns:
+            (added_count, requested_count)
+        """
+        loaded_creatures = snapshot.creatures
+        return self._place_creatures_on_free_cells(world, loaded_creatures)
+    
+    def transfer_population_to_world(self, world, snapshot: 'LoadedSnapshot') -> tuple:
+        """Переносит текущую популяцию на карту из snapshot (вариант Б).
+        
+        Алгоритм:
+        1. Сохраняет текущих существ
+        2. Загружает карту/стены/еду/параметры (apply_full_load создаёт существ из snapshot)
+        3. Очищает существ из snapshot (нам нужна ТОЛЬКО карта)
+        4. Расселяет ТЕКУЩИХ существ на новой карте
+        
+        Returns:
+            (added_count, requested_count)
+        """
+        old_creatures = list(world.creatures)  # Копируем список текущих существ
+        requested_count = len(old_creatures)
+        
+        # Применяем новый мир (стены, еда, параметры симуляции)
+        self.apply_full_load(world, snapshot)
+        
+        # Очищаем creatures из snapshot — нам нужна ТОЛЬКО карта, существа из snapshot игнорируются
+        world.creatures = []
+        
+        # Расселяем старых существ на новой карте
+        added_count, _ = self._place_creatures_on_free_cells(world, old_creatures)
+        
         return added_count, requested_count
     
     def _serialize_creatures(self, creatures) -> list:

@@ -164,6 +164,29 @@ class Application():
 		if world_persistence.load_creatures_only(self.world, save_file_name):
 			self.is_running = False  # Сохраняем поведение модального окна: после операции остаемся на паузе
 	
+	def transfer_population_to_world(self, save_file_name: str):
+		"""Переносит текущую популяцию на карту из выбранного сохранения.
+		
+		Берёт: текущих существ, сохраняет их
+		Загружает: новую карту (стены, еда, параметры) из save_file_name
+		Расселяет: текущих существ на новой карте
+		
+		Args:
+			save_file_name: Имя файла сохранения (источник новой карты)
+		"""
+		try:
+			world_data = world_persistence._read_save_file(save_file_name)
+			snapshot = world_persistence.build_snapshot(world_data)
+			added_count, requested_count = world_persistence.transfer_population_to_world(self.world, snapshot)
+			
+			print(f"✓ Популяция перенесена на карту {save_file_name}")
+			print(f"  Существ: {added_count}/{requested_count}")
+			self.is_running = False
+		except FileNotFoundError:
+			print(f"✗ Файл сохранения не найден: {save_file_name}")
+		except Exception as e:
+			print(f"✗ Ошибка при переносе популяции: {e}")
+	
 	def reset_world(self):
 		"""Сбросить мир."""
 		print("✓ reset_world() called")

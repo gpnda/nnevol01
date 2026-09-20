@@ -54,6 +54,7 @@ class PopupLoadWorldModal:
         self,
         on_do_loadworld: Optional[Callable[[str], None]] = None,
         on_do_loadcreatures: Optional[Callable[[str], None]] = None,
+        on_do_transfer_population: Optional[Callable[[str], None]] = None,
     ):
         """Инициализация модального окна загрузки мира.
             
@@ -62,11 +63,14 @@ class PopupLoadWorldModal:
                             Сигнатура: on_do_loadworld(save_file_name: str)
             on_do_loadcreatures: Callback при загрузке только существ
                             Сигнатура: on_do_loadcreatures(save_file_name: str)
+            on_do_transfer_population: Callback при переносе популяции
+                            Сигнатура: on_do_transfer_population(save_file_name: str)
         """
 
         # Callback функция
         self.on_do_loadworld = on_do_loadworld
         self.on_do_loadcreatures = on_do_loadcreatures
+        self.on_do_transfer_population = on_do_transfer_population
 
         # Список слотов сохранения мира. Будет заполнен через renderer._on_state_enter()
         self.save_slots = []
@@ -146,8 +150,10 @@ class PopupLoadWorldModal:
         title_rect = pygame.Rect(self.x, self.y, self.POPUP_WIDTH, self.TITLE_HEIGHT)
         pygame.draw.rect(screen, self.COLORS['title_bg'], title_rect)
         
+        # Определяем режим загрузки: обычный, только существ (Shift), перенос существ на другую карту (Ctrl)
         shift_mode = bool(pygame.key.get_mods() & pygame.KMOD_SHIFT)
-        title = "LOAD CREATURES ONLY" if shift_mode else "LOAD"
+        ctrl_mode = bool(pygame.key.get_mods() & pygame.KMOD_CTRL)
+        title = "Load saved world and TRANSFER CURRENT POPULATION there" if ctrl_mode else ("LOAD CREATURES ONLY" if shift_mode else "Load saved world")
         title_text = self.font_title.render(title, False, self.COLORS['title_text'])
         title_x = self.x + self.CONTENT_PADDING
         title_y = self.y + (self.TITLE_HEIGHT - title_text.get_height()) // 2
@@ -189,7 +195,7 @@ class PopupLoadWorldModal:
         
         # Отрисовка подсказки внизу
         help_text = (
-            "UP/DOWN: navigate | LEFT/RIGHT: pages | SHIFT+ENTER: load creatures | ENTER: load world | ESC: close"
+            "UP/DOWN: nav | L/R: pages | SHIFT+E: add creatures | CTRL+E: transfer pop | E: load | ESC: close"
         )
         help_surface = self.font.render(help_text, False, self.COLORS['text'])
         help_x = self.x + (self.POPUP_WIDTH - help_surface.get_width()) // 2
@@ -357,16 +363,25 @@ class PopupLoadWorldModal:
             return True
         
         elif event.key == pygame.K_RETURN:
+            # Определяем режим по модификаторам клавиш
             shift_mode = bool(event.mod & pygame.KMOD_SHIFT)
+            ctrl_mode = bool(event.mod & pygame.KMOD_CTRL)
 
             # Вызываем callback с полным stem файла сохранения
             if 0 <= self.selected_slot < len(self.slots_list):
                 selected_slot_info = self.slots_list[self.selected_slot]
                 save_file_name = selected_slot_info.get('filename', '')
-                if shift_mode and self.on_do_loadcreatures is not None:
+                
+                if ctrl_mode and self.on_do_transfer_population is not None:
+                    # Ctrl+ENTER — перенос популяции
+                    self.on_do_transfer_population(save_file_name)
+                    self.just_loaded = True
+                elif shift_mode and self.on_do_loadcreatures is not None:
+                    # Shift+ENTER — добавить существ
                     self.on_do_loadcreatures(save_file_name)
                     self.just_loaded = True
                 elif self.on_do_loadworld is not None:
+                    # ENTER — полная загрузка
                     self.on_do_loadworld(save_file_name)
                     self.just_loaded = True  # Устанавливаем флаг, что мир был загружен
             return True

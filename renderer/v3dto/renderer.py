@@ -123,6 +123,7 @@ class Renderer:
         self.popup_loadworld_modal = PopupLoadWorldModal(
             on_do_loadworld=self.app.load_world,
             on_do_loadcreatures=self.app.load_creatures,
+            on_do_transfer_population=self.app.transfer_population_to_world,
         )
         self.day_night_chart = DayNightChart()
 
