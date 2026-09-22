@@ -71,7 +71,12 @@ class CreaturesListModal:
     def __init__(self):
         """Инициализация модального окна списка существ."""
         self.scroll_offset = 0
-        self.selected_index = 0
+        self.selected_index = 0  # Индекс выбранного существа в списке (НЕ creature.id !!!)
+        
+        # detail_creature_id: ID выбранного существа для отрисовки в других виджетах
+        # Это значение записывается в CreaturesListDTO в renderer._prepare_creatures_list_dto()
+        # и затем передается всем виджету CreatureWeightsWidget (gui_creature_weights.py) через RenderStateDTO
+        self.detail_creature_id = None
         
         # Инициализация шрифтов
         try:
@@ -88,21 +93,24 @@ class CreaturesListModal:
         self.y = 0
         self.rect = pygame.Rect(0, 0, self.POPUP_WIDTH, self.POPUP_HEIGHT)
     
-    def handle_keydown(self, event: pygame.event.Event) -> bool:
-        """
-        Обработка событий клавиатуры для навигации в списке.
+    def handle_event(self, event: pygame.event.Event, render_state: 'RenderStateDTO') -> bool:
+        """Обработка событий клавиатуры. Возвращает True если окно нужно закрыть."""
+        if event.type != pygame.KEYDOWN:
+            return False
         
-        Вызывается только когда рендерер находится в состоянии 'creatures_list'.
+        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
+            return True  # Сигнал закрыть окно
         
-        Args:
-            event: pygame.event.Event (KEYDOWN)
-            
-        Returns:
-            True если событие обработано, False если нет
-        """
-        # Должно быть переданно через Renderer, поэтому мы не знаем количество существ здесь
-        # Это обработается в Renderer._handle_creatures_list_keyboard()
-        return False
+        if event.key == pygame.K_UP:
+            self.move_selection_up(render_state)
+        elif event.key == pygame.K_DOWN:
+            self.move_selection_down(render_state)
+        elif event.key == pygame.K_HOME:
+            self.move_selection_home(render_state)
+        elif event.key == pygame.K_END:
+            self.move_selection_end(render_state)
+        
+        return False  # Окно остается открытым
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
         """
@@ -218,45 +226,51 @@ class CreaturesListModal:
     # НАВИГАЦИЯ (вызывается из Renderer._handle_creatures_list_keyboard())
     # ========================================================================
     
-    def move_selection_up(self, creatures_count: int) -> None:
+    def move_selection_up(self, render_state: 'RenderStateDTO') -> None:
         """Переместить выделение на одну строку вверх."""
-        if creatures_count == 0:
+        if len(render_state.world.creatures) == 0:
             return
         if self.selected_index > 0:
             self.selected_index -= 1
             # Автоскролл
             if self.selected_index < self.scroll_offset:
                 self.scroll_offset = self.selected_index
+        self.detail_creature_id = render_state.world.creatures[self.selected_index].id if self.selected_index < len(render_state.world.creatures) else None
     
-    def move_selection_down(self, creatures_count: int) -> None:
+    def move_selection_down(self, render_state: 'RenderStateDTO') -> None:
         """Переместить выделение на одну строку вниз."""
-        if creatures_count == 0:
+        if len(render_state.world.creatures) == 0:
             return
-        if self.selected_index < creatures_count - 1:
+        if self.selected_index < len(render_state.world.creatures) - 1:
             self.selected_index += 1
             # Автоскролл
             if self.selected_index >= self.scroll_offset + self.MAX_VISIBLE_ROWS:
                 self.scroll_offset = self.selected_index - self.MAX_VISIBLE_ROWS + 1
+        self.detail_creature_id = render_state.world.creatures[self.selected_index].id if self.selected_index < len(render_state.world.creatures) else None
     
-    def move_selection_home(self) -> None:
+    def move_selection_home(self, render_state: 'RenderStateDTO') -> None:
         """Переместить выделение в начало списка."""
         self.selected_index = 0
         self.scroll_offset = 0
+        self.detail_creature_id = render_state.world.creatures[self.selected_index].id if self.selected_index < len(render_state.world.creatures) else None
     
-    def move_selection_end(self, creatures_count: int) -> None:
+    def move_selection_end(self, render_state: 'RenderStateDTO') -> None:
         """Переместить выделение в конец списка."""
-        if creatures_count == 0:
+        if len(render_state.world.creatures) == 0:
             return
-        self.selected_index = creatures_count - 1
-        self.scroll_offset = max(0, creatures_count - self.MAX_VISIBLE_ROWS)
+        self.selected_index = len(render_state.world.creatures) - 1
+        self.scroll_offset = max(0, len(render_state.world.creatures) - self.MAX_VISIBLE_ROWS)
+        self.detail_creature_id = render_state.world.creatures[self.selected_index].id if self.selected_index < len(render_state.world.creatures) else None
     
     def reset(self) -> None:
         """Сбросить состояние навигации (вызывается при открытии модала)."""
         self.scroll_offset = 0
         self.selected_index = 0
+        self.detail_creature_id = None
     
-    def get_selected_creature_id(self, creatures_count: int) -> int:
+    def get_selected_creature_id(self, render_state: 'RenderStateDTO') -> int:
         """Получить ID выбранного существа."""
+        creatures_count = len(render_state.world.creatures)
         if creatures_count > 0 and self.selected_index < creatures_count:
-            return self.selected_index
+            return render_state.world.creatures[self.selected_index].id if self.selected_index < len(render_state.world.creatures) else -1
         return -1

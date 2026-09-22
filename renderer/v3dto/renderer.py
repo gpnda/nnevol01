@@ -30,12 +30,13 @@ from renderer.v3dto.gui_exper_list import ExperListModal
 from renderer.v3dto.gui_saveworld import PopupSaveWorldModal
 from renderer.v3dto.gui_loadworld import PopupLoadWorldModal
 from renderer.v3dto.gui_day_night_chart import DayNightChart
+from renderer.v3dto.gui_creature_weights import CreatureWeightsWidget
 
 
 from renderer.v3dto.dto import (
     CreatureDTO, WorldStateDTO, FoodDTO, CreatureEventDTO,
     CreatureHistoryDTO, DebugDataDTO, SimulationParamsDTO,
-    SelectedCreaturePanelDTO, RenderStateDTO
+    SelectedCreaturePanelDTO, RenderStateDTO, CreaturesListDTO
 )
 
 from service.logger.logger import logme
@@ -126,6 +127,7 @@ class Renderer:
             on_do_transfer_population=self.app.transfer_population_to_world,
         )
         self.day_night_chart = DayNightChart()
+        self.creature_weights_widget = CreatureWeightsWidget()
 
         # ЭКСПЕРИМЕНТ ВИДЖЕТ (инициализируется при выборе эксперимента)
         self.experiment_widget = None
@@ -561,6 +563,18 @@ class Renderer:
         
         return result
 
+    
+    def _prepare_creatures_list_dto(self) -> CreaturesListDTO:
+        """Собрать состояние модала со списком существ в CreaturesListDTO.
+        
+        Используется gui_creatures_list для отрисовки и навигации,
+        и gui_creature_weights для получения detail_creature_id.
+        """
+        return CreaturesListDTO(
+            detail_creature_id=self.creatures_list_modal.detail_creature_id,
+        )
+
+
     def _prepare_render_state_dto(self) -> RenderStateDTO:
         """Собрать ПОЛНЫЙ снимок состояния для всех виджетов в RenderStateDTO.
         
@@ -571,12 +585,14 @@ class Renderer:
         params_dto = self._prepare_simulation_params_dto()
         debug_dto = self._prepare_debug_dto()
         selected_creature_dto = self._prepare_selected_creature_dto(world_dto)
+        creatures_list_dto = self._prepare_creatures_list_dto()
         
         return RenderStateDTO(
             world=world_dto,
             params=params_dto,
             debug=debug_dto,
             selected_creature=selected_creature_dto,
+            detail_creature_id=creatures_list_dto,
             current_state=self.current_state,
             tick=self.world.tick,
         )
@@ -709,33 +725,14 @@ class Renderer:
         return False
     
     def _handle_keyboard_creatures_list(self, event: pygame.event.Event) -> bool:
-        """Обработка событий в окне списка существ."""
         if event.type != pygame.KEYDOWN:
             return False
         
-        if event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
+        render_state = self._prepare_render_state_dto()
+        if self.creatures_list_modal.handle_event(event, render_state):
             self.set_state('main')
             return True
-        
-        # Навигация в списке существ
-        creatures_count = len(self.world.creatures)
-        
-        if event.key == pygame.K_UP:
-            self.creatures_list_modal.move_selection_up(creatures_count)
-            return True
-        
-        elif event.key == pygame.K_DOWN:
-            self.creatures_list_modal.move_selection_down(creatures_count)
-            return True
-        
-        elif event.key == pygame.K_HOME:
-            self.creatures_list_modal.move_selection_home()
-            return True
-        
-        elif event.key == pygame.K_END:
-            self.creatures_list_modal.move_selection_end(creatures_count)
-            return True
-        
+    
         return False
     
     def _handle_keyboard_logs(self, event: pygame.event.Event) -> bool:
@@ -954,6 +951,9 @@ class Renderer:
     def _draw_creatures_list(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна списка существ."""
         self.creatures_list_modal.draw(self.screen, render_state)
+
+        # Отрисуем виджет с детальной информацией и весами выбранного существа
+        self.creature_weights_widget.draw(self.screen, render_state)
     
     def _draw_logs(self, render_state: RenderStateDTO) -> None:
         """Отрисовка окна логов в полный экран."""

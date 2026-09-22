@@ -244,6 +244,31 @@ class SelectedCreaturePanelDTO:
 
 
 # ============================================================================
+# DTO для состояния creatures_list модала
+# ============================================================================
+
+@dataclass
+class CreaturesListDTO:
+    """Data Transfer Object для состояния модального окна со списком существ (F1).
+    
+    Отслеживает навигацию в creatures_list: какое существо выбрано.
+    
+    Используется:
+    - gui_creatures_list.py — для управления выделением и скроллом
+    - gui_creature_weights.py — для получения detail_creature_id
+    
+    Архитектура:
+    - Это DTO, а не состояние модального окна
+    - По сути служит только для передачи id существа выбранного в списке существ, - в виджет gui_creature_weights
+    """
+    detail_creature_id: Optional[int] = None  # ID существа для отрисовки весов нейронной сетки в gui_creature_weights
+
+
+
+
+
+
+# ============================================================================
 # DTO для состояния рендеринга
 # ============================================================================
 
@@ -265,7 +290,10 @@ class RenderStateDTO:
     
     # Текущее выбранное существо и его история
     selected_creature: Optional[SelectedCreaturePanelDTO] = None
-    
+
+    # Состояние модального окна со списком существ (содержит только id выбранного существа для gui_creature_weights)
+    detail_creature_id: Optional['CreaturesListDTO'] = None
+
     # Текущее состояние рендеринга
     current_state: str = 'main'  # 'main', 'popup_simparams', 'creatures_list', и т.д.
     tick: int = 0
