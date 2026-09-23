@@ -568,7 +568,7 @@ class Renderer:
         """Собрать состояние модала со списком существ в CreaturesListDTO.
         
         Используется gui_creatures_list для отрисовки и навигации,
-        и gui_creature_weights для получения detail_creature_id.
+        и gui_creature_weights для получения detail_creature_id через creatures_list_state.
         """
         return CreaturesListDTO(
             detail_creature_id=self.creatures_list_modal.detail_creature_id,
@@ -592,7 +592,7 @@ class Renderer:
             params=params_dto,
             debug=debug_dto,
             selected_creature=selected_creature_dto,
-            detail_creature_id=creatures_list_dto,
+            creatures_list_state=creatures_list_dto,
             current_state=self.current_state,
             tick=self.world.tick,
         )

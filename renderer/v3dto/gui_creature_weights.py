@@ -27,9 +27,8 @@ class CreatureWeightsWidget:
     - Полностью изолирована от сингльтонов
     
     TODO: В будущем нужно добавить отображение реальных весов из nn (neural network).
-          Для этого потребуется либо:
-          1. Добавить веса в CreatureDTO
-          2. Добавить detail_creature_id в RenderStateDTO
+          Для этого потребуется:
+          - Добавить веса в CreatureDTO (через creatures_list_state.detail_creature_id)
           Пока это просто placeholder-заглушка.
     """
     
@@ -89,7 +88,7 @@ class CreatureWeightsWidget:
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
         
         # Получаем информацию о выбранном существе из creatures_list_state
-        if render_state.detail_creature_id is None:
+        if render_state.creatures_list_state is None:
             # Никакое существо не выбрано в creatures_list
             placeholder_text = self.font.render(
                 "No creature selected in list",
@@ -102,7 +101,7 @@ class CreatureWeightsWidget:
             )
         else:
             # Получаем ID выбранного существа
-            creature_id = render_state.detail_creature_id
+            creature_id = render_state.creatures_list_state.detail_creature_id
             
             # Ищем существо по ID в world DTO
             creature_dto = render_state.world.get_creature_by_id(creature_id)
