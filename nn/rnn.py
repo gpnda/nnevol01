@@ -51,6 +51,82 @@ class NeuralNetwork:
         print("h1_state:", self.h1_state)
         print("h2_state:", self.h2_state)
 
+    def get_nn_parameters(self):
+        """Return all network parameters as a structured dictionary.
+        
+        Returns:
+            dict: Dictionary mapping parameter names to metadata dictionaries
+                  containing 'data', 'kind' (matrix/vector), 'layer', 'role'
+                  (weight/bias/state), and optional 'type' (connection type).
+        """
+        return {
+            "w1_x": {
+                "data": self.w1_x,
+                "kind": "matrix",
+                "layer": 1,
+                "role": "weight",
+                "type": "input-to-hidden"
+            },
+            "w1_h": {
+                "data": self.w1_h,
+                "kind": "matrix",
+                "layer": 1,
+                "role": "weight",
+                "type": "hidden-recurrent"
+            },
+            "b1": {
+                "data": self.b1,
+                "kind": "vector",
+                "layer": 1,
+                "role": "bias"
+            },
+            "w2_x": {
+                "data": self.w2_x,
+                "kind": "matrix",
+                "layer": 2,
+                "role": "weight",
+                "type": "input-to-hidden"
+            },
+            "w2_h": {
+                "data": self.w2_h,
+                "kind": "matrix",
+                "layer": 2,
+                "role": "weight",
+                "type": "hidden-recurrent"
+            },
+            "b2": {
+                "data": self.b2,
+                "kind": "vector",
+                "layer": 2,
+                "role": "bias"
+            },
+            "w3": {
+                "data": self.w3,
+                "kind": "matrix",
+                "layer": 3,
+                "role": "weight",
+                "type": "output"
+            },
+            "b3": {
+                "data": self.b3,
+                "kind": "vector",
+                "layer": 3,
+                "role": "bias"
+            },
+            "h1_state": {
+                "data": self.h1_state,
+                "kind": "vector",
+                "layer": 1,
+                "role": "state"
+            },
+            "h2_state": {
+                "data": self.h2_state,
+                "kind": "vector",
+                "layer": 2,
+                "role": "state"
+            },
+        }
+
     @staticmethod
     def copy(original_nn):
         new_nn = NeuralNetwork()

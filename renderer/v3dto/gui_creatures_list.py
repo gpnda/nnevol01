@@ -48,13 +48,13 @@ class CreaturesListModal:
     FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
     TITLE_HEIGHT = 30
     HEADER_HEIGHT = 25
-    ROW_WIDTH = 175
+    ROW_WIDTH = 241
     ROW_HEIGHT = 18
     PADDING_X = 10
     PADDING_Y = 8
     
     # Максимум строк в окне (для скролла)
-    MAX_VISIBLE_ROWS = 23
+    MAX_VISIBLE_ROWS = 25
     
     # Цвета в стиле BIOS
     COLORS = {
@@ -152,7 +152,21 @@ class CreaturesListModal:
             screen, 
             self.COLORS['border'], 
             (self.x, header_y + self.HEADER_HEIGHT),
-            (self.x + self.POPUP_WIDTH, header_y + self.HEADER_HEIGHT), 
+            (self.x + self.ROW_WIDTH, header_y + self.HEADER_HEIGHT), 
+            1
+        )
+        pygame.draw.line(
+            screen, 
+            self.COLORS['border'], 
+            (self.x + self.ROW_WIDTH, header_y),
+            (self.x + self.ROW_WIDTH, header_y + self.ROW_HEIGHT * self.MAX_VISIBLE_ROWS + self.HEADER_HEIGHT), 
+            1
+        )
+        pygame.draw.line(
+            screen, 
+            self.COLORS['border'], 
+            (self.x, header_y + self.ROW_HEIGHT * self.MAX_VISIBLE_ROWS + self.HEADER_HEIGHT),
+            (self.x + self.ROW_WIDTH, header_y + self.ROW_HEIGHT * self.MAX_VISIBLE_ROWS + self.HEADER_HEIGHT), 
             1
         )
         

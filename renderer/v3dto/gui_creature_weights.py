@@ -34,10 +34,10 @@ class CreatureWeightsWidget:
     """
     
     # Координаты и размеры
-    WIDGET_X = 510
-    WIDGET_Y = 35
-    WIDTH = 250
-    HEIGHT = 300
+    WIDGET_X = 370
+    WIDGET_Y = 58
+    WIDTH = 750
+    HEIGHT = 475
     
     # Цвета
     COLORS = {
@@ -49,9 +49,9 @@ class CreatureWeightsWidget:
     }
     
     # Размеры
-    BORDER_WIDTH = 2
+    BORDER_WIDTH = 0
     PADDING = 10
-    FONT_SIZE = 14
+    FONT_SIZE = 16
     FONT_PATH = './tests/Ac437_Siemens_PC-D.ttf'
     
     def __init__(self):
@@ -77,12 +77,12 @@ class CreatureWeightsWidget:
         self.surface.fill(self.COLORS['background'])
         
         # Рисуем границу
-        pygame.draw.rect(
-            self.surface,
-            self.COLORS['border'],
-            (0, 0, self.WIDTH - 1, self.HEIGHT - 1),
-            self.BORDER_WIDTH
-        )
+        # pygame.draw.rect(
+        #     self.surface,
+        #     self.COLORS['border'],
+        #     (0, 0, self.WIDTH - 1, self.HEIGHT - 1),
+        #     self.BORDER_WIDTH
+        # )
         
         # Заголовок
         title_text = self.font.render("Creature Weights", True, self.COLORS['title'])
