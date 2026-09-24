@@ -567,11 +567,23 @@ class Renderer:
     def _prepare_creatures_list_dto(self) -> CreaturesListDTO:
         """Собрать состояние модала со списком существ в CreaturesListDTO.
         
+        Включает параметры NN только для выбранного существа (экономит память).
         Используется gui_creatures_list для отрисовки и навигации,
-        и gui_creature_weights для получения detail_creature_id через creatures_list_state.
+        и gui_creature_weights для получения detail_creature_id и nn_parameters.
         """
+        detail_creature_id = self.creatures_list_modal.detail_creature_id
+        nn_params = None
+        
+        # Если существо выбрано, получить его NN параметры
+        if detail_creature_id is not None:
+            for creature in self.world.creatures:
+                if creature.id == detail_creature_id:
+                    nn_params = creature.nn.get_nn_parameters()
+                    break
+        
         return CreaturesListDTO(
-            detail_creature_id=self.creatures_list_modal.detail_creature_id,
+            detail_creature_id=detail_creature_id,
+            nn_parameters=nn_params,
         )
 
 

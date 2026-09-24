@@ -143,16 +143,44 @@ class CreatureWeightsWidget:
                     self.surface.blit(line_text, (self.PADDING, y_offset))
                     y_offset += 20
                 
-                # Placeholder для весов
-                placeholder_text = self.font.render(
-                    "[Neural Network Weights - TODO]",
-                    True,
-                    self.COLORS['placeholder']
-                )
-                self.surface.blit(
-                    placeholder_text,
-                    (self.PADDING, y_offset + 10)
-                )
+                # Отображение параметров нейросети
+                if render_state.creatures_list_state.nn_parameters:
+                    nn_params = render_state.creatures_list_state.nn_parameters
+                    
+                    nn_title_text = self.font.render(
+                        "Neural Network Parameters:",
+                        True,
+                        self.COLORS['text']
+                    )
+                    self.surface.blit(nn_title_text, (self.PADDING, y_offset + 20))
+                    
+                    y_offset += 40
+                    for param_name, param_info in nn_params.items():
+                        data = param_info['data']
+                        kind = param_info['kind']
+                        role = param_info['role']
+                        
+                        if kind == 'matrix':
+                            param_str = f"{param_name}: matrix {data.shape}"
+                        else:
+                            param_str = f"{param_name}: vector {data.shape}"
+                            # выведем также вектор в виде текста
+                            param_str += f": {data.tolist()}"
+                            
+                        
+                        param_text = self.font.render(param_str, True, self.COLORS['placeholder'])
+                        self.surface.blit(param_text, (self.PADDING, y_offset))
+                        y_offset += 18
+                else:
+                    placeholder_text = self.font.render(
+                        "[No NN parameters available]",
+                        True,
+                        self.COLORS['placeholder']
+                    )
+                    self.surface.blit(
+                        placeholder_text,
+                        (self.PADDING, y_offset + 20)
+                    )
         
         # Отобразить на главный экран
         screen.blit(self.surface, (self.rect.x, self.rect.y))

@@ -255,13 +255,14 @@ class CreaturesListDTO:
     
     Используется:
     - gui_creatures_list.py — для управления выделением и скроллом
-    - gui_creature_weights.py — для получения detail_creature_id через creatures_list_state
+    - gui_creature_weights.py — для получения detail_creature_id и nn_parameters через creatures_list_state
     
     Архитектура:
     - Это DTO, а не состояние модального окна
-    - По сути служит только для передачи id существа выбранного в списке существ в виджет gui_creature_weights
+    - Передает id и параметры NN только для выбранного существа (экономит память)
     """
     detail_creature_id: Optional[int] = None  # ID существа для отрисовки весов нейронной сетки в gui_creature_weights
+    nn_parameters: Optional[Dict[str, Any]] = None  # Параметры NN только для выбранного существа
 
 
 
