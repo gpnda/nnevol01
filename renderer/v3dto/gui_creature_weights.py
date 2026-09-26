@@ -97,7 +97,8 @@ class CreatureWeightsWidget:
         return (r, g, b)
     
     def _draw_matrix(self, surface: pygame.Surface, matrix: np.ndarray,
-                     x: int, y: int, max_width: int, max_height: int,
+                     x: int, y: int, 
+                     cell_size: int,
                      label: str) -> int:
         """
         Отрисовывает матрицу весов как 2D сетку цветных квадратиков.
@@ -106,24 +107,15 @@ class CreatureWeightsWidget:
             surface: pygame Surface для отрисовки
             matrix: numpy array с весами (rows x cols)
             x, y: начальные координаты
-            max_width, max_height: максимальный размер для размещения
+            cell_size: максимальный размер для размещения
             label: название параметра (w1_x, w2, и т.д.)
             
         Returns:
             int: высота, занятая блоком (для расчета следующей позиции y)
         """
         rows, cols = matrix.shape
-        
-        # Рассчитываем размер каждого квадратика, чтобы влезть в max_width
-        cell_size = max(1, min(max_width // cols, self.MATRIX_CELL_SIZE))
-        
-        # Если матрица слишком большая, масштабируем
-        if cols * cell_size > max_width:
-            cell_size = max(1, max_width // cols)
-        
-        matrix_width = cols * cell_size
-        matrix_height = rows * cell_size
-        
+        header_height = 15
+                
         # Рисуем матрицу
         for row in range(rows):
             for col in range(cols):
@@ -132,7 +124,7 @@ class CreatureWeightsWidget:
                 
                 rect = pygame.Rect(
                     x + col * cell_size,
-                    y + 20 + row * cell_size,  # +20 для заголовка
+                    y + header_height + row * cell_size,  # +20 для заголовка
                     cell_size,
                     cell_size
                 )
@@ -140,15 +132,16 @@ class CreatureWeightsWidget:
                 
         
         # Рисуем label
-        label_str = f"{label} {matrix.shape[0]}×{matrix.shape[1]}"
-        label_text = self.font.render(label_str, True, self.COLORS['text'])
+        #label_str = f"{label} {matrix.shape[0]}x{matrix.shape[1]}"
+        label_str = f"{label}"
+        label_text = self.font.render(label_str, False, self.COLORS['text'])
         surface.blit(label_text, (x, y))
         
-        # Возвращаем высоту блока (label + матрица + отступ)
-        return matrix_height + 25
+        # Возвращаем высоту блока (label + матрица)
+        return rows * cell_size + header_height + 10
     
     def _draw_vector(self, surface: pygame.Surface, vector: np.ndarray,
-                    x: int, y: int, max_width: int, label: str) -> int:
+                    x: int, y: int, cell_size: int, label: str) -> int:
         """
         Отрисовывает вектор весов как горизонтальную полоску.
         
@@ -156,18 +149,14 @@ class CreatureWeightsWidget:
             surface: pygame Surface для отрисовки
             vector: numpy array с весами (n,)
             x, y: начальные координаты
-            max_width: максимальная ширина
+            cell_size: размер ячейки
             label: название параметра (b1, b2, и т.д.)
             
         Returns:
             int: высота, занятая блоком (для расчета следующей позиции y)
         """
         n = len(vector)
-        cell_width = max(1, max_width // n)
-        
-        # Если вектор большой, масштабируем
-        if n * cell_width > max_width:
-            cell_width = max(1, max_width // n)
+        header_height = 15
         
         # Рисуем вектор как полоску
         for i in range(n):
@@ -175,20 +164,61 @@ class CreatureWeightsWidget:
             color = self._value_to_color(value)
             
             rect = pygame.Rect(
-                x + i * cell_width,
-                y + 20,  # +20 для заголовка
-                cell_width,
+                x + i * cell_size,
+                y + header_height,
+                cell_size,
                 self.VECTOR_CELL_HEIGHT
             )
             pygame.draw.rect(surface, color, rect)
         
         # Рисуем label
-        label_str = f"{label} {len(vector)}"
-        label_text = self.font.render(label_str, True, self.COLORS['text'])
+        label_str = f"{label}"
+        label_text = self.font.render(label_str, False, self.COLORS['text'])
         surface.blit(label_text, (x, y))
         
         # Возвращаем высоту блока
-        return self.VECTOR_CELL_HEIGHT + 25
+        return self.VECTOR_CELL_HEIGHT + header_height
+
+    def _draw_vector_vertical(self, surface: pygame.Surface, vector: np.ndarray,
+                        x: int, y: int, cell_size: int, label: str) -> int:
+            """
+            Отрисовывает вектор весов как вертикальную полоску.
+            
+            Args:
+                surface: pygame Surface для отрисовки
+                vector: numpy array с весами (n,)
+                x, y: начальные координаты
+                max_width: максимальная ширина
+                label: название параметра (b1, b2, и т.д.)
+                
+            Returns:
+                int: высота, занятая блоком (для расчета следующей позиции y)
+            """
+            n = len(vector)
+            header_height = 15
+            
+                # Рисуем вектор как полоску
+            for i in range(n):
+                value = vector[i]
+                color = self._value_to_color(value)
+
+                # Ставим веса вертикально сверху-вниз
+                rect = pygame.Rect(
+                    x,
+                    y + header_height + i * cell_size,
+                    cell_size,
+                    cell_size
+                )
+                pygame.draw.rect(surface, color, rect)
+            
+            # Рисуем label
+            label_str = f"{label}"
+            label_text = self.font.render(label_str, False, self.COLORS['text'])
+            surface.blit(label_text, (x, y))
+            
+            # Возвращаем высоту блока
+            return header_height + n * cell_size
+
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
         """
@@ -202,7 +232,7 @@ class CreatureWeightsWidget:
         self.surface.fill(self.COLORS['background'])
         
         # Заголовок
-        title_text = self.font.render("Neural Network Weights", True, self.COLORS['title'])
+        title_text = self.font.render("Neural Network Weights", False, self.COLORS['title'])
         self.surface.blit(title_text, (self.PADDING, self.PADDING))
         
         # Получаем информацию о выбранном существе из creatures_list_state
@@ -210,7 +240,7 @@ class CreatureWeightsWidget:
             # Никакое существо не выбрано в creatures_list
             placeholder_text = self.font.render(
                 "No creature selected in list",
-                True,
+                False,
                 self.COLORS['placeholder']
             )
             self.surface.blit(
@@ -225,7 +255,7 @@ class CreatureWeightsWidget:
             if creature_id is None:
                 placeholder_text = self.font.render(
                     "No creature selected in list",
-                    True,
+                    False,
                     self.COLORS['placeholder']
                 )
                 self.surface.blit(
@@ -240,7 +270,7 @@ class CreatureWeightsWidget:
                     # Существо не найдено (может быть погибло)
                     placeholder_text = self.font.render(
                         f"Creature #{creature_id} not found",
-                        True,
+                        False,
                         self.COLORS['placeholder']
                     )
                     self.surface.blit(
@@ -250,8 +280,8 @@ class CreatureWeightsWidget:
                 else:
                     # Отображаем информацию о существе
                     creature_id_text = self.font.render(
-                        f"Creature #{creature_id}",
-                        True,
+                        f"ID: {creature_id}",
+                        False,
                         self.COLORS['text']
                     )
                     self.surface.blit(
@@ -259,84 +289,194 @@ class CreatureWeightsWidget:
                         (self.PADDING, self.PADDING + 30)
                     )
                     
-                    # Информация о существе
-                    info_lines = [
-                        f"Age: {creature_dto.age}",
-                        f"Energy: {creature_dto.energy:.1f}",
-                        f"Health: {creature_dto.health:.1f}",
-                        f"Generation: {creature_dto.generation}",
-                    ]
+                    # # Информация о существе
+                    # info_lines = [
+                    #     f"Age: {creature_dto.age}",
+                    #     f"Energy: {creature_dto.energy:.1f}",
+                    #     f"Health: {creature_dto.health:.1f}",
+                    #     f"Generation: {creature_dto.generation}",
+                    # ]
                     
-                    y_offset = self.PADDING + 60
-                    for line in info_lines:
-                        line_text = self.font.render(line, True, self.COLORS['placeholder'])
-                        self.surface.blit(line_text, (self.PADDING, y_offset))
-                        y_offset += 20
+                    # y_offset = self.PADDING + 60
+                    # for line in info_lines:
+                    #     line_text = self.font.render(line, False, self.COLORS['placeholder'])
+                    #     self.surface.blit(line_text, (self.PADDING, y_offset))
+                    #     y_offset += 20
                     
                     # Отображение параметров нейросети
                     if render_state.creatures_list_state.nn_parameters:
                         nn_params = render_state.creatures_list_state.nn_parameters
                         
                         # Заголовок
-                        nn_title_text = self.font.render(
-                            "Neural Network Parameters:",
-                            True,
-                            self.COLORS['text']
-                        )
-                        self.surface.blit(nn_title_text, (self.PADDING, y_offset + 10))
+                        # nn_title_text = self.font.render(
+                        #     "Neural Network Parameters!!!!!!!!!!!!!!!!!!!!!!:",
+                        #     False,
+                        #     self.COLORS['text']
+                        # )
+                        # self.surface.blit(nn_title_text, (self.PADDING, y_offset + 10))
                         
-                        y_offset += 35
+                        # y_offset += 35
                         
-                        # Организуем сетку: 2 колонки для компактности
-                        left_x = self.PADDING
-                        right_x = self.PADDING + self.WIDTH // 2
+
+                        # Рисуем параметры нейросети
                         max_col_width = self.WIDTH // 2 - 2 * self.PADDING
                         max_col_height = 120  # максимальная высота блока
-                        
-                        left_y = y_offset
-                        right_y = y_offset
-                        
                         params_list = list(nn_params.items())
-                        
-                        # Распределяем параметры по колонкам
                         for idx, (param_name, param_info) in enumerate(params_list):
-                            data = param_info['data']
-                            kind = param_info['kind']
+                            match param_name:
+                                case 'w1_x':
+                                    pos_x = 90
+                                    pos_y = 50
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_matrix(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'b1':
+                                    pos_x = 265
+                                    pos_y = 50
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_vector_vertical(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'w2_x':
+                                    pos_x = 300
+                                    pos_y = 50
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_matrix(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'b2':
+                                    pos_x = 370
+                                    pos_y = 110
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_vector_vertical(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'w3':
+                                    pos_x = 400
+                                    pos_y = 110
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_matrix(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'b3':
+                                    pos_x = 435
+                                    pos_y = 120
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_vector_vertical(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'w1_h':
+                                    pos_x = 120
+                                    pos_y = 240
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_matrix(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'w2_h':
+                                    pos_x = 330
+                                    pos_y = 240
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_matrix(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'h1_state':
+                                    pos_x = 120
+                                    pos_y = 420
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_vector(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+                                case 'h2_state':
+                                    pos_x = 330
+                                    pos_y = 300
+                                    data = param_info['data']
+                                    kind = param_info['kind']
+                                    height = self._draw_vector(
+                                        self.surface, data, pos_x, pos_y,
+                                        3, param_name
+                                    )
+
+
+
+
+
+
+
+                        # # Организуем сетку: 2 колонки для компактности
+                        # left_x = self.PADDING
+                        # right_x = self.PADDING + self.WIDTH // 2
+                        # max_col_width = self.WIDTH // 2 - 2 * self.PADDING
+                        # max_col_height = 120  # максимальная высота блока
+                        
+                        # left_y = y_offset
+                        # right_y = y_offset
+                        
+                        # params_list = list(nn_params.items())
+                        
+                        # # Распределяем параметры по колонкам
+                        # for idx, (param_name, param_info) in enumerate(params_list):
+                        #     data = param_info['data']
+                        #     kind = param_info['kind']
                             
-                            # Определяем в какую колонку идти
-                            if idx % 2 == 0:
-                                # Левая колонка
-                                x, y = left_x, left_y
-                            else:
-                                # Правая колонка
-                                x, y = right_x, right_y
+                        #     # Определяем в какую колонку идти
+                        #     if idx % 2 == 0:
+                        #         # Левая колонка
+                        #         x, y = left_x, left_y
+                        #     else:
+                        #         # Правая колонка
+                        #         x, y = right_x, right_y
                             
-                            # Рисуем параметр
-                            if kind == 'matrix':
-                                height = self._draw_matrix(
-                                    self.surface, data, x, y,
-                                    max_col_width, max_col_height, param_name
-                                )
-                            else:  # vector
-                                height = self._draw_vector(
-                                    self.surface, data, x, y,
-                                    max_col_width, param_name
-                                )
+                        #     # Рисуем параметр
+                        #     if kind == 'matrix':
+                        #         height = self._draw_matrix(
+                        #             self.surface, data, x, y,
+                        #             max_col_width, max_col_height, param_name
+                        #         )
+                        #     else:  # vector
+                        #         height = self._draw_vector(
+                        #             self.surface, data, x, y,
+                        #             max_col_width, param_name
+                        #         )
                             
-                            # Обновляем y для следующего параметра в той же колонке
-                            if idx % 2 == 0:
-                                left_y += height + self.PADDING
-                            else:
-                                right_y += height + self.PADDING
+                        #     # Обновляем y для следующего параметра в той же колонке
+                        #     if idx % 2 == 0:
+                        #         left_y += height + self.PADDING
+                        #     else:
+                        #         right_y += height + self.PADDING
+                            
+
+
+
+
+
                     else:
                         placeholder_text = self.font.render(
                             "[No NN parameters available]",
-                            True,
+                            False,
                             self.COLORS['placeholder']
                         )
                         self.surface.blit(
                             placeholder_text,
-                            (self.PADDING, y_offset + 20)
+                            (self.PADDING, 80)
                         )
         
         # Отобразить на главный экран
