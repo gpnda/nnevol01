@@ -153,7 +153,7 @@ class PopupLoadWorldModal:
         # Определяем режим загрузки: обычный, только существ (Shift), перенос существ на другую карту (Ctrl)
         shift_mode = bool(pygame.key.get_mods() & pygame.KMOD_SHIFT)
         ctrl_mode = bool(pygame.key.get_mods() & pygame.KMOD_CTRL)
-        title = "Load saved world and TRANSFER CURRENT POPULATION there" if ctrl_mode else ("LOAD CREATURES ONLY" if shift_mode else "Load saved world")
+        title = "Load saved world and TRANSFER CURRENT POPULATION there (replacing)" if ctrl_mode else ("LOAD CREATURES ONLY (appending)" if shift_mode else "Load saved world")
         title_text = self.font_title.render(title, False, self.COLORS['title_text'])
         title_x = self.x + self.CONTENT_PADDING
         title_y = self.y + (self.TITLE_HEIGHT - title_text.get_height()) // 2
