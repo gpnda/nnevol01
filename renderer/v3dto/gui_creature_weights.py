@@ -63,6 +63,9 @@ class CreatureWeightsWidget:
             self.font = pygame.font.Font(self.FONT_PATH, self.FONT_SIZE)
         except (FileNotFoundError, pygame.error):
             self.font = pygame.font.Font(None, self.FONT_SIZE)
+        
+        # КЕШИРОВАНИЕ
+        self.cached_creature_id: Optional[int] = None  # ID существа для которого кешировано
     
     def _value_to_color(self, value: float) -> Tuple[int, int, int]:
         """
@@ -222,12 +225,38 @@ class CreatureWeightsWidget:
     
     def draw(self, screen: pygame.Surface, render_state: 'RenderStateDTO') -> None:
         """
-        Отрисовка виджета с весами существа.
+        Отрисовка виджета с весами существа (с кешированием).
         
         Args:
             screen: Pygame surface для отрисовки
             render_state: RenderStateDTO с данными о выбранном существе в creatures_list
         """
+        # Определяем текущее выбранное существо
+        current_creature_id: Optional[int] = None
+        if render_state.creatures_list_state and render_state.creatures_list_state.detail_creature_id:
+            current_creature_id = render_state.creatures_list_state.detail_creature_id
+        
+        # Проверяем, нужно ли пересчитывать кеш
+        if current_creature_id != self.cached_creature_id:
+            # Существо изменилось — перерисовать кеш
+            self._rebuild_cache(render_state)
+        
+        # Отобразить кешированную поверхность
+        screen.blit(self.surface, (self.rect.x, self.rect.y))
+    
+    def _rebuild_cache(self, render_state: 'RenderStateDTO') -> None:
+        """
+        Пересчитывает кешированную поверхность весов.
+        
+        Args:
+            render_state: RenderStateDTO с данными о существе
+        """
+        # Обновляем ID кешированного существа
+        if render_state.creatures_list_state:
+            self.cached_creature_id = render_state.creatures_list_state.detail_creature_id
+        else:
+            self.cached_creature_id = None
+        
         # Очистка поверхности
         self.surface.fill(self.COLORS['background'])
         
@@ -478,6 +507,3 @@ class CreatureWeightsWidget:
                             placeholder_text,
                             (self.PADDING, 80)
                         )
-        
-        # Отобразить на главный экран
-        screen.blit(self.surface, (self.rect.x, self.rect.y))
