@@ -55,6 +55,9 @@ class ConeExperiment(StagedExperimentBase):
         self.current_food_x = 0
         self.current_food_y = 0
 
+        # Счетчик для отслеживания тиков без видения пищи
+        self.ticks_without_food_vision = 0
+
         # Разместим еду
         ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
         
@@ -104,6 +107,22 @@ class ConeExperiment(StagedExperimentBase):
         
         # Получить vision для существа (raycast) + raycast_dots для визуализации
         vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
+
+        # Проверка видимости пищи в поле зрения (красный канал = пища)
+        red_channel = vision[0:15]
+        food_visible = np.any(red_channel > 0.0)
+        
+        if food_visible:
+            # Пищу видно, обнуляем счетчик
+            self.ticks_without_food_vision = 0
+        else:
+            # Пищи нет в видении, увеличиваем счетчик
+            self.ticks_without_food_vision += 1
+            
+            # Если пищи не видно 7 тиков подряд - завершаем прогон неудачей
+            if self.ticks_without_food_vision >= 7:
+                self.finish_run(success=False)
+                return
 
         # Вычислить выходы нейросети (out_angle, out_speed, bite)
         out_angle, out_speed, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
@@ -190,6 +209,7 @@ class ConeExperiment(StagedExperimentBase):
         print("###   self.current_food_y", self.current_food_y)
         
         self.stage_run_counter = 0 # обнуляем счетчик
+        self.ticks_without_food_vision = 0  # Обнуляем счетчик для нового прогона
         print("###   NOW NEW VALUE self.stage_run_counter", self.stage_run_counter)
         
         # Сохраняем результат прогона в статистику
