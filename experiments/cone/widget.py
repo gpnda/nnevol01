@@ -6,6 +6,13 @@ import pygame
 
 
 
+# Параметры рисования матрицы
+MATRIX_START_X = 100
+MATRIX_START_Y = 100
+CELL_SIZE = 15
+MATRIX_WIDTH =27
+MATRIX_HEIGHT = 27
+
 class ConeExperimentWidget:
     POPUP_WIDTH = 1100
     POPUP_HEIGHT = 500
@@ -29,6 +36,27 @@ class ConeExperimentWidget:
             self.font = pygame.font.Font(None, self.FONT_SIZE)
             self.font_title = pygame.font.Font(None, self.FONT_SIZE + 4)
             self.small_font = pygame.font.Font(None, self.FONT_SIZE - 4)
+        
+
+        # Цвет сетки
+        mesh_color = (40, 40, 40)
+
+
+        self.mesh = pygame.Surface((MATRIX_WIDTH * CELL_SIZE, MATRIX_HEIGHT * CELL_SIZE))
+
+        for row in range(MATRIX_HEIGHT):
+            for col in range(MATRIX_WIDTH):
+                # Нарисуем Вертикальные 
+                line_start = (col * CELL_SIZE, 0)
+                line_end = (col * CELL_SIZE, MATRIX_HEIGHT * CELL_SIZE)
+                pygame.draw.line(self.mesh, mesh_color, line_start, line_end)
+
+                # Нарисуем Горизонтальные
+                line_start = (0, row * CELL_SIZE)
+                line_end = (MATRIX_WIDTH * CELL_SIZE, row * CELL_SIZE)
+                pygame.draw.line(self.mesh, mesh_color, line_start, line_end)
+
+
     
     def draw(self, screen: pygame.Surface, experiment_dto):
         if experiment_dto is None:
@@ -54,7 +82,7 @@ class ConeExperimentWidget:
         # Заголовок
         title_rect = pygame.Rect(x, y, self.POPUP_WIDTH, 30)
         pygame.draw.rect(screen, self.COLORS['title_bg'], title_rect)
-        title_text = self.font_title.render("ConeExperiment", True, self.COLORS['title_text'])
+        title_text = self.font_title.render("ConeExperiment", False, self.COLORS['title_text'])
         screen.blit(title_text, (x + 20, y + 7))
         
 
@@ -64,35 +92,21 @@ class ConeExperimentWidget:
         # Рисуем карту эксперимента
         # ##########################################################################
 
-        # Параметры рисования матрицы
-        MATRIX_START_X = 100
-        MATRIX_START_Y = 100
-        CELL_SIZE = 15
-        
         experiment_map = experiment_dto.world
 
+        # Вставим сетку mesh
+        screen.blit(self.mesh, (MATRIX_START_X , MATRIX_START_Y ))
 
         # Рисуем матрицу карты
         map_data = experiment_map.map
+
         for row in range(map_data.shape[0]):
             for col in range(map_data.shape[1]):
 
-                # Цвет сетки
-                mesh_color = (40, 40, 40)
-                # Нарисуем Вертикальные 
-                line_start = (MATRIX_START_X + col * CELL_SIZE, MATRIX_START_Y)
-                line_end = (MATRIX_START_X + col * CELL_SIZE, MATRIX_START_Y + map_data.shape[0] * CELL_SIZE)
-                pygame.draw.line(screen, mesh_color, line_start, line_end)
-
-                # Нарисуем Горизонтальные
-                line_start = (MATRIX_START_X, MATRIX_START_Y + row * CELL_SIZE)
-                line_end = (MATRIX_START_X + map_data.shape[1] * CELL_SIZE, MATRIX_START_Y + row * CELL_SIZE)
-                pygame.draw.line(screen, mesh_color, line_start, line_end)
-
-                # Далее - рисуем содержимое карты
+                # рисуем содержимое карты
                 cell_x = MATRIX_START_X + col * CELL_SIZE
                 cell_y = MATRIX_START_Y + row * CELL_SIZE
-                cell_rect = pygame.Rect(cell_x, cell_y, CELL_SIZE, CELL_SIZE)
+                cell_rect = pygame.Rect(cell_x+1, cell_y+1, CELL_SIZE-1, CELL_SIZE-1)
                 
                 # Определяем цвет ячейки на основе значения
                 cell_value = map_data[row, col]
@@ -105,12 +119,22 @@ class ConeExperimentWidget:
                 elif cell_value == 3:  # Существо
                     cell_color = (50, 50, 255)
                 else:
-                    cell_color = (255, 10, 10)
+                    cell_color = (255, 0, 0) # Неизвестное значение, красный для отладки
                 
                 # Рисуем заполненный прямоугольник и границу
                 pygame.draw.rect(screen, cell_color, cell_rect)
                 #pygame.draw.rect(screen, (80, 80, 80), cell_rect, 1)
 
+                result_value = experiment_dto.results_map[row, col]
+                icon_size = 3
+                if result_value == 1:  # SUCCESS
+                    # нарисуем квадрат внутри ячейки
+                    pygame.draw.rect(screen, self.COLORS['success'], (cell_x + CELL_SIZE//2 - icon_size, cell_y + CELL_SIZE//2 - icon_size, icon_size*2, icon_size*2), 1)
+                elif result_value == 0:  # FAIL
+                    # нарисуем крестик - две пересеченные крест-накрест линии
+                    pygame.draw.line(screen, self.COLORS['fail'], (cell_x + CELL_SIZE//2 - icon_size, cell_y + CELL_SIZE//2 - icon_size), (cell_x + CELL_SIZE//2 + icon_size, cell_y + CELL_SIZE//2 + icon_size), 1)
+                    pygame.draw.line(screen, self.COLORS['fail'], (cell_x + CELL_SIZE//2 - icon_size, cell_y + CELL_SIZE//2 + icon_size), (cell_x + CELL_SIZE//2 + icon_size, cell_y + CELL_SIZE//2 - icon_size), 1)
+                
         # нарисуем точки Raycast
         if experiment_dto.creature_state is not None and experiment_dto.creature_state.raycast_dots is not None:
             for dot in experiment_dto.creature_state.raycast_dots:
@@ -124,7 +148,7 @@ class ConeExperimentWidget:
             creature_y = MATRIX_START_Y + experiment_dto.creature_state.y * CELL_SIZE
             pygame.draw.circle(screen, (255, 255, 255), (creature_x + CELL_SIZE//2, creature_y + CELL_SIZE//2), CELL_SIZE//2, 1)
 
-
+        
 
 
 
@@ -137,9 +161,17 @@ class ConeExperimentWidget:
         x = (screen_w - self.POPUP_WIDTH) // 2
         y = (screen_h - self.POPUP_HEIGHT) // 2
         
-        VISION_MATRIX_X = x + 25
-        VISION_MATRIX_Y = y + 420
+        VISION_MATRIX_X = x + 450
+        VISION_MATRIX_Y = y + 50
         VISION_CELL_SIZE = 17
+
+        # Надпись Vision
+        vision_text = self.font.render("Vision:", False, self.COLORS['text'])
+        screen.blit(vision_text, (VISION_MATRIX_X, VISION_MATRIX_Y ))
+
+        # Надпись Bite
+        bite_text = self.font.render("Bite:", False, self.COLORS['text'])
+        screen.blit(bite_text, (VISION_MATRIX_X, VISION_MATRIX_Y + 20))
 
         # Преобразование в uint8 диапазон [0, 255]
         if experiment_dto.creature_state is not None and experiment_dto.creature_state.vision_input is not None:
@@ -154,10 +186,28 @@ class ConeExperimentWidget:
             
             # Рисуем видение в виде 15 цветных квадратов (горизонтально)
             for i, color in enumerate(rgb_tuples):
-                square_rect = pygame.Rect(VISION_MATRIX_X + i * VISION_CELL_SIZE, VISION_MATRIX_Y, VISION_CELL_SIZE, VISION_CELL_SIZE)
+                square_rect = pygame.Rect(VISION_MATRIX_X + 60 + i * VISION_CELL_SIZE, VISION_MATRIX_Y, VISION_CELL_SIZE, VISION_CELL_SIZE)
                 pygame.draw.rect(screen, color, square_rect)
                 pygame.draw.rect(screen, (80, 80, 80), square_rect, 1)
         
+        
+        # Если существо куснуло - нарисуем индикатор укуса рядом с vision input, он будет заполняться  в зависимости от усилия укуса
+        bite_rect_width = 50
+        bite_rect_height = VISION_CELL_SIZE
+        bite_color = self.COLORS['border']
+
+        # Сначала рамочку и фон для индикатора укуса
+        bite_rect = pygame.Rect(VISION_MATRIX_X + 60, VISION_MATRIX_Y + 20, bite_rect_width, bite_rect_height)
+        pygame.draw.rect(screen, (10, 10, 10), bite_rect)  # фон
+        pygame.draw.rect(screen, (80, 80, 80), bite_rect, 1)
+        # Теперь наполнение
+        if experiment_dto.creature_state is not None and experiment_dto.creature_state.nn_outputs is not None and experiment_dto.creature_state.nn_outputs[2] > 0.5:
+            bite_color = self.COLORS['success']
+        
+        bite_actual_width = int(bite_rect_width * (experiment_dto.creature_state.nn_outputs[2] if experiment_dto.creature_state is not None and experiment_dto.creature_state.nn_outputs is not None else 0))
+        bite_fill_rect = pygame.Rect(VISION_MATRIX_X + 60 + 2, VISION_MATRIX_Y + 22, bite_actual_width - 4, bite_rect_height - 4)
+        pygame.draw.rect(screen, bite_color, bite_fill_rect)
+            
 
 
 

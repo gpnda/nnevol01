@@ -6,30 +6,32 @@ Cone Experiment - проверка достижения цели в различ
 Стадий не планируется.
 """
 
-import random
 import math
 import numpy as np
 from experiments.base.staged_experiment_base import StagedExperimentBase
-from experiments.bite.dto import BiteExperimentDTO
 from experiments.toolbox import ScenarioBuilder, VisionSimulator, StatsCollector
 from world import World
 from experiments.base.dto import ExperimentWorldStateDTO, ExperimentCreatureStateDTO
+from experiments.cone.dto import ConeExperimentDTO
+
+
+MAX_TICKS_TO_ACHIVE_GOAL = 550  # Максимальное количество тиков, за которые существо должно достичь цели (куснуть пищу)
 
 class ConeExperiment(StagedExperimentBase):
-    """Эксперимент проверки кусания."""
+    """Эксперимент с конусом - собираю его заново"""
 
     def __init__(self, target_creature_id: int, world: World):
         super().__init__(target_creature_id, world)
+
 
         self.plan = [
             {
             "stage_method": self._stage_0,
             "stage_name": "CONE CONE CONE",
-            "num_runs": 100,
+            "num_runs": 1000,
             "result_threshold": 0.9,
             }
             ]
-
         
         # Создаем экспериментальное существо с нейронной сеткой, скопированной из target_creature
         self.inspecting_creature = ScenarioBuilder.copy_creature(
@@ -38,13 +40,9 @@ class ConeExperiment(StagedExperimentBase):
 
         # Инициализация сборщика статистики
         self.stats_collector = StatsCollector()
-        
+
         # Переменные для хранения текущего состояния существа (для передачи в DTO)
         self.current_creature_state = None  # ExperimentCreatureStateDTO
-
-
-
-
 
         # параметры экспериментального мира
         self.test_world_width = 27
@@ -57,50 +55,42 @@ class ConeExperiment(StagedExperimentBase):
         self.current_food_x = 0
         self.current_food_y = 0
 
-        # Разместим еду в начальной позиции
+        # Разместим еду
         ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
         
         # Размещаем существо
         self.inspecting_creature.x = 2.5
         self.inspecting_creature.y = 12.5
         self.inspecting_creature.angle = 0.0
-        
+
+
+        # Переменные для хранения текущей позиции пищи
+        # Один run - это серия тиков, за которые существо должно куснуть пищу.
+        # В каждый run - мы перемещаем пищу на 1 клетку вперед.
+        # Так что нам нужно хранить текущую позицию пищи, чтобы знать, куда ее переместить в начале каждого run.
+        # так что обнуляем именно в конструкторе а не в начале каждого run.
+        self.current_food_x = 0
+        self.current_food_y = 0
+
+        # массива с результатами для всех координак карты, пища пробегает по всем возможнымположениям на карте,
+        # запускается прогон в MAX_TICKS_TO_ACHIVE_GOAL тиков, если существо кусает пищу - 
+        # то результат для этой точки карты сохраняется как SUCCESS, если не кусает - FAIL.
+        # так что это 2D массив размером self.test_world_width на self.test_world_height
+        # Возможные значения: 
+        #   -1 - не тестировалось, 
+        #   0 - тестировалось, результат FAIL, 
+        #   1 - тестировалось, результат SUCCESS
+        self.results_map = np.zeros((self.test_world_height, self.test_world_width), dtype=np.int32)
+        self.results_map.fill(-1)  # Изначально все позиции не тестировались, заполняем -1
+
     
-
-
-
-
-
-
-
-########################################################################################
-###      ######     ##   ####   #        ##############################################
-##    ###   #    ##   #     ##  ##   ###################################################
-##    #######   ####  #   #  #  ##      ##################       ### ###################
-##    ####  #    ##   #   ##    ##   #################     #    # ######################
-###       #####     ###   ###    #        ####          #      ##  #####################
-#######################################                           # ####################
-################################                #                 #    #################
-###########################                              #     #    ### ################
-#######      ######                                              # #    ################
-#######   #  #                                                       # #################
-#######      ####                                      #         #      # ##############
-######################                     #                  #     #   ################
-###############################                                     ##  ################
-#####################################                  #            ####################
-################################################              #    # ###################
-########################################################        # ######################
-############################################################    ### ####################
-########################################################################################
-########################################################################################
-
     def _stage_0(self):
         """Стадия 0: CONE CONE CONE
         
         Процедура прогона:
         0. Создать пустой новый мир
         1. Разместить существо в (5.7, 25.5 ± 0.3), смотрящее вправо (angle=0)
-        2. Последовательно размещать пищу в разных точках карты
+        2. Разместить пищу в точке (self.current_food_x, self.current_food_y)
         3. Запустить рабочий цикл, пока не будет достигнуто 
             - либо успешный укус пищи, 
             - либо выход за пределы карты 
@@ -112,18 +102,11 @@ class ConeExperiment(StagedExperimentBase):
         
         """
         
-        
-    
-        
-        
         # Получить vision для существа (raycast) + raycast_dots для визуализации
         vision, raycast_dots = VisionSimulator.get_creature_vision(self.test_world, self.inspecting_creature)
-        
+
         # Вычислить выходы нейросети (out_angle, out_speed, bite)
         out_angle, out_speed, bite_output = VisionSimulator.simulate_nn_output(self.inspecting_creature, vision)
-        
-
-
 
         ang, spd, newx, newy = World.apply_outs( # По моей задумке - это должен быть статичный метод класса World
 				creature_x = self.inspecting_creature.x,
@@ -135,15 +118,14 @@ class ConeExperiment(StagedExperimentBase):
 				)
         self.inspecting_creature.angle = ang
         self.inspecting_creature.speed = spd
-			# newx=newx #     просто демонстрирую, что этот метод возвращает и новые координаты тоже
-			# newy=newy #      и что дальше будет использоваться эта четверка уже расчитанных переменных
-
+		# newx=newx #     просто демонстрирую, что этот метод возвращает и новые координаты тоже
+		# newy=newy #      и что дальше будет использоваться эта четверка уже расчитанных переменных
         
         # Проверим, чтосущество не выползло за пределы карты
         if newx < 0 or newx >= self.test_world_width or newy < 0 or newy >= self.test_world_height:
             self.finish_run(success=False)
             return
-        
+
         # Существо осталось в пределах карты, обновляем его позицию
         self.inspecting_creature.x = newx
         self.inspecting_creature.y = newy
@@ -159,28 +141,23 @@ class ConeExperiment(StagedExperimentBase):
             bitey = self.inspecting_creature.y + self.inspecting_creature.bite_range*math.sin(self.inspecting_creature.angle)
             
             # Проверим выход за пределы карты > app.world.dimx-1 mappointer
-            if (int(bitex) < 0 or int(bitex) > self.test_world_width-1):
-                return False
-            if (int(bitey) < 0 or int(bitey) > self.test_world_height-1):
-                return False
+            if (int(bitex) < 0 or int(bitex) > self.test_world_width-1) or (int(bitey) < 0 or int(bitey) > self.test_world_height-1):
+                # Если существо куснуло за пределы карты, то просто не считаем это укусом, иначе будет Out of index
+                pass
+            else:
+                # # Проверим на попытку укусить себя
+                #               ДА ПОФИГ, СУЩЕСТВО ТО МОЖЕТ СТОЯТЬ НА ПИЩЕ В ОДНОЙ КЛЕТКЕ, ТАК ЧТО ПУСТЬ КУСАЕТ
+                # if (int(bitex) == int(self.x) and int(bitey) == int(self.y)):
+                # 	return False
+                
+                # получим информацию о том, что находится в клетке, которую существо кусает
+                biteplace =  self.test_world.get_cell(int(bitex), int(bitey))
 
-            # # Проверим на попытку укусить себя
-            #               ДА ПОФИГ, СУЩЕСТВО ТО МОЖЕТ СТОЯТЬ НА ПИЩЕ В ОДНОЙ КЛЕТКЕ, ТАК ЧТО ПУСТЬ КУСАЕТ
-            # if (int(bitex) == int(self.x) and int(bitey) == int(self.y)):
-            # 	return False
-            
-            # получим информацию о том, что находится в клетке, которую существо кусает
-            biteplace =  self.test_world.get_cell(int(bitex), int(bitey))
-
-            if biteplace == 2:
-                # Существу повезло, оно укусило пищу.
-                self.finish_run(success=True)
-                return
+                if biteplace == 2:
+                    # Существу повезло, оно укусило пищу.
+                    self.finish_run(success=True)
+                    return
         
-
-        # print("step: ", self.current_stage, self.stage_run_counter, "pos:", round(self.inspecting_creature.x, 2), round(self.inspecting_creature.y, 2), "angle:", round(self.inspecting_creature.angle, 2), "bite:", round(bite_output, 2))
-
-
         # Сохранить текущее состояние существа для DTO (для визуализации в виджете)
         self.current_creature_state = ExperimentCreatureStateDTO(
             x=self.inspecting_creature.x,
@@ -194,16 +171,13 @@ class ConeExperiment(StagedExperimentBase):
         # Прервать run, если за XXX тиков не удалось ее куснуть. 
         # Если не прервать таким образом и не вернуть счетчик к нулю, то 
         # эксперимент завершиться по достижению количества, указанного в плане.
-        if self.stage_run_counter == 50:
+        if self.stage_run_counter == MAX_TICKS_TO_ACHIVE_GOAL:
             self.stage_run_counter = 0
             self.finish_run(success=False)
 
-        
-        
-        
 
-
-
+        # увеличить счетчик прогонов внутри стадии и перейти к следующей стадии, если достигнут лимит
+        self.stage_run_counter_increment()
 
 
 
@@ -211,7 +185,28 @@ class ConeExperiment(StagedExperimentBase):
 
     def finish_run(self, success: bool):
         print(" ##########################  FINISH RUN ###########################")
-        # Создаём пустой тестовый мир 50x50 для экспериментов
+        print("###   self.stage_run_counter", self.stage_run_counter)
+        print("###   self.current_food_x", self.current_food_x)
+        print("###   self.current_food_y", self.current_food_y)
+        
+        self.stage_run_counter = 0 # обнуляем счетчик
+        print("###   NOW NEW VALUE self.stage_run_counter", self.stage_run_counter)
+        
+        # Сохраняем результат прогона в статистику
+        self.stats_collector.add_run(
+            stage=self.current_stage,
+            success=success,
+            point_x=self.current_food_x,
+            point_y=self.current_food_y,
+        )
+
+        # Сохраняем результаты прогона на карте results_map
+        if success:
+            self.results_map[self.current_food_y, self.current_food_x] = 1  # SUCCESS
+        else:
+            self.results_map[self.current_food_y, self.current_food_x] = 0  # FAIL
+
+        # Создаём пустой тестовый мир 27x27 для экспериментов
         self.test_world = ScenarioBuilder.create_test_world(self.test_world_width, self.test_world_height)
         
         # Переходим к следующей позиции пищи (п.2 в процедуре прогона: Последовательно размещать пищу в разных точках карты)
@@ -222,65 +217,26 @@ class ConeExperiment(StagedExperimentBase):
             if self.current_food_y >= self.test_world_height:
                 print("All food positions tested.")
                 self.stop()
+                self.finish_experiment()
                 return
-
-        # Разместим еду в начальной позиции
+        
+        print(f"Next food position: ({self.current_food_x}, {self.current_food_y})")
+        # Разместим еду
         ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
         
-        # Разместим существо обратно в начальную позицию
+        # Размещаем существо
         self.inspecting_creature.x = 2.5
         self.inspecting_creature.y = 12.5
         self.inspecting_creature.angle = 0.0
-        
-        # Сохраняем результат прогона в статистику
-        self.stats_collector.add_run(
-            stage=self.current_stage,
-            success=success
-        )
-
-        # Инкремент счетчика прогонов для текущей стадии
-        self.stage_run_counter_increment()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    
     
 
 
-    
+
     def get_experiment_dto(self):
         """Вернуть DTO для виджета с полной изоляцией через DTO."""
         # summary = self.stats.get_summary()
-        return BiteExperimentDTO(
+        return ConeExperimentDTO(
             creature_id=self.target_creature.id,
             is_running=self.is_running,
             current_stage=self.current_stage,
@@ -293,6 +249,7 @@ class ConeExperiment(StagedExperimentBase):
             creature_state=self.current_creature_state,
             plan=self.plan,
             stats=self.stats_collector.get_all_stages_stats(),
+            results_map=self.results_map
         )
     
     def _get_total_stages(self) -> int:
@@ -300,21 +257,18 @@ class ConeExperiment(StagedExperimentBase):
 
     def _print_summary(self):
         """Вывести резюме результатов эксперимента в консоль."""
-        pass
-        # summary = self.stats.get_summary()
-        # print(f"\n[BITE EXPERIMENT] Summary for creature {self.target_creature.id}")
+        # Просто распечатать содержимое накопленной статистики
+        print("EXPERIMENT SUMMARY:")
+        all_stats = self.stats_collector.get_all_stages_stats()
+        print(f"Experiment Summary for creature {self.target_creature.id}:")
         
-        # for stage in sorted([k for k in summary.keys() if isinstance(k, int)])[:6]:  # первые 6 стадий
-        #     stage_stats = summary[stage]
-        #     print(f"  Stage {stage}: "
-        #           f"Total={stage_stats['total']}, "
-        #           f"Success={stage_stats['success']}, "
-        #           f"Fail={stage_stats['fail']}, "
-        #           f"Rate={stage_stats['success_rate']*100:.1f}%")
+        print(all_stats)
+        # print(self.stats_collector.stats) # Вот так выводить бесмысленно, слишком много данных, но формально у нас эти данные есть.
         
-        # if 'overall' in summary:
-        #     overall = summary['overall']
-        #     print(f"  OVERALL: "
-        #           f"Total={overall['total_runs']}, "
-        #           f"Success={overall['total_success']}, "
-        #           f"Rate={overall['overall_success_rate']*100:.1f}%")
+        # распечатаем карту results_map
+        print("Results Map ( -1 = not tested, 0 = FAIL, 1 = SUCCESS ):")
+        print(self.results_map)
+
+    def finish_experiment(self):
+        """Завершить эксперимент и вывести резюме."""
+        self._print_summary()
