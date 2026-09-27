@@ -58,6 +58,9 @@ class ConeExperiment(StagedExperimentBase):
         # Счетчик для отслеживания тиков без видения пищи
         self.ticks_without_food_vision = 0
         self.max_ticks_without_food_vision = 0  # Максимальное количество тиков без видения пищи, после которого прогон считается неудачным
+        
+        # Флаг ожидания выбора параметра перед запуском
+        self.awaiting_parameter_selection = True
 
         # Разместим еду
         ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
@@ -271,7 +274,8 @@ class ConeExperiment(StagedExperimentBase):
             plan=self.plan,
             stats=self.stats_collector.get_all_stages_stats(),
             results_map=self.results_map,
-            max_ticks_without_food_vision=self.max_ticks_without_food_vision
+            max_ticks_without_food_vision=self.max_ticks_without_food_vision,
+            awaiting_parameter_selection=self.awaiting_parameter_selection
         )
     
     def _get_total_stages(self) -> int:
@@ -300,3 +304,9 @@ class ConeExperiment(StagedExperimentBase):
         if param_name == 'max_ticks_without_food_vision':
             self.max_ticks_without_food_vision = int(value)
             print(f"[ConeExperiment] max_ticks_without_food_vision = {self.max_ticks_without_food_vision}")
+            
+            # Если ждали выбора параметра - запускаем эксперимент
+            if self.awaiting_parameter_selection:
+                self.awaiting_parameter_selection = False
+                self.start()
+                print(f"[ConeExperiment] Started after parameter selection")

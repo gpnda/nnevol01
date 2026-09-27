@@ -101,8 +101,9 @@ class Application():
 		self.experiment_mode = True
 		self.is_running = False  # Остановить основную симуляцию
 		
-		# Запускаем эксперимент
-		self.experiment.start()
+		# НЕ запускаем эксперимент автоматически - ждем выбора параметров пользователем
+		# Эксперимент запустится только после выбора max_ticks_without_food_vision (0-9)
+		print(f"Experiment awaiting parameter selection...")
 		print(f"Experiment initialized and started")
 		
 
