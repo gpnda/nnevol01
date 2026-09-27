@@ -355,6 +355,22 @@ class Renderer:
                 print(f"✓ All creatures reproduction ages updated")
         else:
             print(f"✗ Unknown parameter: {param_name}")
+    
+    def _on_experiment_parameter_change(self, param_name: str, value: any) -> None:
+        """
+        Callback для обработки изменений параметров экспериментального виджета.
+        
+        Вызывается из экспериментального виджета при изменении параметра.
+        Передаёт изменение в текущий запущенный эксперимент.
+        
+        Args:
+            param_name: Имя параметра (e.g. "max_ticks_without_food_vision")
+            value: Новое значение параметра
+        """
+        if self.app.experiment is not None:
+            self.app.experiment.set_parameter(param_name, value)
+        else:
+            print(f"✗ No experiment running")
 
     def _on_experiment_choose(self, experiment_id: int) -> None:
         """
@@ -390,7 +406,9 @@ class Renderer:
             # Создаём виджет из реестра EXPERIMENTS
             widget_class = EXPERIMENTS[experiment_type].get('widget_class')
             if widget_class:
-                self.experiment_widget = widget_class()
+                self.experiment_widget = widget_class(
+                    on_parameter_change=self._on_experiment_parameter_change
+                )
             else:
                 print(f"✗ No widget class for experiment: {experiment_type}")
                 return

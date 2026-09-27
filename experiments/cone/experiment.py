@@ -57,6 +57,7 @@ class ConeExperiment(StagedExperimentBase):
 
         # Счетчик для отслеживания тиков без видения пищи
         self.ticks_without_food_vision = 0
+        self.max_ticks_without_food_vision = 0  # Максимальное количество тиков без видения пищи, после которого прогон считается неудачным
 
         # Разместим еду
         ScenarioBuilder.place_food(self.test_world, x=self.current_food_x, y=self.current_food_y)
@@ -120,7 +121,7 @@ class ConeExperiment(StagedExperimentBase):
             self.ticks_without_food_vision += 1
             
             # Если пищи не видно 7 тиков подряд - завершаем прогон неудачей
-            if self.ticks_without_food_vision >= 7:
+            if self.ticks_without_food_vision >= self.max_ticks_without_food_vision:
                 self.finish_run(success=False)
                 return
 
@@ -269,7 +270,8 @@ class ConeExperiment(StagedExperimentBase):
             creature_state=self.current_creature_state,
             plan=self.plan,
             stats=self.stats_collector.get_all_stages_stats(),
-            results_map=self.results_map
+            results_map=self.results_map,
+            max_ticks_without_food_vision=self.max_ticks_without_food_vision
         )
     
     def _get_total_stages(self) -> int:
@@ -292,3 +294,9 @@ class ConeExperiment(StagedExperimentBase):
     def finish_experiment(self):
         """Завершить эксперимент и вывести резюме."""
         self._print_summary()
+    
+    def set_parameter(self, param_name: str, value) -> None:
+        """Установить параметр эксперимента (вызывается через callback из виджета)."""
+        if param_name == 'max_ticks_without_food_vision':
+            self.max_ticks_without_food_vision = int(value)
+            print(f"[ConeExperiment] max_ticks_without_food_vision = {self.max_ticks_without_food_vision}")

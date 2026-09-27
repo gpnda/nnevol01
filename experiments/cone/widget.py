@@ -3,6 +3,7 @@
 
 import numpy as np
 import pygame
+from typing import Callable, Optional, Any
 
 
 
@@ -27,7 +28,9 @@ class ConeExperimentWidget:
         'fail': (255, 100, 100),
     }
     
-    def __init__(self):
+    def __init__(self, on_parameter_change: Optional[Callable[[str, Any], None]] = None):
+        self.on_parameter_change = on_parameter_change
+        
         try:
             self.font = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', self.FONT_SIZE)
             self.font_title = pygame.font.Font('./tests/Ac437_Siemens_PC-D.ttf', self.FONT_SIZE + 4)
@@ -147,6 +150,32 @@ class ConeExperimentWidget:
             creature_x = MATRIX_START_X + experiment_dto.creature_state.x * CELL_SIZE
             creature_y = MATRIX_START_Y + experiment_dto.creature_state.y * CELL_SIZE
             pygame.draw.circle(screen, (255, 255, 255), (creature_x + CELL_SIZE//2, creature_y + CELL_SIZE//2), CELL_SIZE//2, 1)
+        
+        # Отобразить текущее значение max_ticks_without_food_vision
+        status_text = f"max_ticks_without_food_vision: {experiment_dto.max_ticks_without_food_vision} (Press 0-9)"
+        status_surface = self.small_font.render(status_text, False, self.COLORS['text'])
+        screen.blit(status_surface, (x + 20, y + self.POPUP_HEIGHT - 30))
+    
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        """Обработать события клавиатуры для управления параметрами.
+        
+        Клавиши 0-9: установить max_ticks_without_food_vision
+        - 0 → 1000
+        - 1-9 → соответствующее значение (1-9)
+        """
+        if event.type == pygame.KEYDOWN:
+            # Проверяем цифры 0-9
+            if pygame.K_0 <= event.key <= pygame.K_9:
+                digit = event.key - pygame.K_0
+                # Если 0 → 1000, иначе значение = цифре
+                value = 1000 if digit == 0 else digit
+                
+                if self.on_parameter_change:
+                    self.on_parameter_change('max_ticks_without_food_vision', value)
+                print(f"[ConeExperimentWidget] Pressed {digit} → max_ticks_without_food_vision = {value}")
+                return True
+        
+        return False
 
         
 

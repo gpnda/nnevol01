@@ -30,3 +30,4 @@ class ConeExperimentDTO:
     
     # Пробросим в виджет 2D карту results_map, с результатами прогонов 
     results_map: Optional[np.ndarray] = None  # карта результатов ( -1 = not tested, 0 = FAIL, 1 = SUCCESS )
+    max_ticks_without_food_vision: int = 0  # максимальное количество тиков без видения пищи
