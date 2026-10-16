@@ -16,7 +16,7 @@ from world import World
 
 
 class BurrowExperiment(StagedExperimentBase):
-    MAP_FILENAME = "burrows.csv"
+    MAP_FILENAME = "map_burrow_01.csv"
     DEFAULT_NUM_RUNS = 1000
     DEFAULT_BURROW_STAY_TICKS = 500
     DEFAULT_MAX_TICKS_PER_RUN = 2000
@@ -107,7 +107,7 @@ class BurrowExperiment(StagedExperimentBase):
     def _reset_run(self) -> None:
         creature = self.inspecting_creature
         creature.x = self.center_x
-        creature.y = self.center_y
+        creature.y = self.center_y+10
         creature.angle = random.uniform(0.0, math.tau)
         creature.speed = 1.0
         creature.energy = 1.0
