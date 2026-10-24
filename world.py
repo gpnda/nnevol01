@@ -227,6 +227,9 @@ class World():
 
 	def teleport_creature(self, creature):
 		# Телепортируем существо в случайную outdoor-клетку; стены которые случайно разбросаны уже после загрузки карты, - не учитываются
+		# Сначала проверим, что сущесво не находится уже снаружи. Если оно уже снаружи, нет смысла его телепортировать.
+		if not self.is_in_nest(creature):
+			return False
 		ix, iy = self.zones_map.get_random_outdoor_pixel()
 		# Дробная часть внутри клетки, чтобы координаты оставались вещественными
 		creature.x = ix + random.random()
