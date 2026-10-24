@@ -106,6 +106,7 @@ class VariablesPanel:
         self.add_variable("zones_penalty_mode",               int,   min_val=0,       max_val=2,        comment="Zone penalty mode (0 = none, 1 = penalty for being inside a burrow, 2 = penalty for being outside)")
         self.add_variable("zones_penalty",                    float, min_val=0.0,     max_val=1.0,      comment="Penalty amount for staying in a zone. Applied to creature.health")
         self.add_variable("zones_penalty_probability",        float, min_val=0.0,     max_val=1.0,      comment="Probability of receiving a zone penalty (for example, 0.02 means a 2 percent chance each tick)")
+        self.add_variable("teleport_probability",             float, min_val=0.0,     max_val=1.0,      comment="Probability of a creature teleporting during a regulation tick")
     
     def add_variable(self, name: str, var_type: type = int,
                      min_val: Optional[float] = None, 
@@ -161,6 +162,8 @@ class VariablesPanel:
         self.variables['zones_penalty_mode']['value'] = params_dto.zones_penalty_mode
         self.variables['zones_penalty']['value'] = params_dto.zones_penalty
         self.variables['zones_penalty_probability']['value'] = params_dto.zones_penalty_probability
+        self.variables['teleport_probability']['value'] = params_dto.teleport_probability
+        
     
     def get_variable(self, name: str) -> Any:
         """Получить значение переменной."""

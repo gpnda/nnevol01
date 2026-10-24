@@ -510,6 +510,7 @@ class Renderer:
             zones_penalty_mode=sp.zones_penalty_mode,
             zones_penalty=sp.zones_penalty,
             zones_penalty_probability=sp.zones_penalty_probability,
+            teleport_probability=sp.teleport_probability,
         )
     
     def _prepare_creature_history_dto(self, creature_id: int) -> Optional[CreatureHistoryDTO]:

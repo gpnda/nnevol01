@@ -65,6 +65,7 @@ class SimParams:
         self.zones_penalty_mode = 0 # 0 - нет, 1 - штраф за нахождение в норке, 2 - штраф за нахождение снаружи
         self.zones_penalty = 0.001
         self.zones_penalty_probability = 0.02 # вероятность применения штрафа в каждом тике
+        self.teleport_probability = 0.01  # вероятность телепортации существа в каждом регуляционном тике
 
     def __new__(cls):
         if cls._instance is None:

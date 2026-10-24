@@ -68,6 +68,15 @@ class World():
 		return None
 
 	def update(self):
+
+		self.tick += 1
+
+		# Регуляцию делаем не каждый тик, а раз в 50 тиков, чтобы умегьшить оверхед
+		if self.tick % 50 == 0:
+			regulation_tick = True
+		else:
+			regulation_tick = False
+
 		# 1. Восприятие (параллельно)
 		# Подготавливаем данные для быстрой функции
 		current_map = self.map
@@ -170,6 +179,11 @@ class World():
 			self.apply_zone_penalty(creature)
 
 			creature.update()
+
+			# Проверим вероятность телепортации существа
+			if regulation_tick:
+				if random.random() < sp.teleport_probability:
+					self.teleport_creature(creature)
 			
 			
 
@@ -198,17 +212,27 @@ class World():
 
 		self.delete_eaten_and_old_food()
 
-		self.tick += 1
+		
 
 		# TODO: Надо ли это вынести в Application???
 		# Регулировка количества пищи в мире
-		if self.tick % 50 == 0:
+		if regulation_tick:
 			self.regulate_food()
 
 		# print("POPULATION: " + str(len(self.creatures)))
 		# print("tick: " + str(self.tick) + "   | cr[0].age:"+ str(self.creatures[0].age) + " cr[0].energy:" + str(self.creatures[0].energy) + "   | cr[0].birth_ages: " + str(self.creatures[0].birth_ages) )
 
-			
+	
+	
+
+	def teleport_creature(self, creature):
+		# Телепортируем существо в случайную outdoor-клетку; стены которые случайно разбросаны уже после загрузки карты, - не учитываются
+		ix, iy = self.zones_map.get_random_outdoor_pixel()
+		# Дробная часть внутри клетки, чтобы координаты оставались вещественными
+		creature.x = ix + random.random()
+		creature.y = iy + random.random()
+		return True
+
 	def regulate_food(self):
 		# Если пищи на карте меньше чем sp.food_amount
 		# То добавляем пищу, в соответствии с пропорцией

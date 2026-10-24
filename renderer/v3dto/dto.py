@@ -222,6 +222,7 @@ class SimulationParamsDTO:
     zones_penalty_mode: int
     zones_penalty: float
     zones_penalty_probability: float
+    teleport_probability: float
 
 
 # ============================================================================
