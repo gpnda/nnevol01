@@ -196,7 +196,7 @@ class World():
 
 		self.control_population()
 
-		self.proceed_food()
+		self.delete_eaten_and_old_food()
 
 		self.tick += 1
 
@@ -244,7 +244,7 @@ class World():
 		if len(self.creatures)<950:
 			self.reprod()
 
-	def proceed_food(self):
+	def delete_eaten_and_old_food(self):
 		# удаляем из массива foods пищу, если она съедена, а на карту она каждый тик 
 		# заново наносится, так что про карту не паримся, это приятно 
 		self.foods = [food for food in self.foods if food.nutrition >= 0]
